@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
-import Landing from "@/pages/Landing";
+import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import LessonView from "@/pages/LessonView";
 import CategoryView from "@/pages/CategoryView";
@@ -19,11 +19,13 @@ function Router() {
 
   return (
     <Switch>
-      {isLoading || !isAuthenticated ? (
-        <Route path="/" component={Landing} />
-      ) : (
+      {!isAuthenticated && !isLoading && (
+        <Route component={Login} />
+      )}
+      {isAuthenticated && (
         <>
           <Route path="/" component={Dashboard} />
+          <Route path="/dashboard" component={Dashboard} />
           <Route path="/lesson/:id" component={LessonView} />
           <Route path="/category/:category" component={CategoryView} />
           <Route path="/teacher" component={TeacherDashboard} />
@@ -31,6 +33,16 @@ function Router() {
           <Route path="/lesson-creation" component={LessonCreation} />
           <Route path="/proposals/:id" component={ProposalDetails} />
         </>
+      )}
+      {isLoading && (
+        <Route>
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p>Loading...</p>
+            </div>
+          </div>
+        </Route>
       )}
       <Route component={NotFound} />
     </Switch>

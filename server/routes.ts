@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./fileAuth";
 import {
   insertLessonSchema,
   insertUserProgressSchema,
@@ -17,17 +17,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
+  // Auth routes are handled in fileAuth.ts
 
   // Categories routes
   app.get('/api/categories', isAuthenticated, async (req, res) => {
@@ -43,26 +33,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Lessons routes
   app.get('/api/lessons', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
+      const userId = user.id || user.username;
       
-      if (user?.role === 'teacher' || user?.role === 'admin') {
-        // Teachers and admins can see all lessons
-        const lessons = await storage.getLessons();
-        res.json(lessons);
-      } else {
-        // Students can only see lessons they have permission for
+      let lessons = await storage.getLessons();
+      
+      // For students, filter by permissions
+      if (user?.role === 'student') {
         const permittedLessonIds = await storage.getUserPermissions(userId);
-        if (permittedLessonIds.length === 0) {
-          res.json([]);
-          return;
-        }
+        lessons = lessons.filter(lesson => permittedLessonIds.includes(lesson.id));
         
-        const lessons = await storage.getLessons();
-        const permittedLessons = lessons.filter(lesson => 
-          permittedLessonIds.includes(lesson.id)
-        );
-        res.json(permittedLessons);
+        // Remove answer guides
+        const lessonsWithoutAnswers = lessons.map(lesson => ({
+          ...lesson,
+          answerGuide: null
+        }));
+        res.json(lessonsWithoutAnswers);
+      } else {
+        // Teachers and admins can see all lessons
+        res.json(lessons);
       }
     } catch (error) {
       console.error("Error fetching lessons:", error);
@@ -73,17 +62,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/lessons/category/:categoryId', isAuthenticated, async (req: any, res) => {
     try {
       const { categoryId } = req.params;
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
+      const userId = user.id || user.username;
       
-      const lessons = await storage.getLessonsByCategory(categoryId);
+      let lessons = await storage.getLessonsByCategory(categoryId);
       
+      // For students, filter by permissions
       if (user?.role === 'student') {
         const permittedLessonIds = await storage.getUserPermissions(userId);
-        const permittedLessons = lessons.filter(lesson => 
-          permittedLessonIds.includes(lesson.id)
-        );
-        res.json(permittedLessons);
+        lessons = lessons.filter(lesson => permittedLessonIds.includes(lesson.id));
+        
+        // Remove answer guides
+        const lessonsWithoutAnswers = lessons.map(lesson => ({
+          ...lesson,
+          answerGuide: null
+        }));
+        res.json(lessonsWithoutAnswers);
       } else {
         res.json(lessons);
       }
@@ -96,8 +90,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/lessons/:id', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
+      const userId = user.id || user.username;
       
       const lesson = await storage.getLessonById(id);
       if (!lesson) {
@@ -109,13 +103,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (user?.role === 'student') {
         const hasPermission = await storage.checkLessonPermission(userId, id);
         if (!hasPermission) {
-          res.status(403).json({ message: "Access denied" });
+          res.status(403).json({ message: "Access denied - lesson not permitted" });
           return;
         }
-      }
-      
-      // Remove answer guide for students
-      if (user?.role === 'student') {
+        
         const { answerGuide, ...lessonWithoutAnswers } = lesson;
         res.json(lessonWithoutAnswers);
       } else {
@@ -130,7 +121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Progress routes
   app.get('/api/progress', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id || req.user.username;
       const progress = await storage.getUserProgress(userId);
       res.json(progress);
     } catch (error) {
@@ -142,7 +133,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/progress/category/:categoryId', isAuthenticated, async (req: any, res) => {
     try {
       const { categoryId } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user.id || req.user.username;
       const progress = await storage.getUserProgressByCategory(userId, categoryId);
       res.json(progress);
     } catch (error) {
@@ -153,7 +144,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/progress', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id || req.user.username;
       const progressData = insertUserProgressSchema.parse({
         ...req.body,
         userId,
@@ -170,14 +161,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Teacher routes
   app.get('/api/teacher/classrooms', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
       
       if (user?.role !== 'teacher') {
         res.status(403).json({ message: "Access denied" });
         return;
       }
       
+      const userId = user.id || user.username;
       const classrooms = await storage.getClassroomsByTeacher(userId);
       res.json(classrooms);
     } catch (error) {
@@ -188,18 +179,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/teacher/classrooms', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
       
       if (user?.role !== 'teacher') {
         res.status(403).json({ message: "Access denied" });
         return;
       }
       
+      const userId = user.id || user.username;
       const classroomData = insertClassroomSchema.parse({
         ...req.body,
         teacherId: userId,
-        schoolId: user.schoolId,
+        schoolId: "default-school", // Use default school for file-based auth
       });
       
       const classroom = await storage.createClassroom(classroomData);
@@ -213,11 +204,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/teacher/classrooms/:id/students', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
+      const userId = user.id || user.username;
       
       if (user?.role !== 'teacher') {
         res.status(403).json({ message: "Access denied" });
+        return;
+      }
+      
+      // Verify teacher owns this classroom
+      const classroom = await storage.getClassroomById(id);
+      if (!classroom || classroom.teacherId !== userId) {
+        res.status(403).json({ message: "Access denied - not your classroom" });
         return;
       }
       
@@ -231,14 +229,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/teacher/permissions', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
       
       if (user?.role !== 'teacher') {
         res.status(403).json({ message: "Access denied" });
         return;
       }
       
+      const userId = user.id || user.username;
       const permissionData = insertLessonPermissionSchema.parse({
         ...req.body,
         grantedBy: userId,
@@ -255,7 +253,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin routes
   app.post('/api/admin/lessons', isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.user.claims.sub);
+      const user = req.user;
       
       if (user?.role !== 'admin') {
         res.status(403).json({ message: "Access denied" });
@@ -274,16 +272,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Lesson proposals routes
   app.post('/api/proposals', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
+      const user = req.user;
+      const userId = user.id || user.username;
 
       const proposalData = insertLessonProposalSchema.parse({
         ...req.body,
         authorId: userId,
-        schoolId: user.schoolId,
+        schoolId: "default-school", // Use default school for file-based auth
         status: 'draft'
       });
 
@@ -297,13 +292,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/proposals', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      if (!user || !user.schoolId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
-
-      const proposals = await storage.getLessonProposals(user.schoolId);
+      const user = req.user;
+      
+      // Simplified for file-based auth - all authenticated users can see proposals
+      const proposals = await storage.getLessonProposals("default-school");
       res.json(proposals);
     } catch (error) {
       console.error("Error fetching proposals:", error);
@@ -314,18 +306,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/proposals/:id', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
       
       const proposal = await storage.getLessonProposalById(id);
       if (!proposal) {
         return res.status(404).json({ message: "Proposal not found" });
       }
 
-      // Check school access
-      if (!await storage.checkSchoolAccess(userId, proposal.schoolId)) {
-        return res.status(403).json({ message: "Access denied" });
-      }
+      // Simplified for file-based auth - all authenticated users can view proposals
 
       res.json(proposal);
     } catch (error) {
@@ -337,7 +325,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch('/api/proposals/:id/submit', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user.id || req.user.username;
       
       const proposal = await storage.getLessonProposalById(id);
       if (!proposal) {
@@ -359,7 +347,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch('/api/proposals/:id/approve', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user.id || req.user.username;
       const user = await storage.getUser(userId);
       
       if (user?.role !== 'admin' && user?.role !== 'teacher') {
@@ -378,7 +366,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/proposals/:id/vote', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user.id || req.user.username;
       
       const proposal = await storage.getLessonProposalById(id);
       if (!proposal) {
@@ -407,7 +395,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/proposals/:id/votes', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user.id || req.user.username;
       
       const proposal = await storage.getLessonProposalById(id);
       if (!proposal) {
@@ -431,7 +419,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/lessons/:id/rate', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user.id || req.user.username;
       
       const lesson = await storage.getLessonById(id);
       if (!lesson) {
@@ -460,7 +448,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/lessons/:id/ratings', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user.id || req.user.username;
       
       const lesson = await storage.getLessonById(id);
       if (!lesson) {
@@ -483,7 +471,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // School-based lesson access
   app.get('/api/school/lessons', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id || req.user.username;
       const user = await storage.getUser(userId);
       
       if (!user || !user.schoolId) {

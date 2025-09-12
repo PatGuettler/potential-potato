@@ -1,0 +1,57 @@
+{
+  "users": [
+    {
+      "username": "hashedadmin",
+      "password": "$2b$12$tT8ggAKXIvtVOtO7lVST2eH.HrNZLgTK6xfJcbI8rJN4h0xzN1mtW",
+      "firstName": "Hashed",
+      "lastName": "Admin",
+      "role": "admin",
+      "createdAt": "2025-09-12T01:18:04.659Z"
+    },
+    {
+      "username": "securitystudent",
+      "password": "$2b$12$uDs3eKg.EDMWdk4eFTB7tuXvFbfTkW1H1roLsLbZ8VWWJCVBlfICq",
+      "firstName": "Security",
+      "lastName": "Student",
+      "role": "student",
+      "createdAt": "2025-09-12T01:18:33.291Z"
+    },
+    {
+      "username": "testadminMtn7",
+      "password": "$2b$12$gXnDeBNn1f6Jme8YW2CK..CZc99GJAz4XbPtzJ395shWswQFbiV26",
+      "email": "testadminMtn7@example.com",
+      "firstName": "Admin",
+      "lastName": "User",
+      "role": "student",
+      "createdAt": "2025-09-12T01:23:46.846Z"
+    },
+    {
+      "username": "testadminqLbj",
+      "password": "$2b$12$1qotInorQDwbDETLu0bake6fJsDDLjGL6l4WdDCWqEZh3VMCfcLpe",
+      "email": "",
+      "firstName": "",
+      "lastName": "",
+      "role": "student",
+      "createdAt": "2025-09-12T01:27:01.769Z"
+    },
+    {
+      "username": "teststudentwrTq",
+      "password": "$2b$12$dqokXZb34Zk37BlOxSp.DOgbEXceLqLWuMcF3IXy6/SFpzz1JNaDS",
+      "email": "",
+      "firstName": "",
+      "lastName": "",
+      "role": "student",
+      "createdAt": "2025-09-12T01:29:49.053Z"
+    },
+    {
+      "username": "testadminGYJX",
+      "password": "$2b$12$n/4jYPFOJv1XeLisjgf1bOCveEQPZfX9/m4dNfBMW.PzAIxGVz91q",
+      "email": "",
+      "firstName": "",
+      "lastName": "",
+      "role": "admin",
+      "createdAt": "2025-09-12T01:34:23.052Z"
+    }
+  ],
+  "lastModified": "2025-09-12T01:34:23.052Z"
+}

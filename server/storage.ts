@@ -50,6 +50,7 @@ export interface IStorage {
   
   // Classroom operations
   createClassroom(classroom: InsertClassroom): Promise<Classroom>;
+  getClassroomById(id: string): Promise<Classroom | undefined>;
   getClassroomsByTeacher(teacherId: string): Promise<Classroom[]>;
   getStudentsByClassroom(classroomId: string): Promise<User[]>;
   enrollStudentInClassroom(studentId: string, classroomId: string): Promise<void>;
@@ -542,6 +543,10 @@ Solutions:
     return newClassroom;
   }
 
+  async getClassroomById(id: string): Promise<Classroom | undefined> {
+    return this.classrooms.get(id);
+  }
+
   async getClassroomsByTeacher(teacherId: string): Promise<Classroom[]> {
     return Array.from(this.classrooms.values()).filter(c => 
       c.teacherId === teacherId && c.isActive
@@ -574,14 +579,15 @@ Solutions:
   }
 
   async getUserPermissions(studentId: string): Promise<string[]> {
-    // For simplicity, all users have access to all lessons in memory storage
-    const lessons = await this.getLessons();
-    return lessons.map(l => l.id);
+    const permissions = Array.from(this.lessonPermissions.values())
+      .filter(p => p.studentId === studentId);
+    return permissions.map(p => p.lessonId);
   }
 
   async checkLessonPermission(studentId: string, lessonId: string): Promise<boolean> {
-    // For simplicity, all users have access to all lessons in memory storage
-    return true;
+    const hasPermission = Array.from(this.lessonPermissions.values())
+      .some(p => p.studentId === studentId && p.lessonId === lessonId);
+    return hasPermission;
   }
 
   // Lesson proposal operations
