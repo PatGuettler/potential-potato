@@ -9,8 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import { apiRequest } from "@/lib/queryClient";
-import type { Lesson, LessonContent, LessonQuestion } from "@shared/schema";
+import type { LessonContent, LessonQuestion } from "@shared/schema";
 import { CheckCircle, XCircle, AlertCircle, ArrowLeft, Play, RotateCcw, Save, Award, Loader } from "lucide-react";
 
 export default function LessonView() {

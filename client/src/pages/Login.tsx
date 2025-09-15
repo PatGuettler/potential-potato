@@ -14,7 +14,6 @@ export default function Login() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [isRegistering, setIsRegistering] = useState(false);
-  const [showRoleSelection, setShowRoleSelection] = useState(false);
   
   const [formData, setFormData] = useState({
     username: "",

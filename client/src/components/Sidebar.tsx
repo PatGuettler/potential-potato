@@ -1,6 +1,5 @@
 import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { cn } from "@/lib/utils";
 import {
   Sidebar as SidebarPrimitive,
   SidebarContent,
@@ -52,29 +51,29 @@ const toolItems = [
     href: "/lesson-creation",
     icon: "fas fa-plus-circle",
   },
-  {
-    name: "Code Editor",
-    href: "/tools/editor",
-    icon: "fas fa-code",
-  },
-  {
-    name: "Calculator",
-    href: "/tools/calculator", 
-    icon: "fas fa-calculator",
-  },
-  {
-    name: "Progress",
-    href: "/progress",
-    icon: "fas fa-chart-line",
-  },
+  // {
+  //   name: "Code Editor",
+  //   href: "/tools/editor",
+  //   icon: "fas fa-code",
+  // },
+  // {
+  //   name: "Calculator",
+  //   href: "/tools/calculator", 
+  //   icon: "fas fa-calculator",
+  // },
+  // {
+  //   name: "Progress",
+  //   href: "/progress",
+  //   icon: "fas fa-chart-line",
+  // },
 ];
 
 export function Sidebar() {
   const [location] = useLocation();
 
-  const { data: categories } = useQuery({
-    queryKey: ["/api/categories"],
-  });
+  // const { data: categories } = useQuery({
+  //   queryKey: ["/api/categories"],
+  // });
 
   return (
     <SidebarPrimitive className="border-r-0" collapsible="icon">
@@ -88,7 +87,7 @@ export function Sidebar() {
       </SidebarHeader>
       
       <SidebarContent>
-        <SidebarGroup>
+        {/* <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => (
@@ -112,7 +111,7 @@ export function Sidebar() {
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
-        </SidebarGroup>
+        </SidebarGroup> */}
         
         <SidebarGroup>
           <SidebarGroupLabel>Tools</SidebarGroupLabel>

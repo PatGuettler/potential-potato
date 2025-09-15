@@ -148,7 +148,6 @@ function generateDeploymentConfig() {
       schoolBasedAccess: true
     },
     nextSteps: [
-      'Set up authentication with Replit Auth',
       'Configure environment variables for production',
       'Create admin user account',
       'Import initial lesson content',

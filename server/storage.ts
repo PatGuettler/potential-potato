@@ -394,7 +394,6 @@ function appendLessonToCSV(lesson: Lesson): void {
 }
 
 export interface IStorage {
-  // User operations (mandatory for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   

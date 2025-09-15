@@ -4,7 +4,6 @@ import { Header } from "@/components/Header";
 import { ProgressCard } from "@/components/ProgressCard";
 import { LessonCard } from "@/components/LessonCard";
 import { CategoryCard } from "@/components/CategoryCard";
-import { CodeEditor } from "@/components/CodeEditor";
 import { Calculator } from "@/components/Calculator";
 import { useLocation } from "wouter";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
@@ -73,29 +72,29 @@ export default function Dashboard() {
     return { completed, total, progress: progressPercent };
   };
 
-  // Get featured lessons (in progress or recommended)
-  const getFeaturedLessons = () => {
-    if (!lessons || !progress) return [];
+  // // Get featured lessons (in progress or recommended)
+  // const getFeaturedLessons = () => {
+  //   if (!lessons || !progress) return [];
     
-    // Get lessons with progress
-    const lessonsWithProgress = lessons.map((lesson: any) => {
-      const lessonProgress = progress.find((p: any) => p.lessonId === lesson.id);
-      return {
-        ...lesson,
-        progress: lessonProgress?.score || 0,
-        status: lessonProgress?.isCompleted ? 'completed' : 
-                lessonProgress ? 'in-progress' : 'not-started'
-      };
-    });
+  //   // Get lessons with progress
+  //   const lessonsWithProgress = lessons.map((lesson: any) => {
+  //     const lessonProgress = progress.find((p: any) => p.lessonId === lesson.id);
+  //     return {
+  //       ...lesson,
+  //       progress: lessonProgress?.score || 0,
+  //       status: lessonProgress?.isCompleted ? 'completed' : 
+  //               lessonProgress ? 'in-progress' : 'not-started'
+  //     };
+  //   });
     
-    // Prioritize in-progress lessons, then not-started
-    const inProgress = lessonsWithProgress.filter((l: any) => l.status === 'in-progress');
-    const notStarted = lessonsWithProgress.filter((l: any) => l.status === 'not-started');
+  //   // Prioritize in-progress lessons, then not-started
+  //   const inProgress = lessonsWithProgress.filter((l: any) => l.status === 'in-progress');
+  //   const notStarted = lessonsWithProgress.filter((l: any) => l.status === 'not-started');
     
-    return [...inProgress, ...notStarted].slice(0, 2);
-  };
+  //   return [...inProgress, ...notStarted].slice(0, 2);
+  // };
 
-  const featuredLessons = getFeaturedLessons();
+  // const featuredLessons = getFeaturedLessons();
 
   return (
     <SidebarProvider>
@@ -127,7 +126,7 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* Current Lessons */}
+          {/* Current Lessons
           <section>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg sm:text-xl font-semibold">Continue Learning</h3>
@@ -147,7 +146,7 @@ export default function Dashboard() {
                 />
               ))}
             </div>
-          </section>
+          </section> */}
 
           {/* Lesson Categories */}
           <section>
@@ -165,12 +164,6 @@ export default function Dashboard() {
               ))}
             </div>
           </section>
-
-          {/* Code Editor Demo */}
-          <CodeEditor />
-
-          {/* Math Calculator Demo */}
-          <Calculator />
           </main>
         </SidebarInset>
       </div>

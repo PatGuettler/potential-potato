@@ -31,12 +31,9 @@ def create_app():
     # Initialize extensions
     Session(app)
     
-    # CORS configuration for local development and replit.dev
     cors_origins = [
         'http://localhost:5173', 
-        'http://127.0.0.1:5173',
-        'https://*.replit.dev',
-        'https://*.repl.co'
+        'http://127.0.0.1:5173'
     ]
     
     CORS(app, 
