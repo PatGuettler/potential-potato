@@ -1,5 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import type { User } from "@shared/schema";
 
 export function Header() {
@@ -16,28 +17,26 @@ export function Header() {
   };
 
   return (
-    <header className="bg-card border-b border-border px-6 py-4">
+    <header className="bg-card border-b border-border px-4 sm:px-6 py-3 sm:py-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <button className="lg:hidden p-2 rounded-lg hover:bg-secondary" data-testid="mobile-menu">
-            <i className="fas fa-bars text-muted-foreground"></i>
-          </button>
-          <div>
-            <h2 className="text-xl font-semibold">
+        <div className="flex items-center space-x-3 sm:space-x-4">
+          <SidebarTrigger className="lg:hidden" data-testid="mobile-menu" />
+          <div className="min-w-0">
+            <h2 className="text-lg sm:text-xl font-semibold truncate">
               Welcome back, <span data-testid="user-first-name">{user?.firstName || "Student"}</span>!
             </h2>
-            <p className="text-sm text-muted-foreground">Continue your STEM journey</p>
+            <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Continue your STEM journey</p>
           </div>
         </div>
         
-        <div className="flex items-center space-x-4">
-          <button className="p-2 rounded-lg hover:bg-secondary relative" data-testid="notifications">
+        <div className="flex items-center space-x-2 sm:space-x-4">
+          <button className="p-2 rounded-lg hover:bg-secondary relative hidden sm:block" data-testid="notifications">
             <i className="fas fa-bell text-muted-foreground"></i>
             <span className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full"></span>
           </button>
           
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-medium">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-xs sm:text-sm font-medium">
               <span data-testid="user-initials">{getInitials(user?.firstName, user?.lastName)}</span>
             </div>
             <span className="text-sm font-medium hidden sm:inline" data-testid="user-full-name">
@@ -50,8 +49,19 @@ export function Header() {
             size="sm" 
             onClick={() => window.location.href = '/api/logout'}
             data-testid="logout-button"
+            className="hidden sm:inline-flex"
           >
             Logout
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => window.location.href = '/api/logout'}
+            data-testid="logout-button-mobile"
+            className="sm:hidden"
+          >
+            <i className="fas fa-sign-out-alt"></i>
           </Button>
         </div>
       </div>

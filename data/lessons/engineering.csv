@@ -1,0 +1,213 @@
+id,title,category,summary,content,answerGuide,answer,difficulty,estimatedMinutes,tags,authorId,createdAt,schoolId
+eng001,Introduction to Engineering Design,engineering,Learn the engineering design process and problem-solving methods,"Engineering is applying science and mathematics to solve real-world problems and improve people's lives.
+
+**The Engineering Design Process:**
+1. **Define the Problem**: What needs to be solved?
+2. **Research**: Gather information about similar solutions
+3. **Brainstorm**: Generate multiple solution ideas
+4. **Design**: Create detailed plans and specifications
+5. **Build**: Construct a prototype or model
+6. **Test**: Evaluate how well the solution works
+7. **Improve**: Refine the design based on test results
+
+**Types of Engineering:**
+- **Civil**: Bridges, roads, buildings
+- **Mechanical**: Machines, engines, robots
+- **Electrical**: Circuits, computers, power systems
+- **Chemical**: Manufacturing processes, materials
+- **Software**: Computer programs and systems
+- **Biomedical**: Medical devices and treatments
+
+**Engineering Mindset:**
+- Creative problem-solving
+- Learning from failure
+- Considering constraints (time, money, materials)
+- Thinking about user needs","**Teacher Guide:**
+
+**Key Engineering Principles:**
+- Iterative design (build, test, improve, repeat)
+- Optimization (best solution within constraints)
+- Systems thinking (how parts work together)
+- Safety and ethics considerations
+
+**Hands-on Activities:**
+1. Paper tower challenge (height vs. stability)
+2. Bridge building with limited materials
+3. Design a solution for school problem
+4. Reverse engineering everyday objects
+
+**Real-world Connections:**
+- Local infrastructure projects
+- Environmental challenges
+- Space exploration
+- Medical device innovations
+
+**Assessment Ideas:**
+- Design journal with sketches and reflections
+- Present solution to classroom ""clients""
+- Peer review of designs
+- Prototype testing and data collection
+
+**Common Misconceptions:**
+- Engineering is just building things (it's problem-solving)
+- Engineers work alone (it's highly collaborative)
+- There's only one right answer (multiple valid solutions)","**Expected Student Answer:**
+Students should be able to explain:
+1. **Engineering Definition**: Engineering applies science and mathematics to solve real-world problems and improve people's lives
+2. **The 7-Step Engineering Design Process** in order:
+   - **Define the Problem**: Identify what needs to be solved
+   - **Research**: Gather information about similar solutions
+   - **Brainstorm**: Generate multiple solution ideas
+   - **Design**: Create detailed plans and specifications
+   - **Build**: Construct a prototype or model
+   - **Test**: Evaluate how well the solution works
+   - **Improve**: Refine the design based on test results
+3. **Types of Engineering** (identify at least 4):
+   - Civil (bridges, roads, buildings)
+   - Mechanical (machines, engines, robots)
+   - Electrical (circuits, computers, power systems)
+   - Chemical (manufacturing processes, materials)
+   - Software (computer programs and systems)
+   - Biomedical (medical devices and treatments)
+4. **Engineering Mindset**: Creative problem-solving, learning from failure, considering constraints (time, money, materials), thinking about user needs
+5. **Iterative Process**: Engineers build, test, and improve repeatedly",Easy,40,design|problem-solving|innovation|stem,default-admin,2024-09-14T00:00:00.000Z,default-school
+eng002,Structures and Materials,engineering,Understanding how buildings and bridges are designed to be strong and stable,"Structural engineering focuses on designing buildings, bridges, and other structures that can safely support loads and withstand forces.
+
+**Forces on Structures:**
+- **Compression**: Pushing forces that squeeze materials
+- **Tension**: Pulling forces that stretch materials  
+- **Shear**: Forces that cause sliding or cutting
+- **Torsion**: Twisting forces
+
+**Structural Elements:**
+- **Beams**: Horizontal supports that carry loads
+- **Columns**: Vertical supports that transfer weight down
+- **Trusses**: Framework of connected triangular units
+- **Foundations**: Base that transfers building weight to ground
+
+**Material Properties:**
+- **Strength**: How much force a material can withstand
+- **Stiffness**: Resistance to bending or deformation
+- **Durability**: How long material lasts under conditions
+- **Cost**: Economic considerations in material selection
+
+**Common Building Materials:**
+- **Steel**: Strong in tension and compression
+- **Concrete**: Excellent in compression, weak in tension
+- **Wood**: Renewable, good strength-to-weight ratio
+- **Composite**: Engineered materials with specific properties","**Teacher Answer Guide:**
+
+**Key Structural Concepts:**
+- Triangles are strongest geometric shape
+- Load path: forces must have continuous path to ground
+- Factor of safety: designs are stronger than minimum required
+- Redundancy: backup load paths if one element fails
+
+**Demonstrations:**
+1. Test different beam shapes (solid vs. hollow vs. I-beam)
+2. Build towers with different base shapes
+3. Compare material strengths (balsa wood, cardboard, metal)
+4. Show buckling with long thin columns
+
+**Real-world Examples:**
+- Explain why bridges have different designs (beam, arch, suspension)
+- Discuss famous structural failures and lessons learned
+- Show how buildings are designed for earthquakes/wind
+
+**Calculations (Advanced):**
+- Simple stress = Force / Area
+- Moment calculations for beams
+- Basic truss analysis
+
+**Career Connections:**
+- Structural engineer, architect
+- Construction manager
+- Materials scientist","**Expected Student Answer:**
+Students should be able to explain:
+1. **Structural Engineering Purpose**: Designing buildings, bridges, and structures that can safely support loads and withstand forces
+2. **Four Types of Forces on Structures**:
+   - **Compression**: Pushing forces that squeeze materials (like weight pressing down)
+   - **Tension**: Pulling forces that stretch materials (like rope being pulled)
+   - **Shear**: Forces that cause sliding or cutting (like scissors cutting paper)
+   - **Torsion**: Twisting forces (like wringing out a towel)
+3. **Key Structural Elements**:
+   - **Beams**: Horizontal supports that carry loads
+   - **Columns**: Vertical supports that transfer weight down
+   - **Trusses**: Framework of connected triangular units (triangles are strongest shape)
+   - **Foundations**: Base that transfers building weight to ground
+4. **Material Properties**: Strength (how much force it can handle), stiffness (resistance to bending), durability (how long it lasts), and cost
+5. **Common Materials**: Steel (strong in tension/compression), concrete (strong in compression), wood (renewable, good strength-to-weight), composites (engineered materials)
+6. **Safety Concepts**: Load path (forces need continuous path to ground), factor of safety (build stronger than minimum required)",Medium,45,structures|materials|forces|buildings|bridges,default-admin,2024-09-14T00:00:00.000Z,default-school
+eng003,Robotics and Automation,engineering,Introduction to robots and automated systems,"Robotics combines engineering, computer science, and mathematics to create machines that can perform tasks automatically.
+
+**What is a Robot?**
+A robot is a machine that can sense its environment, make decisions, and take actions to complete tasks.
+
+**Key Robot Components:**
+1. **Sensors**: Eyes and ears of the robot (cameras, proximity sensors, gyroscopes)
+2. **Actuators**: Muscles of the robot (motors, servos, pneumatics)
+3. **Controller**: Brain of the robot (microcontroller, computer)
+4. **Power System**: Energy source (batteries, solar panels)
+5. **Mechanical Structure**: Frame and moving parts
+
+**Types of Robots:**
+- **Industrial**: Manufacturing, assembly lines, welding
+- **Service**: Cleaning robots (Roomba), delivery drones
+- **Medical**: Surgical robots, prosthetics, rehabilitation
+- **Exploration**: Mars rovers, underwater robots
+- **Entertainment**: Pet robots, educational robots
+
+**Programming Robots:**
+Robots are programmed using languages like Python, C++, or visual programming blocks. Programs control:
+- Movement patterns
+- Sensor data processing
+- Decision-making logic
+- Response to environment","**Teacher Guide:**
+
+**Fundamental Robotics Concepts:**
+- Sense-Plan-Act cycle
+- Feedback loops and control systems
+- Autonomous vs. remote-controlled
+- Human-robot interaction
+
+**Hands-on Projects:**
+1. Build simple robot with microcontroller (Arduino/Raspberry Pi)
+2. Program robot to follow line or avoid obstacles
+3. Design robot gripper to pick up objects
+4. Create robot that responds to voice commands
+
+**Coding Concepts:**
+- If-then logic for decision making
+- Loops for repetitive actions
+- Variables for sensor data
+- Functions for common tasks
+
+**Real-world Applications:**
+- Self-driving cars (sensors + AI + control)
+- Manufacturing automation
+- Space exploration robots
+- Medical surgery assistance
+- Search and rescue robots
+
+**Ethics Discussion:**
+- Job displacement concerns
+- Robot rights and consciousness
+- Autonomous weapons debate
+- Privacy and surveillance","**Expected Student Answer:**
+Students should be able to explain:
+1. **Robot Definition**: A robot is a machine that can sense its environment, make decisions, and take actions to complete tasks automatically
+2. **Five Key Robot Components**:
+   - **Sensors**: Eyes and ears of robot (cameras, proximity sensors, gyroscopes) - gather information about environment
+   - **Actuators**: Muscles of robot (motors, servos, pneumatics) - make robot move and take action
+   - **Controller**: Brain of robot (microcontroller, computer) - processes information and makes decisions
+   - **Power System**: Energy source (batteries, solar panels) - provides power to operate
+   - **Mechanical Structure**: Frame and moving parts - physical body that holds everything together
+3. **Types of Robots** (identify at least 4):
+   - Industrial (manufacturing, assembly lines, welding)
+   - Service (cleaning robots like Roomba, delivery drones)
+   - Medical (surgical robots, prosthetics, rehabilitation)
+   - Exploration (Mars rovers, underwater robots)
+   - Entertainment (pet robots, educational robots)
+4. **Robot Programming**: Robots are programmed to control movement, process sensor data, make decisions, and respond to environment
+5. **Sense-Plan-Act Cycle**: Robots sense environment, plan actions, then act - this cycle repeats continuously
+6. **Autonomous vs. Remote-Controlled**: Autonomous robots make their own decisions, remote-controlled robots are operated by humans",Hard,55,robotics|automation|programming|sensors|ai,default-admin,2024-09-14T00:00:00.000Z,default-school

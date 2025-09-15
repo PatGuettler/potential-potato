@@ -1,0 +1,170 @@
+id,title,category,summary,content,answerGuide,answer,difficulty,estimatedMinutes,tags,authorId,createdAt,schoolId
+tech001,Introduction to Programming,technology,Learn the basics of computer programming and coding,"Programming is giving instructions to computers to solve problems and automate tasks.
+
+**What is Programming?**
+Programming involves writing step-by-step instructions that computers can understand and execute.
+
+**Key Concepts:**
+- **Algorithm**: A set of steps to solve a problem
+- **Variable**: Storage for data that can change
+- **Loop**: Repeating instructions multiple times
+- **Function**: Reusable block of code
+
+**Programming Languages:**
+- **Python**: Great for beginners, used in data science
+- **JavaScript**: Powers websites and web applications
+- **Java**: Used for large applications and Android apps
+- **C++**: Fast language for games and system software
+
+**Your First Program:**
+Most programmers start with ""Hello, World!"" - a simple program that displays text.","**Teacher Guide:**
+
+**Fundamental Concepts to Emphasize:**
+- Logical thinking and problem decomposition
+- Sequence, selection, and iteration
+- Input, processing, output model
+
+**Beginner Programming Exercises:**
+1. Hello World program
+2. Simple calculator (add two numbers)
+3. Age calculator from birth year
+4. Basic guessing game
+
+**Common Student Misconceptions:**
+- Programming is just typing code (it's problem-solving)
+- Computers understand human language (need precise syntax)
+- Programs work perfectly the first time (debugging is normal)
+
+**Assessment:**
+- Write pseudocode for daily activities
+- Identify algorithm steps in recipes
+- Debug simple code examples","**Expected Student Answer:**
+Students should be able to explain:
+1. **Programming Definition**: Programming is writing step-by-step instructions that computers can understand and execute to solve problems
+2. **Key Programming Concepts**:
+   - **Algorithm**: A set of steps to solve a problem (like a recipe)
+   - **Variable**: Storage container for data that can change (like a box with a label)
+   - **Loop**: Repeating instructions multiple times (like ""repeat 10 times"")
+   - **Function**: Reusable block of code that performs a specific task
+3. **Programming Languages**: Identify 2-3 examples (Python, JavaScript, Java, C++) and their uses
+4. **Problem-Solving Approach**: Programming involves logical thinking and breaking big problems into smaller steps
+5. **Hello World**: Understand this is typically the first program beginners write to display text",Easy,35,programming|coding|algorithms|computer-science,default-admin,2024-09-14T00:00:00.000Z,default-school
+tech002,Web Development Basics,technology,Understanding how websites work and are built,"Web development involves creating websites and web applications that run in internet browsers.
+
+**How the Web Works:**
+1. **Client**: Your web browser (Chrome, Firefox, Safari)
+2. **Server**: Computer that hosts websites
+3. **HTTP**: Protocol for communication between client and server
+4. **Domain**: Human-readable web address (like google.com)
+
+**Core Web Technologies:**
+- **HTML**: Structure and content of web pages
+- **CSS**: Styling and visual appearance
+- **JavaScript**: Interactive behavior and functionality
+
+**HTML Example:**
+```html
+<h1>Welcome to My Website</h1>
+<p>This is my first paragraph.</p>
+<a href=""https://example.com"">Click here</a>
+```
+
+**CSS Example:**
+```css
+h1 { color: blue; font-size: 24px; }
+p { color: gray; }
+```","**Teacher Answer Guide:**
+
+**Key Web Concepts:**
+- HTML is markup, not programming
+- CSS controls presentation layer
+- JavaScript adds interactivity
+- Separation of concerns (structure, style, behavior)
+
+**Hands-on Activities:**
+1. Create basic HTML page with headings, paragraphs, links
+2. Add CSS styling to change colors and fonts
+3. Use JavaScript to show alert when button clicked
+4. View source code of popular websites
+
+**Common Student Questions:**
+- How do images appear on websites? (HTML img tag, server hosting)
+- Why do websites look different in different browsers? (Browser compatibility)
+- How do websites remember login information? (Cookies, sessions)
+
+**Project Ideas:**
+- Personal portfolio page
+- School club website
+- Simple online resume","**Expected Student Answer:**
+Students should be able to explain:
+1. **How the Web Works**:
+   - **Client**: Web browser (Chrome, Firefox, Safari) requests websites
+   - **Server**: Computer that stores and sends website files
+   - **HTTP**: Communication protocol between browser and server
+   - **Domain**: Human-readable web address (like google.com)
+2. **Core Web Technologies**:
+   - **HTML**: Creates structure and content of web pages (headings, paragraphs, links)
+   - **CSS**: Controls styling and visual appearance (colors, fonts, layout)
+   - **JavaScript**: Adds interactive behavior and functionality (buttons, forms, animations)
+3. **Basic HTML Tags**: Students should recognize `<h1>`, `<p>`, `<a>` tags and understand their purpose
+4. **Separation of Concerns**: HTML for structure, CSS for style, JavaScript for behavior
+5. **Web Development Process**: Understanding that websites are files stored on servers and viewed through browsers",Medium,40,web|html|css|javascript|internet,default-admin,2024-09-14T00:00:00.000Z,default-school
+tech003,Artificial Intelligence Overview,technology,Introduction to AI concepts and applications,"Artificial Intelligence (AI) refers to computer systems that can perform tasks typically requiring human intelligence.
+
+**What is AI?**
+AI is technology that enables computers to learn, reason, and make decisions similar to humans.
+
+**Types of AI:**
+1. **Narrow AI**: Designed for specific tasks (like chess, image recognition)
+2. **General AI**: Human-level intelligence across all domains (not yet achieved)
+3. **Machine Learning**: AI that improves through experience and data
+4. **Deep Learning**: Advanced ML using neural networks
+
+**AI Applications:**
+- **Virtual Assistants**: Siri, Alexa, Google Assistant
+- **Recommendation Systems**: Netflix, Spotify, Amazon
+- **Image Recognition**: Photo tagging, medical diagnosis
+- **Autonomous Vehicles**: Self-driving cars
+- **Language Translation**: Google Translate
+
+**How AI Learns:**
+AI systems learn by analyzing large amounts of data to identify patterns and make predictions.","**Teacher Discussion Guide:**
+
+**Key Points to Emphasize:**
+- AI is not magic - it's mathematics and statistics
+- AI learns from data, so data quality matters
+- Current AI is narrow, not general intelligence
+- AI augments human capabilities, doesn't replace humans
+
+**Ethical Discussions:**
+- Privacy concerns with data collection
+- Bias in AI systems
+- Job displacement vs. job creation
+- Need for human oversight
+
+**Hands-on Activities:**
+- Try AI tools: ChatGPT, image generators
+- Explore recommendation algorithms
+- Discuss AI in daily life (phones, social media)
+- Simple machine learning with online tools
+
+**Future Career Connections:**
+- Data scientist, ML engineer
+- AI ethics specialist
+- Human-AI interaction designer
+- AI product manager","**Expected Student Answer:**
+Students should be able to explain:
+1. **AI Definition**: Artificial Intelligence is technology that enables computers to learn, reason, and make decisions similar to humans
+2. **Types of AI**:
+   - **Narrow AI**: Designed for specific tasks (examples: chess programs, image recognition, voice assistants)
+   - **General AI**: Human-level intelligence across all areas (not yet achieved)
+   - **Machine Learning**: AI that improves through experience and learning from data
+   - **Deep Learning**: Advanced ML using neural networks
+3. **AI Applications** (identify at least 4-5):
+   - Virtual assistants (Siri, Alexa, Google Assistant)
+   - Recommendation systems (Netflix suggestions, Spotify playlists)
+   - Image recognition (photo tagging, medical diagnosis)
+   - Autonomous vehicles (self-driving cars)
+   - Language translation (Google Translate)
+4. **How AI Learns**: AI analyzes large amounts of data to identify patterns and make predictions
+5. **Current Limitations**: Today's AI is mostly narrow (specific tasks), not general human-like intelligence",Hard,50,ai|artificial-intelligence|machine-learning|future-tech,default-admin,2024-09-14T00:00:00.000Z,default-school

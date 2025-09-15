@@ -20,8 +20,378 @@ import {
   type InsertLessonRating,
   type UserRole,
   type DifficultyLevel,
+  type LessonContent,
+  type LessonContentUnion,
+  lessonContentSchema,
 } from "@shared/schema";
 import { nanoid } from "nanoid";
+import * as fs from "fs";
+import * as path from "path";
+
+// Types for question progress tracking
+export interface QuestionProgress {
+  userId: string;
+  lessonId: string;
+  questionId: string;
+  isCorrect: boolean;
+  answer: string;
+  lastUpdated: Date;
+}
+
+export interface LessonScore {
+  correctAnswers: number;
+  totalQuestions: number;
+  percentage: number;
+  questionProgress: Map<string, QuestionProgress>;
+}
+
+// CSV parsing utility that properly handles multiline quoted fields
+function parseCSV(content: string): Record<string, string>[] {
+  const rows: Record<string, string>[] = [];
+  const chars = content.trim();
+  let i = 0;
+  
+  // Parse headers first
+  const headers: string[] = [];
+  let currentHeader = '';
+  let inQuotes = false;
+  
+  // Parse header row
+  while (i < chars.length && chars[i] !== '\n') {
+    const char = chars[i];
+    
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      headers.push(currentHeader.trim());
+      currentHeader = '';
+    } else if (char !== '\r') {
+      currentHeader += char;
+    }
+    i++;
+  }
+  headers.push(currentHeader.trim());
+  
+  // Skip the newline after headers
+  if (chars[i] === '\n') i++;
+  
+  // Parse data rows
+  while (i < chars.length) {
+    const row: Record<string, string> = {};
+    let headerIndex = 0;
+    let currentValue = '';
+    inQuotes = false;
+    
+    while (i < chars.length && headerIndex < headers.length) {
+      const char = chars[i];
+      
+      if (char === '"') {
+        if (inQuotes && i + 1 < chars.length && chars[i + 1] === '"') {
+          // Handle escaped quotes ("")
+          currentValue += '"';
+          i++; // Skip the second quote
+        } else {
+          // Toggle quote state
+          inQuotes = !inQuotes;
+        }
+      } else if (char === ',' && !inQuotes) {
+        // End of field
+        row[headers[headerIndex]] = currentValue.trim();
+        currentValue = '';
+        headerIndex++;
+      } else if ((char === '\n' || char === '\r\n') && !inQuotes) {
+        // End of row
+        row[headers[headerIndex]] = currentValue.trim();
+        break;
+      } else if (char !== '\r') {
+        // Regular character (skip \r)
+        currentValue += char;
+      }
+      i++;
+    }
+    
+    // Handle last field in row
+    if (headerIndex < headers.length) {
+      row[headers[headerIndex]] = currentValue.trim();
+    }
+    
+    // Only add non-empty rows
+    if (Object.keys(row).length > 0 && Object.values(row).some(v => v !== '')) {
+      rows.push(row);
+    }
+    
+    // Skip any remaining newlines
+    while (i < chars.length && (chars[i] === '\n' || chars[i] === '\r')) {
+      i++;
+    }
+  }
+  
+  return rows;
+}
+
+// Load lessons from CSV files
+function loadLessonsFromCSV(): Lesson[] {
+  const lessons: Lesson[] = [];
+  const dataDir = path.join(process.cwd(), 'data', 'lessons');
+  const csvFiles = ['science.csv', 'technology.csv', 'engineering.csv', 'mathematics.csv'];
+  
+  for (const csvFile of csvFiles) {
+    const filePath = path.join(dataDir, csvFile);
+    try {
+      if (fs.existsSync(filePath)) {
+        const content = fs.readFileSync(filePath, 'utf-8');
+        const rows = parseCSV(content);
+        
+        for (const row of rows) {
+          if (row.id && row.title) {
+            // Map difficulty from CSV format to expected format
+            const mapDifficulty = (csvDifficulty: string): DifficultyLevel => {
+              const normalized = csvDifficulty.toLowerCase().trim();
+              if (normalized === 'easy') return 'easy';
+              if (normalized === 'medium') return 'medium';
+              if (normalized === 'hard') return 'hard';
+              return 'easy'; // default fallback
+            };
+
+            const lesson: Lesson = {
+              id: row.id,
+              title: row.title,
+              description: row.summary || '',
+              content: serializeLessonContent(parseLessonContent(row.content || '')),
+              categoryId: row.category || 'science', // Map 'category' to 'categoryId'
+              difficulty: mapDifficulty(row.difficulty || 'easy'),
+              estimatedDuration: parseInt(row.estimatedMinutes) || 30,
+              programmingLanguage: row.programmingLanguage || null,
+              answerGuide: row.answerGuide || null,
+              answer: row.answer || null,
+              authorId: row.authorId || 'system',
+              schoolId: row.schoolId || 'default-school',
+              averageRating: 0,
+              totalRatings: 0,
+              isActive: true,
+              createdAt: new Date(row.createdAt || Date.now()),
+            };
+            
+            lessons.push(lesson);
+          }
+        }
+      }
+    } catch (error) {
+      console.warn(`Failed to load lessons from ${csvFile}:`, error);
+    }
+  }
+  
+  return lessons;
+}
+
+// Load question progress from CSV file
+function loadQuestionProgressFromCSV(): QuestionProgress[] {
+  const progressFile = path.join(process.cwd(), 'data', 'progress', 'questions.csv');
+  const questionProgress: QuestionProgress[] = [];
+  
+  try {
+    if (fs.existsSync(progressFile)) {
+      const content = fs.readFileSync(progressFile, 'utf-8');
+      const rows = parseCSV(content);
+      
+      for (const row of rows) {
+        if (row.userId && row.lessonId && row.questionId) {
+          const progress: QuestionProgress = {
+            userId: row.userId,
+            lessonId: row.lessonId,
+            questionId: row.questionId,
+            isCorrect: row.isCorrect === 'true',
+            answer: row.answer || '',
+            lastUpdated: new Date(row.lastUpdated || Date.now()),
+          };
+          questionProgress.push(progress);
+        }
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to load question progress from CSV:', error);
+  }
+  
+  return questionProgress;
+}
+
+// Write question progress to CSV file
+function upsertQuestionProgressToCSV(progress: QuestionProgress): void {
+  const progressFile = path.join(process.cwd(), 'data', 'progress', 'questions.csv');
+  
+  try {
+    // Ensure directory exists
+    const dir = path.dirname(progressFile);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    
+    // Read existing content
+    let csvContent = '';
+    let existingRows: Record<string, string>[] = [];
+    
+    if (fs.existsSync(progressFile)) {
+      csvContent = fs.readFileSync(progressFile, 'utf-8');
+      if (csvContent.trim()) {
+        existingRows = parseCSV(csvContent);
+      }
+    }
+    
+    // If file doesn't exist or is empty, create headers
+    if (!csvContent.trim()) {
+      csvContent = 'userId,lessonId,questionId,isCorrect,answer,lastUpdated\n';
+    }
+    
+    // Find existing row for this user/lesson/question
+    const rowKey = `${progress.userId}-${progress.lessonId}-${progress.questionId}`;
+    let foundExisting = false;
+    
+    // Update existing rows or mark for update
+    const updatedRows = existingRows.map(row => {
+      const currentKey = `${row.userId}-${row.lessonId}-${row.questionId}`;
+      if (currentKey === rowKey) {
+        foundExisting = true;
+        return {
+          userId: progress.userId,
+          lessonId: progress.lessonId,
+          questionId: progress.questionId,
+          isCorrect: progress.isCorrect.toString(),
+          answer: progress.answer.replace(/"/g, '""'), // Escape quotes
+          lastUpdated: progress.lastUpdated.toISOString(),
+        };
+      }
+      return row;
+    });
+    
+    // If not found, add new row
+    if (!foundExisting) {
+      updatedRows.push({
+        userId: progress.userId,
+        lessonId: progress.lessonId,
+        questionId: progress.questionId,
+        isCorrect: progress.isCorrect.toString(),
+        answer: progress.answer.replace(/"/g, '""'), // Escape quotes
+        lastUpdated: progress.lastUpdated.toISOString(),
+      });
+    }
+    
+    // Rebuild CSV content
+    csvContent = 'userId,lessonId,questionId,isCorrect,answer,lastUpdated\n';
+    
+    for (const row of updatedRows) {
+      const csvLine = [
+        row.userId,
+        row.lessonId,
+        row.questionId,
+        row.isCorrect,
+        `"${row.answer}"`,
+        row.lastUpdated
+      ].join(',') + '\n';
+      csvContent += csvLine;
+    }
+    
+    // Write the updated content
+    fs.writeFileSync(progressFile, csvContent, 'utf-8');
+    
+    console.log(`Question progress updated for ${progress.userId}/${progress.lessonId}/${progress.questionId}`);
+  } catch (error) {
+    console.error('Failed to write question progress to CSV:', error);
+    throw error;
+  }
+}
+
+// Utility function to parse lesson content (handles both string and JSON)
+function parseLessonContent(content: string | null): LessonContentUnion | null {
+  if (!content) return null;
+  
+  try {
+    const parsed = JSON.parse(content);
+    // Validate it matches our schema
+    return lessonContentSchema.parse(parsed);
+  } catch {
+    // If JSON parsing fails, return as string (legacy format)
+    return content;
+  }
+}
+
+// Utility function to serialize lesson content for CSV storage
+function serializeLessonContent(content: LessonContentUnion | null): string {
+  if (!content) return '';
+  if (typeof content === 'string') return content;
+  return JSON.stringify(content);
+}
+
+// Write a lesson to CSV file
+function appendLessonToCSV(lesson: Lesson): void {
+  const csvFile = path.join(process.cwd(), 'data', 'lessons', `${lesson.categoryId}.csv`);
+  
+  try {
+    // Read existing content to get headers
+    let csvContent = '';
+    if (fs.existsSync(csvFile)) {
+      csvContent = fs.readFileSync(csvFile, 'utf-8');
+    }
+    
+    // If file doesn't exist or is empty, create headers
+    if (!csvContent.trim()) {
+      const headers = 'id,title,category,summary,content,answerGuide,answer,difficulty,estimatedMinutes,tags,authorId,createdAt,schoolId';
+      csvContent = headers + '\n';
+    }
+    
+    // Prepare lesson data for CSV
+    const csvRow = {
+      id: lesson.id,
+      title: lesson.title,
+      category: lesson.categoryId,
+      summary: lesson.description || '',
+      content: lesson.content ? serializeLessonContent(lesson.content) : '',
+      answerGuide: lesson.answerGuide || '',
+      answer: lesson.answer || '',
+      difficulty: lesson.difficulty.charAt(0).toUpperCase() + lesson.difficulty.slice(1), // Easy/Medium/Hard format
+      estimatedMinutes: lesson.estimatedDuration?.toString() || '30',
+      tags: '', // Default empty for now
+      authorId: lesson.authorId || 'default-admin',
+      createdAt: lesson.createdAt?.toISOString() || new Date().toISOString(),
+      schoolId: lesson.schoolId || 'default-school'
+    };
+    
+    // Convert to CSV format with proper quoting for multiline content
+    const quotedValues = [
+      csvRow.id,
+      `"${csvRow.title.replace(/"/g, '""')}"`,
+      csvRow.category,
+      `"${csvRow.summary.replace(/"/g, '""')}"`,
+      `"${csvRow.content.replace(/"/g, '""')}"`,
+      `"${csvRow.answerGuide.replace(/"/g, '""')}"`,
+      `"${csvRow.answer.replace(/"/g, '""')}"`,
+      csvRow.difficulty,
+      csvRow.estimatedMinutes,
+      csvRow.tags,
+      csvRow.authorId,
+      csvRow.createdAt,
+      csvRow.schoolId
+    ];
+    
+    const csvLine = quotedValues.join(',') + '\n';
+    
+    // Append to file
+    csvContent += csvLine;
+    
+    // Ensure directory exists
+    const dir = path.dirname(csvFile);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    
+    // Write the updated content
+    fs.writeFileSync(csvFile, csvContent, 'utf-8');
+    
+    console.log(`Lesson ${lesson.id} successfully written to ${csvFile}`);
+  } catch (error) {
+    console.error(`Failed to write lesson ${lesson.id} to CSV:`, error);
+    throw error;
+  }
+}
 
 export interface IStorage {
   // User operations (mandatory for Replit Auth)
@@ -82,6 +452,11 @@ export interface IStorage {
   // School-based access
   getLessonsBySchool(schoolId: string): Promise<Lesson[]>;
   checkSchoolAccess(userId: string, resourceSchoolId: string): Promise<boolean>;
+  
+  // Quiz functionality
+  getQuestionProgress(userId: string, lessonId: string): Promise<Map<string, QuestionProgress>>;
+  upsertQuestionProgress(progress: QuestionProgress): Promise<QuestionProgress>;
+  computeLessonScore(userId: string, lessonId: string): Promise<LessonScore>;
 }
 
 export class MemoryStorage implements IStorage {
@@ -96,6 +471,7 @@ export class MemoryStorage implements IStorage {
   private lessonProposals: Map<string, LessonProposal> = new Map();
   private proposalVotes: Map<string, ProposalVote> = new Map();
   private lessonRatings: Map<string, LessonRating> = new Map();
+  private questionProgress: Map<string, QuestionProgress> = new Map();
 
   constructor() {
     this.initializeDefaultData();
@@ -148,264 +524,19 @@ export class MemoryStorage implements IStorage {
       this.categories.set(category.id, category);
     });
 
-    // Initialize sample lessons with real content
-    const sampleLessons: Lesson[] = [
-      {
-        id: nanoid(),
-        title: "Cell Structure and Function",
-        description: "Learn about the basic building blocks of life and how cells work",
-        content: `# Cell Structure and Function
+    // Load lessons from CSV files
+    const sampleLessons: Lesson[] = loadLessonsFromCSV();
 
-## Introduction
-All living things are made up of cells - the smallest units of life. Understanding cell structure is fundamental to biology.
-
-## Learning Objectives
-- Identify major cell organelles
-- Understand the function of each organelle
-- Compare plant and animal cells
-
-## Cell Organelles
-
-### Nucleus
-The control center of the cell containing DNA and controlling cell activities.
-
-### Mitochondria
-The "powerhouses" that produce energy (ATP) for the cell.
-
-### Cell Membrane
-Controls what enters and exits the cell - acts like a security guard.
-
-### Cytoplasm
-The jelly-like substance that fills the cell and holds organelles.
-
-## Activity
-Draw and label a cell diagram including:
-1. Nucleus
-2. Mitochondria
-3. Cell membrane
-4. Cytoplasm
-
-## Assessment
-What organelle would you expect to find more of in a muscle cell that needs lots of energy?
-
-**Answer:** Mitochondria - because muscles need lots of energy to contract.`,
-        categoryId: "science",
-        difficulty: "easy",
-        estimatedDuration: 45,
-        programmingLanguage: null,
-        answerGuide: "Mitochondria are responsible for cellular energy production through ATP synthesis.",
-        authorId: "system",
-        schoolId: "default-school",
-        isActive: true,
-        averageRating: 0,
-        totalRatings: 0,
-        createdAt: new Date(),
-      },
-      {
-        id: nanoid(),
-        title: "Introduction to Python Programming",
-        description: "Learn the basics of Python syntax and write your first programs",
-        content: `# Introduction to Python Programming
-
-## Introduction
-Python is a beginner-friendly programming language used for web development, data science, and automation.
-
-## Learning Objectives
-- Write basic Python syntax
-- Use variables and data types
-- Create simple programs
-
-## Getting Started
-
-### Variables
-\`\`\`python
-name = "Alice"
-age = 16
-height = 5.6
-is_student = True
-\`\`\`
-
-### Data Types
-- **String**: Text data ("Hello")
-- **Integer**: Whole numbers (42)
-- **Float**: Decimal numbers (3.14)
-- **Boolean**: True/False
-
-### Basic Operations
-\`\`\`python
-# Math operations
-result = 5 + 3 * 2  # 11
-area = 3.14 * radius ** 2
-
-# String operations
-greeting = "Hello, " + name
-\`\`\`
-
-## Your First Program
-\`\`\`python
-# Get user input
-name = input("What is your name? ")
-age = int(input("How old are you? "))
-
-# Calculate birth year
-birth_year = 2024 - age
-
-# Display result
-print(f"Hi {name}! You were born in {birth_year}.")
-\`\`\`
-
-## Challenge
-Write a program that:
-1. Asks for two numbers
-2. Calculates their sum, difference, and product
-3. Displays all results`,
-        categoryId: "technology",
-        difficulty: "easy",
-        estimatedDuration: 45,
-        programmingLanguage: "python",
-        answerGuide: "Focus on proper syntax, variable naming, and user input validation.",
-        authorId: "system",
-        schoolId: "default-school",
-        isActive: true,
-        averageRating: 0,
-        totalRatings: 0,
-        createdAt: new Date(),
-      },
-      {
-        id: nanoid(),
-        title: "Simple Machines and Mechanical Advantage",
-        description: "Explore how levers, pulleys, and inclined planes make work easier",
-        content: `# Simple Machines and Mechanical Advantage
-
-## Introduction
-Simple machines are basic mechanical devices that make work easier by changing the direction or magnitude of forces.
-
-## Learning Objectives
-- Identify six types of simple machines
-- Calculate mechanical advantage
-- Apply simple machines to real-world problems
-
-## The Six Simple Machines
-
-### 1. Lever
-- Classes: First, second, third class
-- Example: Crowbar, scissors, tweezers
-- MA = Length of effort arm / Length of load arm
-
-### 2. Wheel and Axle
-- Example: Steering wheel, doorknob
-- MA = Radius of wheel / Radius of axle
-
-### 3. Pulley
-- Fixed: Changes direction only (MA = 1)
-- Movable: Reduces force needed (MA = 2)
-- Compound: Multiple pulleys (MA = number of supporting ropes)
-
-### 4. Inclined Plane
-- Example: Ramp, stairs
-- MA = Length of ramp / Height of ramp
-
-## Practice Problems
-
-### Problem 1: Lever
-A crowbar is 1.2m long. If you apply 200N of force 1.0m from the fulcrum, what load can you lift at 0.2m from the fulcrum?
-
-Solution:
-MA = 1.0m / 0.2m = 5
-Load = 200N × 5 = 1000N
-
-## Design Challenge
-Design a compound machine using at least 3 simple machines to lift a heavy object 3 meters high.`,
-        categoryId: "engineering",
-        difficulty: "easy",
-        estimatedDuration: 50,
-        programmingLanguage: null,
-        answerGuide: "Focus on understanding mechanical advantage calculations and real-world applications.",
-        authorId: "system",
-        schoolId: "default-school",
-        isActive: true,
-        averageRating: 0,
-        totalRatings: 0,
-        createdAt: new Date(),
-      },
-      {
-        id: nanoid(),
-        title: "Linear Equations and Graphing",
-        description: "Master solving linear equations and understanding their graphical representations",
-        content: `# Linear Equations and Graphing
-
-## Introduction
-Linear equations create straight lines when graphed and model many real-world relationships with constant rates of change.
-
-## Learning Objectives
-- Solve linear equations in one variable
-- Graph linear equations in two variables
-- Interpret slope and y-intercept
-
-## Solving Linear Equations
-
-### One Variable
-Example: 3x + 5 = 17
-
-Steps:
-1. Subtract 5 from both sides: 3x = 12
-2. Divide by 3: x = 4
-3. Check: 3(4) + 5 = 17 ✓
-
-### Two Variables
-Standard Form: Ax + By = C
-Slope-Intercept Form: y = mx + b
-- m = slope (rise over run)
-- b = y-intercept (where line crosses y-axis)
-
-## Graphing Linear Equations
-
-### Method 1: Slope-Intercept
-For y = 2x + 3:
-1. Start at y-intercept (0, 3)
-2. Use slope: up 2, right 1
-3. Plot points and draw line
-
-### Method 2: Intercepts
-For 2x + 3y = 6:
-1. x-intercept: Set y = 0 → x = 3
-2. y-intercept: Set x = 0 → y = 2
-3. Plot (3, 0) and (0, 2)
-4. Draw line through points
-
-## Real-World Applications
-
-### Phone Plan
-Monthly cost = $30 + $0.10 per minute
-Equation: C = 30 + 0.1m
-- Slope: $0.10 per minute
-- Y-intercept: $30 base fee
-
-## Practice Problems
-1. Solve: 2x - 7 = 15
-2. Graph: y = -3x + 4
-3. Find equation of line through (2, 5) with slope 3
-
-Solutions:
-1. x = 11
-2. Start at (0, 4), slope = -3
-3. y = 3x - 1`,
-        categoryId: "mathematics",
-        difficulty: "easy",
-        estimatedDuration: 40,
-        programmingLanguage: null,
-        answerGuide: "Emphasize the connection between algebraic and graphical representations.",
-        authorId: "system",
-        schoolId: "default-school",
-        isActive: true,
-        averageRating: 0,
-        totalRatings: 0,
-        createdAt: new Date(),
-      },
-    ];
-
+    // Add lessons to the Map
     sampleLessons.forEach(lesson => {
       this.lessons.set(lesson.id, lesson);
+    });
+    
+    // Load question progress from CSV
+    const questionProgressData = loadQuestionProgressFromCSV();
+    questionProgressData.forEach(progress => {
+      const key = `${progress.userId}-${progress.lessonId}-${progress.questionId}`;
+      this.questionProgress.set(key, progress);
     });
   }
 
@@ -483,12 +614,13 @@ Solutions:
       id: nanoid(),
       title: lesson.title,
       description: lesson.description || null,
-      content: lesson.content || null,
+      content: lesson.content ? serializeLessonContent(lesson.content) : null,
       categoryId: lesson.categoryId,
       difficulty: lesson.difficulty,
       estimatedDuration: lesson.estimatedDuration || null,
       programmingLanguage: lesson.programmingLanguage || null,
       answerGuide: lesson.answerGuide || null,
+      answer: lesson.answer || null,
       authorId: lesson.authorId || null,
       schoolId: lesson.schoolId || "default-school",
       isActive: true,
@@ -496,7 +628,18 @@ Solutions:
       totalRatings: 0,
       createdAt: new Date(),
     };
+    
+    // Save to memory storage
     this.lessons.set(newLesson.id, newLesson);
+    
+    // Save to CSV file
+    try {
+      appendLessonToCSV(newLesson);
+    } catch (error) {
+      console.error('Failed to save lesson to CSV:', error);
+      // Don't throw error to avoid breaking the API, but log it
+    }
+    
     return newLesson;
   }
 
@@ -522,7 +665,11 @@ Solutions:
     
     const updated: UserProgress = {
       id: existing?.id || nanoid(),
-      ...progress,
+      userId: progress.userId,
+      lessonId: progress.lessonId,
+      isCompleted: progress.isCompleted || false,
+      score: progress.score || null,
+      timeSpent: progress.timeSpent || null,
       lastAccessed: new Date(),
       completedAt: progress.isCompleted ? (progress.completedAt || new Date()) : (existing?.completedAt || null),
     };
@@ -571,8 +718,10 @@ Solutions:
   async grantLessonPermission(permission: InsertLessonPermission): Promise<LessonPermission> {
     const newPermission: LessonPermission = {
       id: nanoid(),
-      ...permission,
-      createdAt: new Date(),
+      studentId: permission.studentId,
+      lessonId: permission.lessonId,
+      grantedBy: permission.grantedBy,
+      grantedAt: new Date(),
     };
     this.lessonPermissions.set(newPermission.id, newPermission);
     return newPermission;
@@ -594,7 +743,17 @@ Solutions:
   async createLessonProposal(proposal: InsertLessonProposal): Promise<LessonProposal> {
     const newProposal: LessonProposal = {
       id: nanoid(),
-      ...proposal,
+      title: proposal.title,
+      description: proposal.description || null,
+      content: proposal.content ? serializeLessonContent(proposal.content) : null,
+      categoryId: proposal.categoryId,
+      difficulty: proposal.difficulty,
+      estimatedDuration: proposal.estimatedDuration || null,
+      programmingLanguage: proposal.programmingLanguage || null,
+      answerGuide: proposal.answerGuide || null,
+      answer: proposal.answer || null,
+      authorId: proposal.authorId,
+      schoolId: proposal.schoolId,
       status: "draft",
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -608,7 +767,7 @@ Solutions:
   async getLessonProposals(schoolId: string): Promise<LessonProposal[]> {
     return Array.from(this.lessonProposals.values())
       .filter(p => p.schoolId === schoolId)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
   }
 
   async getLessonProposalById(id: string): Promise<LessonProposal | undefined> {
@@ -643,12 +802,13 @@ Solutions:
     const newLesson = await this.createLesson({
       title: proposal.title,
       description: proposal.description,
-      content: proposal.content,
+      content: proposal.content ? parseLessonContent(proposal.content) || undefined : undefined,
       categoryId: proposal.categoryId,
       difficulty: proposal.difficulty,
       estimatedDuration: proposal.estimatedDuration,
       programmingLanguage: proposal.programmingLanguage,
       answerGuide: proposal.answerGuide,
+      answer: proposal.answer,
       authorId: proposal.authorId,
       schoolId: proposal.schoolId,
     });
@@ -669,7 +829,7 @@ Solutions:
       const updated: ProposalVote = {
         ...existing,
         vote: vote.vote,
-        comment: vote.comment,
+        comment: vote.comment || null,
         createdAt: new Date(),
       };
       this.proposalVotes.set(existing.id, updated);
@@ -677,7 +837,10 @@ Solutions:
     } else {
       const newVote: ProposalVote = {
         id: nanoid(),
-        ...vote,
+        proposalId: vote.proposalId,
+        voterId: vote.voterId,
+        vote: vote.vote,
+        comment: vote.comment || null,
         createdAt: new Date(),
       };
       this.proposalVotes.set(newVote.id, newVote);
@@ -688,7 +851,7 @@ Solutions:
   async getProposalVotes(proposalId: string): Promise<ProposalVote[]> {
     return Array.from(this.proposalVotes.values())
       .filter(v => v.proposalId === proposalId)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
   }
 
   async getUserVoteOnProposal(proposalId: string, userId: string): Promise<ProposalVote | undefined> {
@@ -705,7 +868,7 @@ Solutions:
       const updated: LessonRating = {
         ...existing,
         rating: rating.rating,
-        comment: rating.comment,
+        comment: rating.comment || null,
         updatedAt: new Date(),
       };
       this.lessonRatings.set(existing.id, updated);
@@ -714,7 +877,10 @@ Solutions:
     } else {
       const newRating: LessonRating = {
         id: nanoid(),
-        ...rating,
+        lessonId: rating.lessonId,
+        userId: rating.userId,
+        rating: rating.rating,
+        comment: rating.comment || null,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -727,7 +893,7 @@ Solutions:
   async getLessonRatings(lessonId: string): Promise<LessonRating[]> {
     return Array.from(this.lessonRatings.values())
       .filter(r => r.lessonId === lessonId)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
   }
 
   async getUserRatingForLesson(lessonId: string, userId: string): Promise<LessonRating | undefined> {
@@ -757,12 +923,84 @@ Solutions:
   async getLessonsBySchool(schoolId: string): Promise<Lesson[]> {
     return Array.from(this.lessons.values())
       .filter(l => l.schoolId === schoolId && l.isActive)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
   }
 
   async checkSchoolAccess(userId: string, resourceSchoolId: string): Promise<boolean> {
     const user = await this.getUser(userId);
     return user?.schoolId === resourceSchoolId;
+  }
+  
+  // Quiz functionality
+  async getQuestionProgress(userId: string, lessonId: string): Promise<Map<string, QuestionProgress>> {
+    const progressMap = new Map<string, QuestionProgress>();
+    
+    for (const [key, progress] of Array.from(this.questionProgress.entries())) {
+      if (progress.userId === userId && progress.lessonId === lessonId) {
+        progressMap.set(progress.questionId, progress);
+      }
+    }
+    
+    return progressMap;
+  }
+  
+  async upsertQuestionProgress(progress: QuestionProgress): Promise<QuestionProgress> {
+    const key = `${progress.userId}-${progress.lessonId}-${progress.questionId}`;
+    const updatedProgress: QuestionProgress = {
+      ...progress,
+      lastUpdated: new Date(),
+    };
+    
+    // Update in memory
+    this.questionProgress.set(key, updatedProgress);
+    
+    // Persist to CSV
+    try {
+      upsertQuestionProgressToCSV(updatedProgress);
+    } catch (error) {
+      console.error('Failed to save question progress to CSV:', error);
+      // Don't throw error to avoid breaking the API, but log it
+    }
+    
+    return updatedProgress;
+  }
+  
+  async computeLessonScore(userId: string, lessonId: string): Promise<LessonScore> {
+    // Get the lesson content to determine total questions
+    const lesson = await this.getLessonById(lessonId);
+    let totalQuestions = 0;
+    
+    if (lesson?.content) {
+      try {
+        const parsedContent = parseLessonContent(lesson.content);
+        if (parsedContent && typeof parsedContent !== 'string') {
+          // Count questions in all sections
+          totalQuestions = parsedContent.sections.reduce(
+            (total, section) => total + section.questions.length,
+            0
+          );
+        }
+      } catch (error) {
+        console.warn('Failed to parse lesson content for scoring:', error);
+      }
+    }
+    
+    // Get user's progress for this lesson
+    const questionProgress = await this.getQuestionProgress(userId, lessonId);
+    
+    // Count correct answers
+    const correctAnswers = Array.from(questionProgress.values())
+      .filter(progress => progress.isCorrect).length;
+    
+    // Calculate percentage
+    const percentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+    
+    return {
+      correctAnswers,
+      totalQuestions,
+      percentage,
+      questionProgress,
+    };
   }
 }
 

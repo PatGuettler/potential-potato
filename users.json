@@ -51,7 +51,52 @@
       "lastName": "",
       "role": "admin",
       "createdAt": "2025-09-12T01:34:23.052Z"
+    },
+    {
+      "username": "test",
+      "password": "$2b$12$SsakLLB2Fg3lkOMuMV5vje6WMN25qtk/Tesf2.qRuJ8xU2PAdMVSa",
+      "email": "patguettler@gmail.com",
+      "firstName": "Patrick",
+      "lastName": "Guettler",
+      "role": "admin",
+      "createdAt": "2025-09-12T01:47:18.735Z"
+    },
+    {
+      "username": "PatGuettler",
+      "password": "$2b$12$hjJztyYMf1UlWY6haIOuX.oQSTaMfcorbS.Uz7/qjyXF9HfLO0d/W",
+      "email": "patguettler@gmail.com",
+      "firstName": "Patrick",
+      "lastName": "Guettler",
+      "role": "admin",
+      "createdAt": "2025-09-14T01:25:35.870Z"
+    },
+    {
+      "username": "Pat",
+      "password": "$2b$12$m95G7OF.3kZP42Io.TnCuu4eLoD885rmtktwQVjDNu9uPtg387RKW",
+      "email": "",
+      "firstName": "",
+      "lastName": "",
+      "role": "admin",
+      "createdAt": "2025-09-14T01:36:26.909Z"
+    },
+    {
+      "username": "Student",
+      "password": "$2b$12$urPDpvIOWUuqkKeeyI9qb.8j/9JogvlKyMaR3N9j8drosMlnsMU42",
+      "email": "",
+      "firstName": "",
+      "lastName": "",
+      "role": "student",
+      "createdAt": "2025-09-14T15:12:26.892Z"
+    },
+    {
+      "username": "Sonia",
+      "password": "$2b$12$ureNcg2YZ2zStc.BNKpMWeBNTCIfbOu3WFz4vrCayrLjMlvu35Vle",
+      "email": "",
+      "firstName": "",
+      "lastName": "",
+      "role": "student",
+      "createdAt": "2025-09-14T19:05:57.536Z"
     }
   ],
-  "lastModified": "2025-09-12T01:34:23.052Z"
+  "lastModified": "2025-09-14T19:05:57.537Z"
 }

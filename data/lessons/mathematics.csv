@@ -1,0 +1,222 @@
+id,title,category,summary,content,answerGuide,answer,difficulty,estimatedMinutes,tags,authorId,createdAt,schoolId
+math001,Algebra Fundamentals,mathematics,Introduction to algebraic thinking and solving equations,"Algebra is the branch of mathematics that uses letters and symbols to represent unknown numbers and quantities.
+
+**What is Algebra?**
+Algebra helps us solve problems where we don't know all the numbers. We use letters (like x and y) to represent unknown values.
+
+**Key Concepts:**
+- **Variable**: A letter that represents an unknown number (x, y, a, b)
+- **Expression**: Mathematical phrase with numbers and variables (3x + 5)
+- **Equation**: Statement that two expressions are equal (3x + 5 = 14)
+- **Solving**: Finding the value of the variable that makes the equation true
+
+**Basic Rules:**
+1. **Addition Property**: Add same number to both sides
+2. **Subtraction Property**: Subtract same number from both sides  
+3. **Multiplication Property**: Multiply both sides by same number
+4. **Division Property**: Divide both sides by same number (not zero)
+
+**Example Problem:**
+Solve: 2x + 3 = 11
+- Subtract 3 from both sides: 2x = 8
+- Divide both sides by 2: x = 4
+- Check: 2(4) + 3 = 8 + 3 = 11 ✓","**Teacher Answer Guide:**
+
+**Common Student Errors:**
+- Adding/subtracting only from one side
+- Confusing expressions with equations
+- Not checking answers
+- Misunderstanding negative numbers
+
+**Step-by-Step Problem Solving:**
+1. Identify what you're solving for
+2. Use inverse operations to isolate variable
+3. Perform same operation on both sides
+4. Check answer in original equation
+
+**Practice Problems:**
+1. x + 7 = 15 (Answer: x = 8)
+2. 3y - 4 = 17 (Answer: y = 7)  
+3. 2a + 6 = 3a - 2 (Answer: a = 8)
+
+**Word Problems:**
+- Age problems: ""John is 5 years older than Mary...""
+- Money problems: ""Sarah has twice as many coins...""
+- Distance problems: ""A car travels at 60 mph for x hours...""
+
+**Visual Aids:**
+- Use balance scales to show equation properties
+- Number line for adding/subtracting
+- Algebra tiles for manipulating expressions","**Expected Student Answer:**
+Students should be able to explain:
+1. **Algebra Definition**: Algebra uses letters and symbols to represent unknown numbers and helps solve problems where we don't know all the values
+2. **Key Terms**:
+   - **Variable**: A letter (like x or y) that represents an unknown number
+   - **Expression**: Mathematical phrase with numbers and variables (like 3x + 5)
+   - **Equation**: Statement showing two expressions are equal (like 3x + 5 = 14)
+   - **Solving**: Finding the value of the variable that makes the equation true
+3. **Equation Solving Rules** (identify at least 3):
+   - Addition Property: Add same number to both sides
+   - Subtraction Property: Subtract same number from both sides
+   - Multiplication Property: Multiply both sides by same number
+   - Division Property: Divide both sides by same non-zero number
+4. **Step-by-Step Solving Process**:
+   - Use inverse operations to isolate the variable
+   - Perform the same operation on both sides
+   - Always check your answer by substituting back
+5. **Example**: Be able to solve simple equations like 2x + 3 = 11 (answer: x = 4) and show all steps",Easy,30,algebra|equations|variables|problem-solving,default-admin,2024-09-14T00:00:00.000Z,default-school
+math002,Geometry: Shapes and Areas,mathematics,Understanding geometric shapes and how to calculate their areas,"Geometry is the study of shapes, sizes, and the properties of space.
+
+**Basic 2D Shapes:**
+
+**Rectangle:**
+- 4 sides, 4 right angles
+- Opposite sides are equal and parallel
+- Area = length × width
+- Perimeter = 2(length + width)
+
+**Triangle:**
+- 3 sides, 3 angles
+- Sum of angles = 180°
+- Area = ½ × base × height
+- Types: Equilateral, Isosceles, Scalene
+
+**Circle:**
+- All points equal distance from center
+- Radius (r) = distance from center to edge
+- Diameter (d) = 2 × radius
+- Area = π × r²
+- Circumference = 2π × r
+
+**Parallelogram:**
+- Opposite sides parallel and equal
+- Area = base × height
+- Perimeter = 2(side₁ + side₂)
+
+**Real-World Applications:**
+- Calculating room area for flooring
+- Finding garden space for planting
+- Designing architectural blueprints
+- Sports field dimensions","**Teacher Answer Guide:**
+
+**Key Formulas to Memorize:**
+- Rectangle Area: A = l × w
+- Triangle Area: A = ½bh  
+- Circle Area: A = πr²
+- Circle Circumference: C = 2πr or C = πd
+
+**Common Misconceptions:**
+- Confusing area and perimeter
+- Using diameter instead of radius in circle formulas
+- Not using height (perpendicular distance) for triangles
+- Thinking all quadrilaterals are rectangles
+
+**Practice Problems:**
+1. Rectangle 8m × 5m: Area = 40 m²
+2. Triangle base 6cm, height 4cm: Area = 12 cm²
+3. Circle radius 3in: Area = 9π ≈ 28.3 in²
+
+**Measurement Activities:**
+- Measure classroom dimensions
+- Calculate school playground area
+- Compare areas of different shapes with same perimeter
+- Use grid paper for area estimation
+
+**Problem-Solving Strategy:**
+1. Identify the shape
+2. Find the correct formula
+3. Identify given measurements
+4. Substitute into formula
+5. Calculate and include units","**Expected Student Answer:**
+Students should be able to explain:
+1. **Geometry Definition**: Geometry is the study of shapes, sizes, and properties of space
+2. **Key Shape Properties**:
+   - **Rectangle**: 4 sides, 4 right angles, opposite sides equal and parallel
+   - **Triangle**: 3 sides, 3 angles that sum to 180°
+   - **Circle**: All points equal distance from center; radius = center to edge, diameter = 2 × radius
+   - **Parallelogram**: Opposite sides parallel and equal
+3. **Essential Area Formulas**:
+   - **Rectangle**: Area = length × width
+   - **Triangle**: Area = ½ × base × height
+   - **Circle**: Area = π × r² (pi times radius squared)
+   - **Parallelogram**: Area = base × height
+4. **Perimeter/Circumference Formulas**:
+   - **Rectangle**: Perimeter = 2(length + width)
+   - **Circle**: Circumference = 2π × r or π × d
+5. **Problem-Solving Steps**: Identify the shape, find correct formula, identify given measurements, substitute into formula, calculate with units
+6. **Real-World Applications**: Calculating room area for flooring, garden space, architectural blueprints, sports field dimensions",Medium,35,geometry|shapes|area|perimeter|measurement,default-admin,2024-09-14T00:00:00.000Z,default-school
+math003,Statistics and Data Analysis,mathematics,Learn to collect organize and interpret data,"Statistics helps us collect, organize, and understand information from data.
+
+**Types of Data:**
+- **Quantitative**: Numbers that can be measured (height, temperature, test scores)
+- **Qualitative**: Categories or descriptions (colors, favorite foods, yes/no)
+- **Discrete**: Countable numbers (number of students, cars)
+- **Continuous**: Measurable quantities (weight, time, temperature)
+
+**Data Collection Methods:**
+- **Survey**: Asking questions to gather information
+- **Observation**: Recording what you see
+- **Experiment**: Testing to find cause and effect
+- **Census**: Collecting data from entire population
+
+**Displaying Data:**
+- **Bar Graph**: Comparing different categories
+- **Line Graph**: Showing change over time
+- **Pie Chart**: Showing parts of a whole
+- **Histogram**: Showing frequency of ranges
+- **Scatter Plot**: Showing relationships between two variables
+
+**Measures of Central Tendency:**
+- **Mean**: Average of all values (add all, divide by count)
+- **Median**: Middle value when arranged in order
+- **Mode**: Most frequently occurring value
+- **Range**: Difference between highest and lowest values","**Teacher Answer Guide:**
+
+**When to Use Each Average:**
+- **Mean**: When data is normally distributed, no extreme outliers
+- **Median**: When data has outliers or is skewed
+- **Mode**: When looking for most common response
+
+**Sample Data Set:** Test Scores: 85, 92, 78, 85, 96, 82, 88
+- Mean: (85+92+78+85+96+82+88) ÷ 7 = 86.6
+- Median: Arrange in order: 78, 82, 85, 85, 88, 92, 96 → Median = 85
+- Mode: 85 (appears twice)
+- Range: 96 - 78 = 18
+
+**Common Student Errors:**
+- Not arranging data in order for median
+- Confusing mean and median
+- Misinterpreting graphs and charts
+- Not considering sample size and bias
+
+**Real-World Applications:**
+- Sports statistics and averages
+- Weather data and forecasting  
+- Poll results and elections
+- Business sales and profits
+- Medical research and studies
+
+**Technology Integration:**
+- Use spreadsheets to calculate statistics
+- Create digital graphs and charts
+- Online survey tools for data collection","**Expected Student Answer:**
+Students should be able to explain:
+1. **Statistics Definition**: Statistics helps us collect, organize, and understand information from data
+2. **Types of Data**:
+   - **Quantitative**: Numbers that can be measured (height, test scores, temperature)
+   - **Qualitative**: Categories or descriptions (colors, favorite foods)
+   - **Discrete**: Countable numbers (number of students, cars)
+   - **Continuous**: Measurable quantities (weight, time, temperature)
+3. **Data Collection Methods** (identify at least 3):
+   - Survey (asking questions), Observation (recording what you see)
+   - Experiment (testing cause and effect), Census (collecting from entire population)
+4. **Data Display Methods** (identify at least 4):
+   - Bar Graph (comparing categories), Line Graph (change over time)
+   - Pie Chart (parts of whole), Histogram (frequency ranges), Scatter Plot (relationships)
+5. **Measures of Central Tendency** with calculation methods:
+   - **Mean**: Average = add all values ÷ count
+   - **Median**: Middle value when arranged in numerical order
+   - **Mode**: Most frequently occurring value
+   - **Range**: Difference between highest and lowest values
+6. **Practical Calculation**: Given a simple data set, calculate mean, median, mode, and range
+7. **When to Use**: Mean for normal data, median when outliers present, mode for most common response",Hard,40,statistics|data|graphs|mean|median|mode,default-admin,2024-09-14T00:00:00.000Z,default-schoolU8l-JAWnBvwiHEpj7K6gj,"Test math",mathematics,"Test math description ","","","Test answer ",Easy,30,,Pat,2025-09-14T21:34:51.554Z,default-school

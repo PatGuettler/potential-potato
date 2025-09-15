@@ -7,6 +7,7 @@ import { CategoryCard } from "@/components/CategoryCard";
 import { CodeEditor } from "@/components/CodeEditor";
 import { Calculator } from "@/components/Calculator";
 import { useLocation } from "wouter";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 
 const categoryData = [
   {
@@ -46,11 +47,11 @@ const categoryData = [
 export default function Dashboard() {
   const [, navigate] = useLocation();
 
-  const { data: progress = [] } = useQuery({
+  const { data: progress = [] as any[] } = useQuery({
     queryKey: ["/api/progress"],
   });
 
-  const { data: lessons = [] } = useQuery({
+  const { data: lessons = [] as any[] } = useQuery({
     queryKey: ["/api/lessons"], 
   });
 
@@ -97,17 +98,18 @@ export default function Dashboard() {
   const featuredLessons = getFeaturedLessons();
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      
-      <div className="flex-1 flex flex-col">
-        <Header />
+    <SidebarProvider>
+      <div className="flex min-h-screen">
+        <Sidebar />
         
-        <main className="flex-1 p-6 space-y-8">
+        <SidebarInset className="flex-1">
+          <Header />
+          
+          <main className="flex-1 p-4 sm:p-6 space-y-6 sm:space-y-8">
           {/* Progress Overview */}
           <section>
-            <h3 className="text-lg font-semibold mb-4">Your Progress</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <h3 className="text-lg sm:text-xl font-semibold mb-4">Your Progress</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {categoryData.map((category) => {
                 const progressData = getProgressForCategory(category.name);
                 return (
@@ -128,12 +130,12 @@ export default function Dashboard() {
           {/* Current Lessons */}
           <section>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Continue Learning</h3>
+              <h3 className="text-lg sm:text-xl font-semibold">Continue Learning</h3>
               <button className="text-primary text-sm font-medium hover:underline" data-testid="view-all-lessons">
                 View all
               </button>
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               {featuredLessons.map((lesson: any) => (
                 <LessonCard
                   key={lesson.id}
@@ -149,8 +151,8 @@ export default function Dashboard() {
 
           {/* Lesson Categories */}
           <section>
-            <h3 className="text-lg font-semibold mb-4">Explore Categories</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <h3 className="text-lg sm:text-xl font-semibold mb-4">Explore Categories</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {categoryData.map((category) => (
                 <CategoryCard
                   key={category.name}
@@ -169,8 +171,9 @@ export default function Dashboard() {
 
           {/* Math Calculator Demo */}
           <Calculator />
-        </main>
+          </main>
+        </SidebarInset>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }

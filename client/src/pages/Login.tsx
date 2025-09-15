@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { BookOpen, Users, GraduationCap } from "lucide-react";
 
@@ -41,11 +41,13 @@ export default function Login() {
     mutationFn: async (credentials: { username: string; password: string }) => {
       return await apiRequest("POST", "/api/login", credentials);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: "Success",
         description: "Logged in successfully!",
       });
+      // Refresh authentication state
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       setLocation("/");
     },
     onError: (error: any) => {
@@ -61,11 +63,13 @@ export default function Login() {
     mutationFn: async (userData: typeof formData) => {
       return await apiRequest("POST", "/api/register", userData);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: "Success",
         description: "Account created successfully!",
       });
+      // Refresh authentication state
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       setLocation("/");
     },
     onError: (error: any) => {

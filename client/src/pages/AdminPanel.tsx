@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link } from "wouter";
 
 export default function AdminPanel() {
   const { toast } = useToast();
@@ -187,10 +188,12 @@ export default function AdminPanel() {
         <div className="mb-8">
           <h2 className="text-xl font-semibold mb-6">Content Management</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Button variant="outline" className="h-24 flex-col space-y-2" data-testid="create-lesson">
-              <i className="fas fa-plus text-xl"></i>
-              <span>Create Lesson</span>
-            </Button>
+            <Link href="/lesson-creation">
+              <Button variant="outline" className="h-24 flex-col space-y-2" data-testid="create-lesson">
+                <i className="fas fa-plus text-xl"></i>
+                <span>Create Lesson</span>
+              </Button>
+            </Link>
             
             <Button variant="outline" className="h-24 flex-col space-y-2" data-testid="manage-users">
               <i className="fas fa-users text-xl"></i>

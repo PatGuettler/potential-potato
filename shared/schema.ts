@@ -61,6 +61,36 @@ export const categories = pgTable("categories", {
 // Lesson difficulty levels
 export const difficultyLevels = ["easy", "medium", "hard"] as const;
 
+// Question types for quiz functionality
+export const questionTypes = ["text", "number", "code"] as const;
+
+// Zod schemas for quiz functionality
+export const lessonQuestionSchema = z.object({
+  id: z.string(),
+  prompt: z.string(),
+  type: z.enum(questionTypes),
+  expectedAnswer: z.string(),
+  options: z.array(z.string()).optional(),
+  caseSensitive: z.boolean().optional().default(false),
+});
+
+export const lessonSectionSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string().optional(),
+  questions: z.array(lessonQuestionSchema),
+});
+
+export const lessonContentSchema = z.object({
+  sections: z.array(lessonSectionSchema),
+});
+
+// Union type for lesson content (backwards compatibility)
+export const lessonContentUnionSchema = z.union([
+  z.string(), // legacy string content
+  lessonContentSchema, // new structured quiz content
+]);
+
 // Lessons table
 export const lessons = pgTable("lessons", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -72,6 +102,7 @@ export const lessons = pgTable("lessons", {
   estimatedDuration: integer("estimated_duration"), // in minutes
   programmingLanguage: varchar("programming_language"), // for coding lessons
   answerGuide: text("answer_guide"), // teacher-only content
+  answer: text("answer"), // expected result for lesson completion
   authorId: varchar("author_id"), // who created the lesson
   schoolId: varchar("school_id"), // which school owns the lesson
   averageRating: integer("average_rating").default(0), // calculated average from ratings
@@ -130,6 +161,7 @@ export const lessonProposals = pgTable("lesson_proposals", {
   estimatedDuration: integer("estimated_duration"),
   programmingLanguage: varchar("programming_language"),
   answerGuide: text("answer_guide"),
+  answer: text("answer"), // expected result for lesson completion
   authorId: varchar("author_id").notNull(),
   schoolId: varchar("school_id").notNull(),
   status: varchar("status", { enum: ["draft", "submitted", "approved", "rejected"] }).default("draft"),
@@ -316,6 +348,8 @@ export const insertSchoolSchema = createInsertSchema(schools).omit({
 export const insertLessonSchema = createInsertSchema(lessons).omit({
   id: true,
   createdAt: true,
+}).extend({
+  content: lessonContentUnionSchema.optional(),
 });
 
 export const insertUserProgressSchema = createInsertSchema(userProgress).omit({
@@ -339,6 +373,8 @@ export const insertLessonProposalSchema = createInsertSchema(lessonProposals).om
   updatedAt: true,
   submittedAt: true,
   approvedAt: true,
+}).extend({
+  content: lessonContentUnionSchema.optional(),
 });
 
 export const insertProposalVoteSchema = createInsertSchema(proposalVotes).omit({
@@ -374,3 +410,10 @@ export type LessonRating = typeof lessonRatings.$inferSelect;
 export type InsertLessonRating = z.infer<typeof insertLessonRatingSchema>;
 export type UserRole = typeof userRoles[number];
 export type DifficultyLevel = typeof difficultyLevels[number];
+export type QuestionType = typeof questionTypes[number];
+
+// Quiz functionality types
+export type LessonQuestion = z.infer<typeof lessonQuestionSchema>;
+export type LessonSection = z.infer<typeof lessonSectionSchema>;
+export type LessonContent = z.infer<typeof lessonContentSchema>;
+export type LessonContentUnion = z.infer<typeof lessonContentUnionSchema>;
