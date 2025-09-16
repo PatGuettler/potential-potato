@@ -12,6 +12,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { useAuth } from "@/hooks/useAuth";
 
 const navigationItems = [
   {
@@ -45,35 +46,42 @@ const navigationItems = [
   },
 ];
 
-const toolItems = [
-  {
-    name: "Create Lesson",
-    href: "/lesson-creation",
-    icon: "fas fa-plus-circle",
-  },
-  // {
-  //   name: "Code Editor",
-  //   href: "/tools/editor",
-  //   icon: "fas fa-code",
-  // },
-  // {
-  //   name: "Calculator",
-  //   href: "/tools/calculator", 
-  //   icon: "fas fa-calculator",
-  // },
-  // {
-  //   name: "Progress",
-  //   href: "/progress",
-  //   icon: "fas fa-chart-line",
-  // },
-];
-
 export function Sidebar() {
   const [location] = useLocation();
+  const { user } = useAuth() as { user: { role: string } | null };
 
-  // const { data: categories } = useQuery({
-  //   queryKey: ["/api/categories"],
-  // });
+  const toolItems = [
+    ...(user && (user.role === "teacher" || user.role === "admin")
+      ? [{
+          name: "Create Lesson",
+          href: "/lesson-creation",
+          icon: "fas fa-plus-circle",
+        }]
+      : []),
+      ...(user && (user.role === "student" || user.role === "teacher" || user.role === "admin")
+      ? [{
+          name: "Science Books",
+          href: "/science-books",
+          icon: "fas fa-plus-circle",
+        },
+        {
+          name: "Tech Books",
+          href: "/tech-books",
+          icon: "fas fa-plus-circle",
+        },
+        {
+          name: "Engineering Books",
+          href: "/engineering-books",
+          icon: "fas fa-plus-circle",
+        },
+        {
+          name: "Math Books",
+          href: "/math-books",
+          icon: "fas fa-plus-circle",
+        }]
+      : [])
+    // Add other tool items here if needed
+  ];
 
   return (
     <SidebarPrimitive className="border-r-0" collapsible="icon">
@@ -87,32 +95,6 @@ export function Sidebar() {
       </SidebarHeader>
       
       <SidebarContent>
-        {/* <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navigationItems.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton 
-                    asChild
-                    isActive={location === item.href}
-                    data-testid={`nav-${item.name.toLowerCase()}`}
-                  >
-                    <Link href={item.href}>
-                      <i className={`${item.icon} text-sm`}></i>
-                      <span>{item.name}</span>
-                      {item.badge && (
-                        <span className="ml-auto text-xs bg-accent text-accent-foreground px-2 py-1 rounded-full">
-                          {item.badge}
-                        </span>
-                      )}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup> */}
-        
         <SidebarGroup>
           <SidebarGroupLabel>Tools</SidebarGroupLabel>
           <SidebarGroupContent>
