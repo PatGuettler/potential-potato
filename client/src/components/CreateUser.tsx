@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { FormField } from "@/components/ui/FormField";
 import { Label } from "@/components/ui/label";
 import {
@@ -13,8 +12,6 @@ import { GraduationCap, Users, BookOpen } from "lucide-react";
 type Props = {
   isRegistering: boolean;
   formData: {
-    username: string;
-    password: string;
     email: string;
     firstName: string;
     lastName: string;
@@ -23,28 +20,7 @@ type Props = {
   handleInputChange: (field: string, value: string) => void;
 };
 
-type FormData = {
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-};
-
-export function CreateUser({ isRegistering }: Props) {
-  const [formData, setFormData] = useState<FormData>({
-    email: "",
-    firstName: "",
-    lastName: "",
-    role: "",
-  });
-
-  const handleInputChange = (field: keyof FormData, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
+export function CreateUser({ isRegistering, formData, handleInputChange }: Props) {
   if (!isRegistering) return null;
 
   return (
@@ -54,7 +30,7 @@ export function CreateUser({ isRegistering }: Props) {
         label="Email (optional)"
         type="email"
         value={formData.email}
-        onChange={(value: string) => handleInputChange("email", value)}
+        onChange={value => handleInputChange("email", value)}
         placeholder="Enter your email"
         dataTestId="input-email"
       />
@@ -64,7 +40,7 @@ export function CreateUser({ isRegistering }: Props) {
           id="firstName"
           label="First Name (optional)"
           value={formData.firstName}
-          onChange={(value: string) => handleInputChange("firstName", value)}
+          onChange={value => handleInputChange("firstName", value)}
           placeholder="First name"
           dataTestId="input-firstName"
         />
@@ -73,7 +49,7 @@ export function CreateUser({ isRegistering }: Props) {
           id="lastName"
           label="Last Name (optional)"
           value={formData.lastName}
-          onChange={(value: string) => handleInputChange("lastName", value)}
+          onChange={value => handleInputChange("lastName", value)}
           placeholder="Last name"
           dataTestId="input-lastName"
         />
@@ -83,7 +59,7 @@ export function CreateUser({ isRegistering }: Props) {
         <Label htmlFor="role">Role</Label>
         <Select
           value={formData.role}
-          onValueChange={(value: string) => handleInputChange("role", value)}
+          onValueChange={value => handleInputChange("role", value)}
         >
           <SelectTrigger data-testid="select-role">
             <SelectValue placeholder="Select your role" />

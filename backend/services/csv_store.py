@@ -7,14 +7,12 @@ import uuid
 from datetime import datetime
 
 class CSVStore:
-    """Thread-safe CSV file operations with file locking"""
     
     def __init__(self, data_dir: str = "data"):
         self.data_dir = Path(data_dir)
         self.data_dir.mkdir(exist_ok=True, parents=True)
     
     def read_csv(self, filename: str) -> List[Dict[str, Any]]:
-        """Read CSV file and return list of dictionaries"""
         file_path = self.data_dir / filename
         lock_path = file_path.with_suffix(file_path.suffix + '.lock')
         
@@ -30,7 +28,6 @@ class CSVStore:
                 return []
     
     def write_csv(self, filename: str, data: List[Dict[str, Any]], fieldnames: List[str] = None):
-        """Write list of dictionaries to CSV file"""
         file_path = self.data_dir / filename
         lock_path = file_path.with_suffix(file_path.suffix + '.lock')
         
@@ -50,13 +47,11 @@ class CSVStore:
                 writer.writerows(data)
     
     def append_csv(self, filename: str, row: Dict[str, Any]):
-        """Append a single row to CSV file"""
         existing_data = self.read_csv(filename)
         existing_data.append(row)
         self.write_csv(filename, existing_data)
     
     def update_csv_row(self, filename: str, row: Dict[str, Any], key_field: str = 'id'):
-        """Update or insert row in CSV file based on key field"""
         existing_data = self.read_csv(filename)
         
         # Find existing row by key
@@ -71,13 +66,11 @@ class CSVStore:
         self.write_csv(filename, existing_data)
     
     def delete_csv_row(self, filename: str, key_value: str, key_field: str = 'id'):
-        """Delete row from CSV file by key"""
         existing_data = self.read_csv(filename)
         updated_data = [row for row in existing_data if row.get(key_field) != key_value]
         self.write_csv(filename, updated_data)
     
     def find_csv_row(self, filename: str, key_value: str, key_field: str = 'id') -> Optional[Dict[str, Any]]:
-        """Find single row in CSV file by key"""
         data = self.read_csv(filename)
         for row in data:
             if row.get(key_field) == key_value:
@@ -85,25 +78,20 @@ class CSVStore:
         return None
     
     def generate_id(self) -> str:
-        """Generate unique ID for new records"""
         return str(uuid.uuid4())
     
     def get_timestamp(self) -> str:
-        """Get current timestamp in ISO format"""
         return datetime.utcnow().isoformat()
 
 class JSONStore:
-    """Thread-safe JSON file operations with file locking"""
     
     def __init__(self, data_dir: str = "."):
         self.data_dir = Path(data_dir)
     
     def get_timestamp(self) -> str:
-        """Get current timestamp in ISO format"""
         return datetime.utcnow().isoformat()
     
     def read_json(self, filename: str) -> Dict[str, Any]:
-        """Read JSON file and return dictionary"""
         file_path = self.data_dir / filename
         lock_path = file_path.with_suffix(file_path.suffix + '.lock')
         
@@ -118,7 +106,6 @@ class JSONStore:
                 return {}
     
     def write_json(self, filename: str, data: Dict[str, Any]):
-        """Write dictionary to JSON file"""
         file_path = self.data_dir / filename
         lock_path = file_path.with_suffix(file_path.suffix + '.lock')
         

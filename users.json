@@ -8,7 +8,52 @@
       "lastName": "",
       "role": "student",
       "createdAt": "2025-09-16T01:37:48.885Z"
+    },
+    {
+      "username": "pat1",
+      "password": "$2b$12$eSdNu6dpZbZTn6iv/BhgY.5qPjxGGfGG8RWsIEBffrVEir1eqoqI6",
+      "email": "",
+      "firstName": "",
+      "lastName": "",
+      "role": "student",
+      "createdAt": "2025-09-16T01:46:53.823Z"
+    },
+    {
+      "username": "pat2",
+      "password": "$2b$12$eVI4.wnMl9sPwOE3Qpvw3uYfal1UHy3vYwlfaSUYCODCQFy9YUQ1.",
+      "email": "patguettler@gmail.com",
+      "firstName": "Patrick",
+      "lastName": "Guettler",
+      "role": "admin",
+      "createdAt": "2025-09-16T01:48:48.137Z"
+    },
+    {
+      "username": "pat3",
+      "password": "$2b$12$sgm.rRc.m13UlyJBaTz8se0fPWu4JQjRXPsSKz5/uhHbwR2QnfH/a",
+      "email": "",
+      "firstName": "",
+      "lastName": "",
+      "role": "teacher",
+      "createdAt": "2025-09-16T01:49:09.686Z"
+    },
+    {
+      "username": "pat4",
+      "password": "$2b$12$zhUfekki/LrHHE9z/kGgOOh8Hemi32kokOM37PsXzz.p5zQxEAVKq",
+      "email": "",
+      "firstName": "",
+      "lastName": "",
+      "role": "teacher",
+      "createdAt": "2025-09-16T01:49:25.669Z"
+    },
+    {
+      "username": "pat5",
+      "password": "$2b$12$ZZXvaDNPbo/FM6FwtamqruuEDgZAqG9yC/3bsXEGx3cu6JsZ246DK",
+      "email": "",
+      "firstName": "",
+      "lastName": "",
+      "role": "student",
+      "createdAt": "2025-09-16T01:49:46.338Z"
     }
   ],
-  "lastModified": "2025-09-16T01:37:48.885Z"
+  "lastModified": "2025-09-16T01:49:46.338Z"
 }

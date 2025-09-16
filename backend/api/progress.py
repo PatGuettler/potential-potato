@@ -5,16 +5,13 @@ progress_bp = Blueprint('progress', __name__)
 csv_store = CSVStore('data')
 
 def is_authenticated():
-    """Check if user is authenticated"""
     return 'user_id' in session
 
 def get_user_id():
-    """Get current user ID"""
     return session.get('user_id')
 
 @progress_bp.route('/progress', methods=['GET'])
 def get_user_progress():
-    """Get all progress for current user"""
     if not is_authenticated():
         return jsonify({'message': 'Unauthorized'}), 401
     
@@ -28,7 +25,6 @@ def get_user_progress():
 
 @progress_bp.route('/progress/category/<category_id>', methods=['GET'])
 def get_category_progress(category_id: str):
-    """Get progress for specific category for current user"""
     if not is_authenticated():
         return jsonify({'message': 'Unauthorized'}), 401
     
@@ -49,7 +45,6 @@ def get_category_progress(category_id: str):
 
 @progress_bp.route('/progress', methods=['POST'])
 def update_progress():
-    """Update/create progress record for lesson"""
     if not is_authenticated():
         return jsonify({'message': 'Unauthorized'}), 401
     
@@ -97,7 +92,6 @@ def update_progress():
 
 @progress_bp.route('/progress/lesson/<lesson_id>', methods=['GET'])
 def get_lesson_progress(lesson_id: str):
-    """Get progress for specific lesson for current user"""
     if not is_authenticated():
         return jsonify({'message': 'Unauthorized'}), 401
     
