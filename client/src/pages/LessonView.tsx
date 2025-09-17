@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import { useAuth } from "@/hooks/useAuth";
 import type { LessonContent, LessonQuestion } from "@shared/schema";
 import { CheckCircle, XCircle, AlertCircle, ArrowLeft, Play, RotateCcw, Save, Award, Loader } from "lucide-react";
 
@@ -16,36 +17,9 @@ export default function LessonView() {
   const { id } = useParams();
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth() as { user: { role: string } | null };
+
   const queryClient = useQueryClient();
-  
-  const [code, setCode] = useState("");
-  const [timeSpent, setTimeSpent] = useState(0);
-  const [studentAnswer, setStudentAnswer] = useState("");
-  const [answerValidation, setAnswerValidation] = useState<{
-    isCorrect: boolean;
-    feedback: string;
-    score: number;
-  } | null>(null);
-  
-  // Quiz-specific state
-  const [lessonProgress, setLessonProgress] = useState<{
-    total: number;
-    correct: number;
-    percent: number;
-    perQuestion: { [questionId: string]: { isCorrect: boolean } };
-  } | null>(null);
-  const [questionAnswers, setQuestionAnswers] = useState<{ [questionId: string]: string }>({});
-  const [questionValidations, setQuestionValidations] = useState<{
-    [questionId: string]: {
-      isCorrect: boolean;
-      feedback: string;
-      isLoading?: boolean;
-    };
-  }>({});
-  const [structuredContent, setStructuredContent] = useState<LessonContent | null>(null);
-  const [isLegacyContent, setIsLegacyContent] = useState(false);
-  const [userProgress, setUserProgress] = useState(0);
-  const [canComplete, setCanComplete] = useState(false);
 
   const { data: lesson, isLoading } = useQuery({
     queryKey: ["/api/lessons", id],
@@ -237,6 +211,54 @@ export default function LessonView() {
       });
     },
   });
+
+  const deleteLessonMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/lessons/${lesson.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to delete lesson");
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Lesson Deleted", description: "The lesson was deleted." });
+      queryClient.invalidateQueries({ queryKey: ["/api/lessons"] });
+      navigate("/dashboard");
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Could not delete lesson.", variant: "destructive" });
+    },
+  });
+
+  const [code, setCode] = useState("");
+  const [timeSpent, setTimeSpent] = useState(0);
+  const [studentAnswer, setStudentAnswer] = useState("");
+  const [answerValidation, setAnswerValidation] = useState<{
+    isCorrect: boolean;
+    feedback: string;
+    score: number;
+  } | null>(null);
+  
+  // Quiz-specific state
+  const [lessonProgress, setLessonProgress] = useState<{
+    total: number;
+    correct: number;
+    percent: number;
+    perQuestion: { [questionId: string]: { isCorrect: boolean } };
+  } | null>(null);
+  const [questionAnswers, setQuestionAnswers] = useState<{ [questionId: string]: string }>({});
+  const [questionValidations, setQuestionValidations] = useState<{
+    [questionId: string]: {
+      isCorrect: boolean;
+      feedback: string;
+      isLoading?: boolean;
+    };
+  }>({});
+  const [structuredContent, setStructuredContent] = useState<LessonContent | null>(null);
+  const [isLegacyContent, setIsLegacyContent] = useState(false);
+  const [userProgress, setUserProgress] = useState(0);
+  const [canComplete, setCanComplete] = useState(false);
 
   // Parse lesson content when lesson data changes
   useEffect(() => {
@@ -842,6 +864,26 @@ export default function LessonView() {
           </div>
         </div>
       </div>
+
+      {/* Admin / Teacher Actions - Edit/Delete Lesson */}
+      {(user?.role === "teacher" || user?.role === "admin") && (
+        <div className="flex gap-2 mb-4">
+          <Button
+            variant="outline"
+            onClick={() => navigate(`/lesson-edit/${lesson.id}`)}
+            data-testid="edit-lesson-button"
+          >
+            Edit Lesson
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => deleteLessonMutation.mutate()}
+            data-testid="delete-lesson-button"
+          >
+            Delete Lesson
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

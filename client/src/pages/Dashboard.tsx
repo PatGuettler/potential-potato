@@ -2,9 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
 import { ProgressCard } from "@/components/ProgressCard";
-import { LessonCard } from "@/components/LessonCard";
 import { CategoryCard } from "@/components/CategoryCard";
-import { Calculator } from "@/components/Calculator";
 import { useLocation } from "wouter";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 
@@ -12,7 +10,7 @@ const categoryData = [
   {
     name: "Science",
     icon: "fas fa-microscope", 
-    description: "60 lessons across biology, chemistry, physics, and earth science",
+    description: "Lessons across biology, chemistry, physics, and earth science",
     gradient: "bg-gradient-to-br from-blue-500 to-purple-600",
     href: "/category/science",
     iconColor: "bg-blue-100"
@@ -20,7 +18,7 @@ const categoryData = [
   {
     name: "Technology",
     icon: "fas fa-laptop-code",
-    description: "60 lessons in programming, AI, cybersecurity, and data science", 
+    description: "Lessons in programming, AI, cybersecurity, and data science", 
     gradient: "bg-gradient-to-br from-purple-500 to-pink-600",
     href: "/category/technology",
     iconColor: "bg-purple-100"
@@ -28,7 +26,7 @@ const categoryData = [
   {
     name: "Engineering", 
     icon: "fas fa-cogs",
-    description: "60 lessons in mechanical, electrical, civil, and software engineering",
+    description: "Lessons in mechanical, electrical, civil, and software engineering",
     gradient: "bg-gradient-to-br from-green-500 to-teal-600",
     href: "/category/engineering", 
     iconColor: "bg-green-100"
@@ -36,7 +34,7 @@ const categoryData = [
   {
     name: "Mathematics",
     icon: "fas fa-calculator",
-    description: "60 lessons in algebra, calculus, statistics, and applied math",
+    description: "Lessons in algebra, calculus, statistics, and applied math",
     gradient: "bg-gradient-to-br from-orange-500 to-red-600", 
     href: "/category/mathematics",
     iconColor: "bg-orange-100"
@@ -46,12 +44,14 @@ const categoryData = [
 export default function Dashboard() {
   const [, navigate] = useLocation();
 
-  const { data: progress = [] as any[] } = useQuery({
+  const { data: progress = [] } = useQuery<any[]>({
     queryKey: ["/api/progress"],
+    initialData: [],
   });
 
-  const { data: lessons = [] as any[] } = useQuery({
+  const { data: lessons = [] } = useQuery<any[]>({
     queryKey: ["/api/lessons"], 
+    initialData: [],
   });
 
   // Calculate progress for each category

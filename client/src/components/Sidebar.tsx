@@ -52,11 +52,18 @@ export function Sidebar() {
 
   const toolItems = [
     ...(user && (user.role === "teacher" || user.role === "admin")
-      ? [{
-          name: "Create Lesson",
-          href: "/lesson-creation",
-          icon: "fas fa-plus-circle",
-        }]
+      ? [
+          {
+            name: "Create Lesson",
+            href: "/lesson-creation",
+            icon: "fas fa-plus-circle",
+          },
+          {
+            name: "Edit Lessons",
+            href: "/lesson-edit",
+            icon: "fas fa-edit",
+          },
+        ]
       : []),
       ...(user && (user.role === "student" || user.role === "teacher" || user.role === "admin")
       ? [{

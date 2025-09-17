@@ -106,3 +106,53 @@ def get_lesson_by_id(lesson_id: str):
                 return jsonify(filtered_lesson)
     
     return jsonify({'message': 'Lesson not found'}), 404
+
+@lessons_bp.route('/lessons/<lesson_id>', methods=['PUT'])
+def update_lesson(lesson_id: str):
+    """Update an existing lesson"""
+    if not is_authenticated():
+        return jsonify({'message': 'Unauthorized'}), 401
+    if get_user_role() not in ['teacher', 'admin']:
+        return jsonify({'message': 'Forbidden'}), 403
+
+    data = request.get_json()
+    updated = False
+
+    for category_id in CATEGORIES.keys():
+        lessons = csv_store.read_csv(f'lessons/{category_id}.csv')
+        for idx, lesson in enumerate(lessons):
+            if lesson.get('id') == lesson_id:
+                lessons[idx] = {**lesson, **data}
+                csv_store.write_csv(f'lessons/{category_id}.csv', lessons)
+                updated = True
+                break
+        if updated:
+            break
+
+    if not updated:
+        return jsonify({'message': 'Lesson not found'}), 404
+
+    return jsonify({'message': 'Lesson updated'})
+
+@lessons_bp.route('/lessons/<lesson_id>', methods=['DELETE'])
+def delete_lesson(lesson_id: str):
+    """Delete a lesson"""
+    if not is_authenticated():
+        return jsonify({'message': 'Unauthorized'}), 401
+    if get_user_role() not in ['teacher', 'admin']:
+        return jsonify({'message': 'Forbidden'}), 403
+
+    deleted = False
+
+    for category_id in CATEGORIES.keys():
+        lessons = csv_store.read_csv(f'lessons/{category_id}.csv')
+        new_lessons = [lesson for lesson in lessons if lesson.get('id') != lesson_id]
+        if len(new_lessons) < len(lessons):
+            csv_store.write_csv(f'lessons/{category_id}.csv', new_lessons)
+            deleted = True
+            break
+
+    if not deleted:
+        return jsonify({'message': 'Lesson not found'}), 404
+
+    return jsonify({'message': 'Lesson deleted'})

@@ -38,20 +38,22 @@ export function CreateUser({ isRegistering, formData, handleInputChange }: Props
       <div className="grid grid-cols-2 gap-2">
         <FormField
           id="firstName"
-          label="First Name (optional)"
+          label="First Name"
           value={formData.firstName}
           onChange={value => handleInputChange("firstName", value)}
           placeholder="First name"
           dataTestId="input-firstName"
+          required
         />
 
         <FormField
           id="lastName"
-          label="Last Name (optional)"
+          label="Last Name"
           value={formData.lastName}
           onChange={value => handleInputChange("lastName", value)}
           placeholder="Last name"
           dataTestId="input-lastName"
+          required
         />
       </div>
 

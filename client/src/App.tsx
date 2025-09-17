@@ -13,6 +13,7 @@ import TeacherDashboard from "@/pages/TeacherDashboard";
 import AdminPanel from "@/pages/AdminPanel";
 import LessonCreation from "@/pages/LessonCreation";
 import ProposalDetails from "@/pages/ProposalDetails";
+import EditLessons from "@/pages/EditLessons";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -32,6 +33,7 @@ function Router() {
           <Route path="/admin" component={AdminPanel} />
           <Route path="/lesson-creation" component={LessonCreation} />
           <Route path="/proposals/:id" component={ProposalDetails} />
+          <Route path="/lesson-edit" component={EditLessons} />
         </>
       )}
       {isLoading && (
