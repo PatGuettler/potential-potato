@@ -10,7 +10,7 @@ json_store = JSONStore('.')
 
 @auth_bp.route('/auth/user', methods=['GET'])
 def get_current_user():
-    """Get current authenticated user"""
+    print("Fetching current user from auth.py")
     if 'user_id' not in session:
         return jsonify({'message': 'Unauthorized'}), 401
     
@@ -33,14 +33,14 @@ def get_current_user():
 
 @auth_bp.route('/auth/setup-needed', methods=['GET'])
 def setup_needed():
-    """Check if initial setup is needed (no users exist)"""
+    print("Checking if setup is needed from auth.py")
     users_data = json_store.read_json('users.json')
     users_list = users_data.get('users', [])
     return jsonify({'setupNeeded': len(users_list) == 0})
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    """Authenticate user with username and password"""
+    print("Login attempt received in auth.py")
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
@@ -85,7 +85,7 @@ def login():
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
-    """Register new user account"""
+    print("Registration attempt received in auth.py")
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
@@ -141,6 +141,6 @@ def register():
 
 @auth_bp.route('/logout', methods=['POST'])
 def logout():
-    """Logout current user"""
+    print("Logout attempt received in auth.py")
     session.clear()
     return jsonify({'message': 'Logged out successfully'})
