@@ -12,64 +12,13 @@ CATEGORIES = {
 }
 
 def is_admin():
-    """Check if user is admin"""
     return session.get('role') == 'admin'
 
 def is_authenticated():
-    """Check if user is authenticated"""
     return 'user_id' in session
-
-@admin_bp.route('/lessons', methods=['POST'])
-def create_lesson():
-    """Create a new lesson (admin only)"""
-    if not is_authenticated():
-        return jsonify({'message': 'Unauthorized'}), 401
-    
-    if not is_admin():
-        return jsonify({'message': 'Admin access required'}), 403
-    
-    data = request.get_json()
-    title = data.get('title')
-    category = data.get('category')
-    content = data.get('content', '')
-    summary = data.get('summary', '')
-    answer_guide = data.get('answerGuide', '')
-    difficulty = data.get('difficulty', 'Easy')
-    estimated_minutes = data.get('estimatedMinutes', 30)
-    tags = data.get('tags', [])
-    
-    if not title or not category:
-        return jsonify({'message': 'Title and category are required'}), 400
-    
-    if category not in CATEGORIES:
-        return jsonify({'message': 'Invalid category'}), 400
-    
-    # Create new lesson
-    lesson_id = csv_store.generate_id()
-    new_lesson = {
-        'id': lesson_id,
-        'title': title,
-        'category': category,
-        'summary': summary,
-        'content': content,
-        'answerGuide': answer_guide,
-        'difficulty': difficulty,
-        'estimatedMinutes': str(estimated_minutes),
-        'tags': '|'.join(tags) if tags else '',
-        'authorId': session.get('user_id'),
-        'createdAt': csv_store.get_timestamp(),
-        'schoolId': 'default-school'
-    }
-    
-    # Add lesson to appropriate category CSV
-    csv_filename = f'lessons/{category}.csv'
-    csv_store.append_csv(csv_filename, new_lesson)
-    
-    return jsonify({'message': 'Lesson created successfully', 'lesson': new_lesson}), 201
 
 @admin_bp.route('/lessons/<lesson_id>', methods=['PUT'])
 def update_lesson(lesson_id: str):
-    """Update existing lesson (admin only)"""
     if not is_authenticated():
         return jsonify({'message': 'Unauthorized'}), 401
     
@@ -103,24 +52,24 @@ def update_lesson(lesson_id: str):
     if not lesson_found:
         return jsonify({'message': 'Lesson not found'}), 404
 
-@admin_bp.route('/lessons/<lesson_id>', methods=['DELETE'])
-def delete_lesson(lesson_id: str):
-    """Delete lesson (admin only)"""
-    if not is_authenticated():
-        return jsonify({'message': 'Unauthorized'}), 401
+# @admin_bp.route('/lessons/<lesson_id>', methods=['DELETE'])
+# def delete_lesson(lesson_id: str):
+#     print(f'Received request to delete lesson with ID: {lesson_id}')
+#     if not is_authenticated():
+#         return jsonify({'message': 'Unauthorized'}), 401
     
-    if not is_admin():
-        return jsonify({'message': 'Admin access required'}), 403
+#     if not is_admin():
+#         return jsonify({'message': 'Admin access required'}), 403
     
-    # Find and remove lesson from category files
-    lesson_found = False
-    for category_id in CATEGORIES.keys():
-        csv_store.delete_csv_row(f'lessons/{category_id}.csv', lesson_id)
-        # Check if deletion was successful by trying to find the lesson
-        if csv_store.find_csv_row(f'lessons/{category_id}.csv', lesson_id) is None:
-            lesson_found = True
+#     # Find and remove lesson from category files
+#     lesson_found = False
+#     for category_id in CATEGORIES.keys():
+#         csv_store.delete_csv_row(f'lessons/{category_id}.csv', lesson_id)
+#         # Check if deletion was successful by trying to find the lesson
+#         if csv_store.find_csv_row(f'lessons/{category_id}.csv', lesson_id) is None:
+#             lesson_found = True
     
-    if lesson_found:
-        return jsonify({'message': 'Lesson deleted successfully'})
-    else:
-        return jsonify({'message': 'Lesson not found'}), 404
+#     if lesson_found:
+#         return jsonify({'message': 'Lesson deleted successfully'})
+#     else:
+#         return jsonify({'message': 'Lesson not found'}), 404

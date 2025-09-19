@@ -3,7 +3,6 @@ from flask_session import Session
 from flask_cors import CORS
 import os
 from pathlib import Path
-import bcrypt
 from dotenv import load_dotenv
 import tempfile
 

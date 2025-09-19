@@ -76,30 +76,32 @@ export default function CategoryView() {
     );
   }
 
-  // Filter lessons by difficulty
-  const filteredLessons = lessons.filter((lesson: Lesson) => 
-    difficultyFilter === "all" || lesson.difficulty === difficultyFilter
-  );
+  //@TODO: fix this when the backend is up and running
+  //
+  // // Filter lessons by difficulty
+  // const filteredLessons = lessons.filter((lesson: Lesson) => 
+  //   difficultyFilter === "all" || lesson.difficulty === difficultyFilter
+  // );
 
-  // Combine lessons with progress data
-  const lessonsWithProgress = filteredLessons.map((lesson: Lesson) => {
-    const lessonProgress = progress.find((p: any) => p.lessonId === lesson.id);
-    return {
-      ...lesson,
-      progress: lessonProgress?.score || 0,
-      status: lessonProgress?.isCompleted ? 'completed' : 
-              lessonProgress ? 'in-progress' : 'not-started'
-    };
-  });
+  // // Combine lessons with progress data
+  // const lessonsWithProgress = filteredLessons.map((lesson: Lesson) => {
+  //   const lessonProgress = progress.find((p: any) => p.lessonId === lesson.id);
+  //   return {
+  //     ...lesson,
+  //     progress: lessonProgress?.score || 0,
+  //     status: lessonProgress?.isCompleted ? 'completed' : 
+  //             lessonProgress ? 'in-progress' : 'not-started'
+  //   };
+  // });
 
-  // Calculate category stats
-  const totalLessons = lessons.length;
-  const completedLessons = progress.filter((p: any) => p.isCompleted).length;
-  const categoryProgress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+  // // Calculate category stats
+  // const totalLessons = lessons.length;
+  // const completedLessons = progress.filter((p: any) => p.isCompleted).length;
+  // const categoryProgress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
 
-  const easyLessons = lessons.filter((l: Lesson) => l.difficulty === 'easy').length;
-  const mediumLessons = lessons.filter((l: Lesson) => l.difficulty === 'medium').length;
-  const hardLessons = lessons.filter((l: Lesson) => l.difficulty === 'hard').length;
+  // const easyLessons = lessons.filter((l: Lesson) => l.difficulty === 'easy').length;
+  // const mediumLessons = lessons.filter((l: Lesson) => l.difficulty === 'medium').length;
+  // const hardLessons = lessons.filter((l: Lesson) => l.difficulty === 'hard').length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -128,7 +130,7 @@ export default function CategoryView() {
               </p>
               
               {/* Progress Stats */}
-              <div className="flex items-center space-x-6 text-sm">
+              {/* <div className="flex items-center space-x-6 text-sm">
                 <div className="flex items-center space-x-2">
                   <span className="text-muted-foreground">Progress:</span>
                   <span className="font-semibold" data-testid="category-progress">{categoryProgress}%</span>
@@ -137,7 +139,7 @@ export default function CategoryView() {
                   <span className="text-muted-foreground">Completed:</span>
                   <span className="font-semibold" data-testid="completed-lessons">{completedLessons}/{totalLessons}</span>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
@@ -146,7 +148,7 @@ export default function CategoryView() {
       {/* Content */}
       <div className="container mx-auto px-6 py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-card rounded-lg p-4 border border-border" data-testid="stats-total">
             <div className="text-2xl font-bold">{totalLessons}</div>
             <div className="text-sm text-muted-foreground">Total Lessons</div>
@@ -163,7 +165,7 @@ export default function CategoryView() {
             <div className="text-2xl font-bold text-red-600">{hardLessons}</div>
             <div className="text-sm text-muted-foreground">Hard</div>
           </div>
-        </div>
+        </div> */}
 
         {/* Filters */}
         <div className="flex items-center justify-between mb-6">
@@ -182,7 +184,7 @@ export default function CategoryView() {
         </div>
 
         {/* Lessons Grid */}
-        {filteredLessons.length === 0 ? (
+        {/* {filteredLessons.length === 0 ? (
           <div className="text-center py-12" data-testid="no-lessons">
             <div className="text-muted-foreground mb-4">
               <i className="fas fa-book text-4xl"></i>
@@ -208,7 +210,7 @@ export default function CategoryView() {
               />
             ))}
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );

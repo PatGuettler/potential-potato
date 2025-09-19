@@ -9,10 +9,7 @@ import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import LessonView from "@/pages/LessonView";
 import CategoryView from "@/pages/CategoryView";
-import TeacherDashboard from "@/pages/TeacherDashboard";
-import AdminPanel from "@/pages/AdminPanel";
 import LessonCreation from "@/pages/LessonCreation";
-import ProposalDetails from "@/pages/ProposalDetails";
 import EditLessons from "@/pages/EditLessons";
 
 function Router() {
@@ -29,10 +26,7 @@ function Router() {
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/lesson/:id" component={LessonView} />
           <Route path="/category/:category" component={CategoryView} />
-          <Route path="/teacher" component={TeacherDashboard} />
-          <Route path="/admin" component={AdminPanel} />
           <Route path="/lesson-creation" component={LessonCreation} />
-          <Route path="/proposals/:id" component={ProposalDetails} />
           <Route path="/lesson-edit" component={EditLessons} />
         </>
       )}

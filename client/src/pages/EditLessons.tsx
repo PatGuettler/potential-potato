@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
-import { ProgressCard } from "@/components/ProgressCard";
 
 export default function EditLessons() {
   const { user } = useAuth() as { user: { role: string } | null };

@@ -5,7 +5,9 @@ from typing import List, Dict, Any
 lessons_bp = Blueprint('lessons', __name__)
 csv_store = CSVStore('data')
 
-# Category mapping
+######################
+# Lesson categories
+######################
 CATEGORIES = {
     'science': 'Science',
     'technology': 'Technology', 
@@ -14,15 +16,12 @@ CATEGORIES = {
 }
 
 def is_authenticated():
-    """Check if user is authenticated"""
     return 'user_id' in session
 
 def get_user_role():
-    """Get current user's role"""
     return session.get('role', 'student')
 
 def filter_lesson_for_role(lesson: Dict[str, Any], role: str) -> Dict[str, Any]:
-    """Filter lesson content based on user role"""
     if role == 'student':
         # Students don't see answer guides
         filtered = lesson.copy()
@@ -31,9 +30,62 @@ def filter_lesson_for_role(lesson: Dict[str, Any], role: str) -> Dict[str, Any]:
         return filtered
     return lesson
 
+######################
+# New endpoint to create a lesson
+######################
+# @lessons_bp.route('/lessons', methods=['POST'])
+# def create_lesson():
+#     print('Received request to create a new lesson in admin.py')
+#     if not is_authenticated():
+#         return jsonify({'message': 'Unauthorized'}), 401
+    
+#     if not is_admin():
+#         return jsonify({'message': 'Admin access required'}), 403
+    
+#     data = request.get_json()
+#     title = data.get('title')
+#     category = data.get('category')
+#     content = data.get('content', '')
+#     summary = data.get('summary', '')
+#     answer_guide = data.get('answerGuide', '')
+#     difficulty = data.get('difficulty', 'Easy')
+#     estimated_minutes = data.get('estimatedMinutes', 30)
+#     tags = data.get('tags', [])
+    
+#     if not title or not category:
+#         return jsonify({'message': 'Title and category are required'}), 400
+    
+#     if category not in CATEGORIES:
+#         return jsonify({'message': 'Invalid category'}), 400
+    
+#     # Create new lesson
+#     lesson_id = csv_store.generate_id()
+#     new_lesson = {
+#         'id': lesson_id,
+#         'title': title,
+#         'category': category,
+#         'summary': summary,
+#         'content': content,
+#         'answerGuide': answer_guide,
+#         'difficulty': difficulty,
+#         'estimatedMinutes': str(estimated_minutes),
+#         'tags': '|'.join(tags) if tags else '',
+#         'authorId': session.get('user_id'),
+#         'createdAt': csv_store.get_timestamp(),
+#         'schoolId': 'default-school'
+#     }
+    
+#     # Add lesson to appropriate category CSV
+#     csv_filename = f'lessons/{category}.csv'
+#     csv_store.append_csv(csv_filename, new_lesson)
+    
+#     return jsonify({'message': 'Lesson created successfully in admin.py', 'lesson': new_lesson}), 201
+
+######################
+# New endpoint to get all lesson categories
+######################
 @lessons_bp.route('/categories', methods=['GET'])
 def get_categories():
-    """Get all lesson categories"""
     if not is_authenticated():
         return jsonify({'message': 'Unauthorized'}), 401
     
@@ -49,9 +101,11 @@ def get_categories():
     
     return jsonify(categories)
 
+######################
+# New endpoint to get all lessons
+######################
 @lessons_bp.route('/lessons', methods=['GET'])
 def get_all_lessons():
-    """Get all lessons across all categories"""
     if not is_authenticated():
         return jsonify({'message': 'Unauthorized'}), 401
     
@@ -67,9 +121,11 @@ def get_all_lessons():
     
     return jsonify(all_lessons)
 
+######################
+# New endpoint to get all lessons in a category
+######################
 @lessons_bp.route('/lessons/category/<category_id>', methods=['GET'])
 def get_lessons_by_category(category_id: str):
-    """Get lessons for a specific category"""
     if not is_authenticated():
         return jsonify({'message': 'Unauthorized'}), 401
     
@@ -88,9 +144,11 @@ def get_lessons_by_category(category_id: str):
     
     return jsonify(filtered_lessons)
 
+######################
+# New endpoint to get a lesson
+######################
 @lessons_bp.route('/lessons/<lesson_id>', methods=['GET'])
 def get_lesson_by_id(lesson_id: str):
-    """Get specific lesson by ID"""
     if not is_authenticated():
         return jsonify({'message': 'Unauthorized'}), 401
     
@@ -107,9 +165,11 @@ def get_lesson_by_id(lesson_id: str):
     
     return jsonify({'message': 'Lesson not found'}), 404
 
+######################
+# New endpoint to update a lesson
+######################
 @lessons_bp.route('/lessons/<lesson_id>', methods=['PUT'])
 def update_lesson(lesson_id: str):
-    """Update an existing lesson"""
     if not is_authenticated():
         return jsonify({'message': 'Unauthorized'}), 401
     if get_user_role() not in ['teacher', 'admin']:
@@ -134,9 +194,13 @@ def update_lesson(lesson_id: str):
 
     return jsonify({'message': 'Lesson updated'})
 
+######################
+# New endpoint to delete a lesson
+######################
 @lessons_bp.route('/lessons/<lesson_id>', methods=['DELETE'])
 def delete_lesson(lesson_id: str):
-    """Delete a lesson"""
+    print(f"Received request to delete lesson with ID: {lesson_id}")
+
     if not is_authenticated():
         return jsonify({'message': 'Unauthorized'}), 401
     if get_user_role() not in ['teacher', 'admin']:

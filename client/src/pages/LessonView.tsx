@@ -847,43 +847,50 @@ export default function LessonView() {
             </div>
 
             {/* Lesson Resources */}
-            <div className="bg-card rounded-xl p-4 sm:p-6 border border-border" data-testid="lesson-resources">
+            <div
+              className="bg-card rounded-xl p-4 sm:p-6 border border-border"
+              data-testid="lesson-resources"
+            >
               <h3 className="font-semibold mb-4">Resources</h3>
               <div className="space-y-2">
-                <Button variant="ghost" className="w-full justify-start text-sm" data-testid="resource-documentation">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-sm"
+                  data-testid="resource-documentation"
+                >
                   📚 Documentation
                 </Button>
-                <Button variant="ghost" className="w-full justify-start text-sm" data-testid="resource-examples">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-sm"
+                  data-testid="resource-examples"
+                >
                   💻 Code Examples
                 </Button>
-                <Button variant="ghost" className="w-full justify-start text-sm" data-testid="resource-help">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-sm"
+                  data-testid="resource-help"
+                >
                   ❓ Get Help
                 </Button>
+
+                {/* Embedded C++ Editor */}
+                <div className="mt-4">
+                <h4 className="text-sm font-medium mb-2">📝 Try C++ Online</h4>
+                <div className="rounded-lg overflow-hidden border border-muted shadow-sm">
+                  <iframe
+                    src="https://www.jdoodle.com/embed/v0/1"
+                    title="C++ Online Editor"
+                    className="w-full h-[500px]"
+                  ></iframe>
+                </div>
+              </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Admin / Teacher Actions - Edit/Delete Lesson */}
-      {(user?.role === "teacher" || user?.role === "admin") && (
-        <div className="flex gap-2 mb-4">
-          <Button
-            variant="outline"
-            onClick={() => navigate(`/lesson-edit/${lesson.id}`)}
-            data-testid="edit-lesson-button"
-          >
-            Edit Lesson
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={() => deleteLessonMutation.mutate()}
-            data-testid="delete-lesson-button"
-          >
-            Delete Lesson
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
