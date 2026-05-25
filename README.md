@@ -1,283 +1,191 @@
-# STEM Academy - Standalone Educational Platform
+# StemGenius
 
-A completely self-contained STEM education platform that runs locally with CSV-based data storage. No databases or external services required!
+StemGenius is a self-contained STEM learning platform for local and classroom use. Students browse lessons across Science, Technology, Engineering, and Mathematics, complete interactive quizzes, use an embedded code editor, and track progress. Teachers manage classrooms and lesson access; admins create and edit curriculum.
 
-## 🎯 Features
+No cloud database is required—accounts, lessons, and progress are stored on disk as JSON and CSV files.
 
-- **File-based Authentication** - User accounts stored in local JSON files
-- **CSV Lesson Storage** - Lessons organized by category in CSV files
-- **Progress Tracking** - Student progress saved to local CSV files
-- **Role-based Access** - Student, Teacher, and Admin roles
-- **Offline Capable** - Works without internet connection
-- **Cross-platform** - Runs on Windows, macOS, and Linux
+## What it does
 
-## 📁 Project Structure
+| Audience | Capabilities |
+|----------|----------------|
+| **Students** | Browse categories, open lessons, answer quiz questions, run code exercises, see scores and completion progress |
+| **Teachers** | Everything students can do, plus classrooms, student lists, and granting lesson permissions |
+| **Admins** | Full access including lesson creation, editing, proposals, and the admin overview |
 
-```
-stem-academy/
-├── backend/                 # Python Flask API server
-│   ├── api/                # API endpoints
-│   │   ├── auth.py         # Authentication routes
-│   │   ├── lessons.py      # Lesson management
-│   │   ├── progress.py     # Progress tracking
-│   │   └── admin.py        # Admin functions
-│   ├── services/           # Utility services
-│   │   └── csv_store.py    # CSV file operations
-│   ├── app.py              # Flask app configuration
-│   ├── run.py              # Server startup script
-│   └── requirements.txt    # Python dependencies
-├── client/                 # React frontend
-│   ├── src/                # Source code
-│   └── .env                # Frontend configuration
-├── data/                   # Local data storage
-│   ├── lessons/            # CSV files by category
-│   │   ├── science.csv     # Science lessons
-│   │   ├── technology.csv  # Technology lessons
-│   │   ├── engineering.csv # Engineering lessons
-│   │   └── mathematics.csv # Mathematics lessons
-│   ├── progress/           # User progress data
-│   │   └── progress.csv    # Student lesson progress
-│   └── permissions/        # Access control data
-├── users.json              # User account storage
-└── README.md              # This file
-```
+Lessons ship as CSV files under `data/lessons/` (**20 lessons per category**, 80 total). Content is curated for factual accuracy (science, math, engineering, and computing fundamentals). Regenerate the built-in curriculum anytime:
 
-## 🚀 Installation & Setup
-
-### Prerequisites
-
-- **Node.js** 18+ ([Download](https://nodejs.org/))
-- **Python** 3.8+ ([Download](https://python.org/downloads/))
-- **npm** (comes with Node.js)
-- **pip** (comes with Python)
-
-### Windows Installation
-
-1. **Clone or download this project**
-   ```bash
-   # If you have git
-   git clone <repository-url>
-   cd stem-academy
-   
-   # Or download and extract the ZIP file
-   ```
-
-2. **Install Python dependencies**
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   cd ..
-   ```
-
-3. **Install Node.js dependencies**
-   ```bash
-   cd client
-   npm install
-   cd ..
-   ```
-
-### Linux/macOS Installation
-
-1. **Clone or download this project**
-   ```bash
-   # If you have git
-   git clone <repository-url>
-   cd stem-academy
-   
-   # Or download and extract the ZIP file
-   ```
-
-2. **Install Python dependencies**
-   ```bash
-   cd backend
-   python3 -m pip install -r requirements.txt
-   cd ..
-   ```
-
-3. **Install Node.js dependencies**
-   ```bash
-   cd client
-   npm install
-   cd ..
-   ```
-
-## 🏃 Running the Application
-
-You need to run both the backend (Python Flask) and frontend (React) servers.
-
-### Option 1: Two Terminal Approach (Recommended)
-
-**Terminal 1 - Start the Backend Server:**
 ```bash
-# Windows
-cd backend
-python run.py
-
-# Linux/macOS
-cd backend
-python3 run.py
+npm run generate:lessons
 ```
 
-The Flask backend will start on `http://localhost:8000`
+Then restart `npm run dev` to reload from disk. New lessons created in the UI are appended to the matching category CSV. User accounts live in `users.json`; lesson and quiz progress persist under `data/progress/`.
 
-**Terminal 2 - Start the Frontend Server:**
-```bash
-cd client
-npm run dev
+## Architecture
+
+A single **Node.js + Express** app serves both the REST API and the React UI (Vite in development, static build in production).
+
+```
+stemgenius/
+├── client/           # React frontend (Vite)
+├── server/           # Express API, file auth, CSV storage
+├── shared/           # TypeScript types and Zod schemas
+├── data/
+│   ├── lessons/      # science.csv, technology.csv, …
+│   └── progress/     # progress.csv, questions.csv
+├── users.json        # Local user accounts (bcrypt passwords)
+└── package.json      # npm scripts
 ```
 
-The React frontend will start on `http://localhost:5173`
+The `backend/` folder contains an older Flask API that is **not** used by the default dev workflow. Use the unified server below.
 
-### Option 2: Background Process (Advanced)
+## Prerequisites
 
-**Windows:**
+- **Node.js** 18 or newer
+- **npm** (included with Node)
+
+Optional: Python 3.8+ only if you want to run the legacy Flask backend separately.
+
+## Install
+
+From the project root:
+
 ```bash
-# Start backend in background
-cd backend
-start /B python run.py
-
-# Start frontend
-cd ../client
-npm run dev
-```
-
-**Linux/macOS:**
-```bash
-# Start backend in background
-cd backend
-python3 run.py &
-
-# Start frontend
-cd ../client
-npm run dev
-```
-
-### 🌐 Access the Application
-
-Open your web browser and go to: **http://localhost:5173**
-
-The React frontend automatically connects to the Flask backend at `http://localhost:8000`
-
-## 👥 First Time Setup
-
-1. **Open the application** in your browser
-2. **Click "Create Account"** - You'll be the first user!
-3. **Choose your role:**
-   - **Student** - Access lessons and track progress
-   - **Teacher** - Manage classrooms and student permissions  
-   - **Admin** - Full access including lesson creation
-4. **Start exploring** the STEM categories!
-
-## 📚 Using the Platform
-
-### For Students
-- Browse lessons by category (Science, Technology, Engineering, Mathematics)
-- Complete lessons and track your progress
-- View your learning statistics on the dashboard
-
-### For Teachers
-- Access all student features
-- Manage classroom assignments
-- View student progress reports
-
-### For Administrators
-- Access all features
-- Create and edit lessons
-- Manage user accounts
-- Add new educational content
-
-## 📊 Data Storage
-
-All data is stored locally in your project directory:
-
-- **User Accounts**: `users.json` (encrypted passwords)
-- **Lessons**: `data/lessons/*.csv` (one file per category)
-- **Progress**: `data/progress/progress.csv` (student completion data)
-- **Permissions**: `data/permissions/` (access control)
-
-### Backing Up Your Data
-
-Simply copy the entire project folder to backup all user accounts, lessons, and progress data.
-
-## 🛠️ Customization
-
-### Adding New Lessons (Via Web Interface)
-1. Login as an Admin user
-2. Go to "Create Lesson" in the sidebar
-3. Fill in lesson details and content
-4. Lesson automatically saved to appropriate CSV file
-
-### Adding New Lessons (Manual CSV Edit)
-Edit the appropriate CSV file in `data/lessons/`:
-- `science.csv` - Physics, Chemistry, Biology lessons
-- `technology.csv` - Programming, Web Development, AI lessons  
-- `engineering.csv` - Design, Robotics, Structures lessons
-- `mathematics.csv` - Algebra, Geometry, Statistics lessons
-
-### Changing Ports
-- **Backend Port**: Set `PORT` environment variable or edit `backend/run.py`
-- **Frontend Port**: Edit `vite.config.ts` or use `npm run dev -- --port 3000`
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-**"Module not found" errors:**
-```bash
-# Reinstall Python dependencies
-cd backend
-pip install -r requirements.txt
-
-# Reinstall Node dependencies
-cd client
 npm install
 ```
 
-**"Port already in use" errors:**
-- Kill processes using the ports: `taskkill /F /IM node.exe` (Windows) or `killall node` (Linux/macOS)
-- Or change ports in configuration files
+On WSL/Linux:
 
-**"Permission denied" errors:**
-- Windows: Run terminal as Administrator
-- Linux/macOS: Use `sudo` if needed
+```bash
+cd ~/dev/StemGenius   # or your clone path
+npm install
+```
 
-**CSV file errors:**
-- Check that `data/` directory exists with proper structure
-- Verify CSV files have proper headers
-- Ensure write permissions on data directory
+## Run locally
 
-### Getting Help
+One command starts the API and frontend together:
 
-1. Check that both servers are running (Flask on :8000, React on :5173)
-2. Verify all dependencies are installed
-3. Check browser console for errors (F12)
-4. Look at terminal output for error messages
+```bash
+npm run dev
+```
 
-## 🔐 Security Notes
+Open **http://localhost:5000** in your browser.
 
-- This is designed for local/educational use
-- User passwords are properly hashed with bcrypt
-- No external network dependencies
-- All data stays on your local machine
+The dev server:
 
-## 📋 System Requirements
+- Serves the React app with hot reload
+- Exposes JSON API routes under `/api/*`
+- Uses cookie-based sessions (`users.json` for accounts)
 
-- **RAM**: 2GB minimum, 4GB recommended  
-- **Storage**: 500MB for application, additional space for lesson content
-- **OS**: Windows 10+, macOS 10.14+, or Linux with Node.js support
+### Production build
 
-## 🚫 What This App Does NOT Need
+```bash
+npm run build
+npm start
+```
 
-- ❌ Internet connection (after initial setup)
-- ❌ Database servers (PostgreSQL, MySQL, etc.)
-- ❌ Cloud services or external APIs
-- ❌ Docker or containerization
-- ❌ Complex deployment procedures
+`npm start` serves the built client and API on port **5000** (override with `PORT=3000 npm start`).
 
-## 📝 License
+## First-time setup
 
-This project is for educational use. Feel free to modify and extend it for your learning needs!
+1. Open http://localhost:5000
+2. If no users exist, you are prompted to **create the first account** (choose student, teacher, or admin)
+3. Sign in and open a category from the sidebar (Science, Technology, Engineering, Mathematics)
+4. Open a lesson and work through content and quiz questions
 
----
+### Suggested test flow
 
-**Happy Learning! 🎓✨**
+1. **Register** as `admin` / `admin123` (or any username) with role **Admin**
+2. Confirm the **dashboard** shows progress cards for four categories
+3. Go to **Science** → open a lesson → submit quiz answers and confirm feedback
+4. Return to the dashboard and confirm progress updates (also written to `data/progress/progress.csv`)
+5. As admin, use **Create Lesson** to add a lesson; verify it appears in the category list
+6. **Logout** (header) and **register** a **Student** account; confirm lessons and quizzes work without extra teacher grants (standalone mode allows all lessons until a teacher assigns restricted permissions)
+
+## Data and backups
+
+| Data | Location |
+|------|----------|
+| Users | `users.json` |
+| Lessons | `data/lessons/*.csv` |
+| Lesson completion | `data/progress/progress.csv` |
+| Per-question quiz state | `data/progress/questions.csv` |
+
+Copy the project folder to back up all local data.
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Development server on port 5000 |
+| `npm run build` | Build client and server bundle |
+| `npm start` | Run production server |
+| `npm run check` | TypeScript check |
+| `npm test` | Run API unit tests (Vitest + Supertest) |
+| `npm run test:watch` | Run tests in watch mode |
+| `npm run generate:lessons` | Rebuild all 80 curriculum CSV files from `scripts/lessons/` |
+
+## Automated tests
+
+API tests live in `tests/api.test.ts`. They spin up the Express app in-process with isolated temp data (lessons CSV, `users.json`, progress files) so your real `data/` folder is never touched.
+
+```bash
+npm test
+```
+
+Coverage includes authentication, categories, **lesson creation** (`POST /api/lessons`), fetching lessons by id/category, answer validation, structured quiz questions, progress, teacher classrooms/permissions, proposals, ratings, and admin routes.
+
+## npm install warnings
+
+After `npm install`, npm may report **~20 vulnerabilities**. That is expected for this stack:
+
+- Many come from **dev-only** tools (Vite, drizzle-kit, esbuild). They do not affect the local Express app at runtime.
+- **Do not run** `npm audit fix --force` — it can downgrade Vite and break the project.
+- Safe refresh after pulling changes:
+
+```bash
+rm -rf node_modules/.vite
+npm install
+npm audit fix    # optional; only applies non-breaking patches
+npm run dev
+```
+
+The line `Re-optimizing dependencies because lockfile has changed` is a **one-time Vite message** after dependencies change, not an error.
+
+When `npm run dev` prints `serving on http://localhost:5000`, the app is running. Open that URL in your browser.
+
+## Troubleshooting
+
+**Port in use**
+
+```bash
+# Linux/WSL
+lsof -i :5000
+kill <pid>
+```
+
+**Module errors**
+
+```bash
+rm -rf node_modules package-lock.json
+npm install
+```
+
+**Blank page / API errors**
+
+- Confirm `npm run dev` is running and the terminal shows `serving on port 5000`
+- Open browser devtools → Network; API calls should go to the same origin (e.g. `/api/auth/user`)
+
+**Student cannot submit quiz answers**
+
+- In classroom mode, teachers must grant lesson permissions. In standalone mode (no grants on file), all lessons are available by default.
+
+## Security notes
+
+- Intended for local and educational use
+- Passwords are hashed with bcrypt
+- Change `SESSION_SECRET` in production
+- Do not commit real `users.json` with production passwords to public repos
+
+## License
+
+Educational use—modify and extend as needed.

@@ -62,7 +62,16 @@
       "lastName": "Guettler",
       "role": "admin",
       "createdAt": "2025-09-17T01:18:13.229Z"
+    },
+    {
+      "username": "admin",
+      "password": "$2b$12$YbWMoAuHbM3DQTeomXkdsuQsGTKZSufbI9Fp0dxBJTgzqClG340Ce",
+      "email": "patguettler@gmail.com",
+      "firstName": "Patrick",
+      "lastName": "Guettler",
+      "role": "admin",
+      "createdAt": "2026-05-25T01:34:44.107Z"
     }
   ],
-  "lastModified": "2025-09-17T01:18:13.229Z"
+  "lastModified": "2026-05-25T01:34:44.108Z"
 }

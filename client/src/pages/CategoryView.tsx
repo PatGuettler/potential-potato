@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { useState } from "react";
+import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LessonCard } from "@/components/LessonCard";
@@ -102,10 +103,10 @@ export default function CategoryView() {
   const hardLessons = lessons.filter((l: Lesson) => l.difficulty === 'hard').length;
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="container mx-auto px-6 py-8">
+    <AppShell>
+      <div className="space-y-8">
+      <div className="border border-border bg-card rounded-xl">
+        <div className="px-4 sm:px-6 py-6 sm:py-8">
           <div className="flex items-center space-x-4 mb-6">
             <Button 
               variant="ghost" 
@@ -143,8 +144,7 @@ export default function CategoryView() {
         </div>
       </div>
 
-      {/* Content */}
-      <div className="container mx-auto px-6 py-8">
+      <div>
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-card rounded-lg p-4 border border-border" data-testid="stats-total">
@@ -210,6 +210,7 @@ export default function CategoryView() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </AppShell>
   );
 }

@@ -1,213 +1,317 @@
 id,title,category,summary,content,answerGuide,answer,difficulty,estimatedMinutes,tags,authorId,createdAt,schoolId
-eng001,Introduction to Engineering Design,engineering,Learn the engineering design process and problem-solving methods,"Engineering is applying science and mathematics to solve real-world problems and improve people's lives.
+"eng001","What Is Engineering?","engineering","Branches of engineering and how engineers apply math and science to design solutions.","**Engineering** uses science, mathematics, and practical judgment to design and build useful systems under constraints (cost, safety, time, environment).
 
-**The Engineering Design Process:**
-1. **Define the Problem**: What needs to be solved?
-2. **Research**: Gather information about similar solutions
-3. **Brainstorm**: Generate multiple solution ideas
-4. **Design**: Create detailed plans and specifications
-5. **Build**: Construct a prototype or model
-6. **Test**: Evaluate how well the solution works
-7. **Improve**: Refine the design based on test results
+**Major branches:**
+- **Civil** — infrastructure (bridges, water systems)
+- **Mechanical** — machines, thermal systems, manufacturing
+- **Electrical** — power, electronics, communications
+- **Chemical** — processes, materials, energy conversion
+- **Computer / Software** — computing systems
+- **Biomedical** — medical devices and health technology
 
-**Types of Engineering:**
-- **Civil**: Bridges, roads, buildings
-- **Mechanical**: Machines, engines, robots
-- **Electrical**: Circuits, computers, power systems
-- **Chemical**: Manufacturing processes, materials
-- **Software**: Computer programs and systems
-- **Biomedical**: Medical devices and treatments
+**Engineers** follow codes and standards, document decisions, test prototypes, and iterate.
 
-**Engineering Mindset:**
-- Creative problem-solving
-- Learning from failure
-- Considering constraints (time, money, materials)
-- Thinking about user needs","**Teacher Guide:**
+**Difference from science:** Scientists often seek understanding; engineers prioritize **meeting human needs** with reliable solutions.","Ethics and public safety (PE licensure, codes). Interdisciplinary projects common. Failure analysis (case studies) motivates rigor.","Students should define engineering, name three branches with examples, list typical constraints, and contrast engineering goals with pure science research.","Easy","25","introduction|disciplines|design","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"eng002","The Engineering Design Process","engineering","Define problems, brainstorm, prototype, test, and improve designs.","A structured **design process** improves outcomes:
 
-**Key Engineering Principles:**
-- Iterative design (build, test, improve, repeat)
-- Optimization (best solution within constraints)
-- Systems thinking (how parts work together)
-- Safety and ethics considerations
+1. **Identify need / define problem** — who is the user? what requirements (must-have vs nice-to-have)?
+2. **Research** — existing solutions, materials, regulations
+3. **Specify criteria & constraints** — performance targets, budget, safety, sustainability
+4. **Brainstorm solutions** — many ideas; defer judgment
+5. **Select approach** — decision matrix scoring concepts
+6. **Prototype** — sketch, CAD model, physical model
+7. **Test & evaluate** — collect data vs criteria
+8. **Iterate** — refine weak points
+9. **Communicate** — drawings, reports, presentations
 
-**Hands-on Activities:**
-1. Paper tower challenge (height vs. stability)
-2. Bridge building with limited materials
-3. Design a solution for school problem
-4. Reverse engineering everyday objects
+**Iteration** is expected — first design rarely final.
 
-**Real-world Connections:**
-- Local infrastructure projects
-- Environmental challenges
-- Space exploration
-- Medical device innovations
+**Documentation** preserves rationale for future teams.","Emphasize user-centered design. Failure modes considered early (FMEA preview). Prototype fidelity matches questions (paper vs 3D print).","Students should list design steps in order, define criteria vs constraints, explain prototyping and iteration, and give one example metric to test.","Easy","30","design-process|iteration|problem-solving","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"eng003","Measurement and SI Units","engineering","Use metric units, prefixes, and significant figures in engineering work.","Engineers use the **International System (SI)** for consistent communication.
 
-**Assessment Ideas:**
-- Design journal with sketches and reflections
-- Present solution to classroom ""clients""
-- Peer review of designs
-- Prototype testing and data collection
+**Base units:** meter (m), kilogram (kg), second (s), ampere (A), kelvin (K), mole (mol), candela (cd)
 
-**Common Misconceptions:**
-- Engineering is just building things (it's problem-solving)
-- Engineers work alone (it's highly collaborative)
-- There's only one right answer (multiple valid solutions)","**Expected Student Answer:**
-Students should be able to explain:
-1. **Engineering Definition**: Engineering applies science and mathematics to solve real-world problems and improve people's lives
-2. **The 7-Step Engineering Design Process** in order:
-   - **Define the Problem**: Identify what needs to be solved
-   - **Research**: Gather information about similar solutions
-   - **Brainstorm**: Generate multiple solution ideas
-   - **Design**: Create detailed plans and specifications
-   - **Build**: Construct a prototype or model
-   - **Test**: Evaluate how well the solution works
-   - **Improve**: Refine the design based on test results
-3. **Types of Engineering** (identify at least 4):
-   - Civil (bridges, roads, buildings)
-   - Mechanical (machines, engines, robots)
-   - Electrical (circuits, computers, power systems)
-   - Chemical (manufacturing processes, materials)
-   - Software (computer programs and systems)
-   - Biomedical (medical devices and treatments)
-4. **Engineering Mindset**: Creative problem-solving, learning from failure, considering constraints (time, money, materials), thinking about user needs
-5. **Iterative Process**: Engineers build, test, and improve repeatedly",Easy,40,design|problem-solving|innovation|stem,default-admin,2024-09-14T00:00:00.000Z,default-school
-eng002,Structures and Materials,engineering,Understanding how buildings and bridges are designed to be strong and stable,"Structural engineering focuses on designing buildings, bridges, and other structures that can safely support loads and withstand forces.
+**Derived units:**
+- Force: **newton (N)** = kg·m/s²
+- Pressure: **pascal (Pa)** = N/m²
+- Power: **watt (W)** = J/s
 
-**Forces on Structures:**
-- **Compression**: Pushing forces that squeeze materials
-- **Tension**: Pulling forces that stretch materials  
-- **Shear**: Forces that cause sliding or cutting
-- **Torsion**: Twisting forces
+**Prefixes:** kilo (10³), centi (10⁻²), milli (10⁻³), micro (10⁻⁶)
 
-**Structural Elements:**
-- **Beams**: Horizontal supports that carry loads
-- **Columns**: Vertical supports that transfer weight down
-- **Trusses**: Framework of connected triangular units
-- **Foundations**: Base that transfers building weight to ground
+**Significant figures** reflect measurement precision; don't over-report digits.
 
-**Material Properties:**
-- **Strength**: How much force a material can withstand
-- **Stiffness**: Resistance to bending or deformation
-- **Durability**: How long material lasts under conditions
-- **Cost**: Economic considerations in material selection
+**Unit conversion:** Factor-label method cancels units (km/h to m/s).
 
-**Common Building Materials:**
-- **Steel**: Strong in tension and compression
-- **Concrete**: Excellent in compression, weak in tension
-- **Wood**: Renewable, good strength-to-weight ratio
-- **Composite**: Engineered materials with specific properties","**Teacher Answer Guide:**
+**Always label axes and include units in calculations** — naked numbers cause errors.","US customary units still appear in some US projects; convert carefully. 9.81 m/s² for g. Dimensional analysis checks equations.","Students should name SI base units for length, mass, time, define newton and watt, convert 1 km to m, and explain significant figures briefly.","Easy","25","units|measurement|si","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"eng004","Simple Machines","engineering","Levers, inclined planes, wheels, pulleys, and mechanical advantage.","**Simple machines** redirect or multiply force (trade distance for force).
 
-**Key Structural Concepts:**
-- Triangles are strongest geometric shape
-- Load path: forces must have continuous path to ground
-- Factor of safety: designs are stronger than minimum required
-- Redundancy: backup load paths if one element fails
+**Types:**
+- **Lever** — fulcrum; classes 1–3
+- **Inclined plane** — raises load with longer path
+- **Wheel and axle** — rotates together
+- **Pulley** — changes direction; block and tackle increases mechanical advantage
+- **Screw** — inclined plane wrapped around cylinder
+- **Wedge** — splits or holds
 
-**Demonstrations:**
-1. Test different beam shapes (solid vs. hollow vs. I-beam)
-2. Build towers with different base shapes
-3. Compare material strengths (balsa wood, cardboard, metal)
-4. Show buckling with long thin columns
+**Mechanical advantage (ideal)** = output force / input force = distance_in / distance_out (no friction)
 
-**Real-world Examples:**
-- Explain why bridges have different designs (beam, arch, suspension)
-- Discuss famous structural failures and lessons learned
-- Show how buildings are designed for earthquakes/wind
+**Efficiency** = useful work out / work in × 100% — friction lowers real MA.
 
-**Calculations (Advanced):**
-- Simple stress = Force / Area
-- Moment calculations for beams
-- Basic truss analysis
+**Compound machines** combine simple machines (bicycle, crane).","Conservation of energy: you never get more work out than in. MA can reduce force but increase distance moved. Real pulleys have bearing friction.","Students should define mechanical advantage, name four simple machines, explain force–distance tradeoff, and note friction reduces efficiency.","Easy","25","mechanics|simple-machines|advantage","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"eng005","Engineering Drawings and Sketches","engineering","Orthographic views, scale, and clear technical communication.","Technical drawings communicate **size, shape, and features** unambiguously.
 
-**Career Connections:**
-- Structural engineer, architect
-- Construction manager
-- Materials scientist","**Expected Student Answer:**
-Students should be able to explain:
-1. **Structural Engineering Purpose**: Designing buildings, bridges, and structures that can safely support loads and withstand forces
-2. **Four Types of Forces on Structures**:
-   - **Compression**: Pushing forces that squeeze materials (like weight pressing down)
-   - **Tension**: Pulling forces that stretch materials (like rope being pulled)
-   - **Shear**: Forces that cause sliding or cutting (like scissors cutting paper)
-   - **Torsion**: Twisting forces (like wringing out a towel)
-3. **Key Structural Elements**:
-   - **Beams**: Horizontal supports that carry loads
-   - **Columns**: Vertical supports that transfer weight down
-   - **Trusses**: Framework of connected triangular units (triangles are strongest shape)
-   - **Foundations**: Base that transfers building weight to ground
-4. **Material Properties**: Strength (how much force it can handle), stiffness (resistance to bending), durability (how long it lasts), and cost
-5. **Common Materials**: Steel (strong in tension/compression), concrete (strong in compression), wood (renewable, good strength-to-weight), composites (engineered materials)
-6. **Safety Concepts**: Load path (forces need continuous path to ground), factor of safety (build stronger than minimum required)",Medium,45,structures|materials|forces|buildings|bridges,default-admin,2024-09-14T00:00:00.000Z,default-school
-eng003,Robotics and Automation,engineering,Introduction to robots and automated systems,"Robotics combines engineering, computer science, and mathematics to create machines that can perform tasks automatically.
+**Orthographic projection:** front, top, side views aligned
 
-**What is a Robot?**
-A robot is a machine that can sense its environment, make decisions, and take actions to complete tasks.
+**Isometric sketch:** 3D appearance; not true length unless scaled carefully
 
-**Key Robot Components:**
-1. **Sensors**: Eyes and ears of the robot (cameras, proximity sensors, gyroscopes)
-2. **Actuators**: Muscles of the robot (motors, servos, pneumatics)
-3. **Controller**: Brain of the robot (microcontroller, computer)
-4. **Power System**: Energy source (batteries, solar panels)
-5. **Mechanical Structure**: Frame and moving parts
+**Dimensioning:** arrows, extension lines, units, tolerances (±)
 
-**Types of Robots:**
-- **Industrial**: Manufacturing, assembly lines, welding
-- **Service**: Cleaning robots (Roomba), delivery drones
-- **Medical**: Surgical robots, prosthetics, rehabilitation
-- **Exploration**: Mars rovers, underwater robots
-- **Entertainment**: Pet robots, educational robots
+**Title block:** part name, scale (1:2), material, date, drafter
 
-**Programming Robots:**
-Robots are programmed using languages like Python, C++, or visual programming blocks. Programs control:
-- Movement patterns
-- Sensor data processing
-- Decision-making logic
-- Response to environment","**Teacher Guide:**
+**Symbols:** centerlines, hidden lines (dashed), section views cut internals
 
-**Fundamental Robotics Concepts:**
-- Sense-Plan-Act cycle
-- Feedback loops and control systems
-- Autonomous vs. remote-controlled
-- Human-robot interaction
+**CAD (Computer-Aided Design)** tools (Fusion 360, SolidWorks, Onshape) create precise models and drawings.
 
-**Hands-on Projects:**
-1. Build simple robot with microcontroller (Arduino/Raspberry Pi)
-2. Program robot to follow line or avoid obstacles
-3. Design robot gripper to pick up objects
-4. Create robot that responds to voice commands
+**Standards:** ASME Y14.5 (GD&T) governs advanced tolerancing — intro awareness only.","Sketch freehand first in design class. Scale chosen so part fits sheet. Never dimension to hidden lines. CAD parametric models update dimensions.","Students should explain orthographic vs isometric, read a simple dimension with units, describe title block info, and state why drawings beat photos for manufacturing.","Easy","30","drawings|communication|cad-prep","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"eng006","Engineering Materials Overview","engineering","Metals, polymers, ceramics, composites, and selecting materials for applications.","**Material properties** guide selection:
 
-**Coding Concepts:**
-- If-then logic for decision making
-- Loops for repetitive actions
-- Variables for sensor data
-- Functions for common tasks
+- **Strength** — stress before failure (yield, ultimate)
+- **Stiffness** — elastic modulus (resistance to bending)
+- **Toughness** — absorb energy without brittle fracture
+- **Hardness** — scratch/wear resistance
+- **Density** — mass per volume
+- **Corrosion resistance**
+- **Thermal/electrical conductivity**
 
-**Real-world Applications:**
-- Self-driving cars (sensors + AI + control)
-- Manufacturing automation
-- Space exploration robots
-- Medical surgery assistance
-- Search and rescue robots
+**Classes:**
+- **Metals/alloys** (steel, aluminum, copper) — strong, conductive
+- **Polymers** (PE, ABS, nylon) — light, moldable
+- **Ceramics** — hard, heat-resistant, brittle
+- **Composites** (carbon fiber epoxy) — high strength-to-weight
 
-**Ethics Discussion:**
-- Job displacement concerns
-- Robot rights and consciousness
-- Autonomous weapons debate
-- Privacy and surveillance","**Expected Student Answer:**
-Students should be able to explain:
-1. **Robot Definition**: A robot is a machine that can sense its environment, make decisions, and take actions to complete tasks automatically
-2. **Five Key Robot Components**:
-   - **Sensors**: Eyes and ears of robot (cameras, proximity sensors, gyroscopes) - gather information about environment
-   - **Actuators**: Muscles of robot (motors, servos, pneumatics) - make robot move and take action
-   - **Controller**: Brain of robot (microcontroller, computer) - processes information and makes decisions
-   - **Power System**: Energy source (batteries, solar panels) - provides power to operate
-   - **Mechanical Structure**: Frame and moving parts - physical body that holds everything together
-3. **Types of Robots** (identify at least 4):
-   - Industrial (manufacturing, assembly lines, welding)
-   - Service (cleaning robots like Roomba, delivery drones)
-   - Medical (surgical robots, prosthetics, rehabilitation)
-   - Exploration (Mars rovers, underwater robots)
-   - Entertainment (pet robots, educational robots)
-4. **Robot Programming**: Robots are programmed to control movement, process sensor data, make decisions, and respond to environment
-5. **Sense-Plan-Act Cycle**: Robots sense environment, plan actions, then act - this cycle repeats continuously
-6. **Autonomous vs. Remote-Controlled**: Autonomous robots make their own decisions, remote-controlled robots are operated by humans",Hard,55,robotics|automation|programming|sensors|ai,default-admin,2024-09-14T00:00:00.000Z,default-school
+**Lifecycle:** mining, processing, use, recycling/disposal — **sustainability** criterion.","Steel vs aluminum in cars. Thermoplastics vs thermosets. Material property charts (Ashby) optional. Safety factor multiplies loads.","Students should list five properties, match metal/polymer/composite to typical uses, and explain two selection criteria beyond strength (weight, corrosion).","Easy","30","materials|properties|selection","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"eng007","Workplace and Lab Safety","engineering","PPE, hazard identification, and safe tool use in engineering environments.","Engineering work includes physical, chemical, and electrical hazards.
+
+**General practices:**
+- Risk assessment before starting
+- **PPE:** safety glasses, closed-toe shoes, hearing protection, gloves matched to hazard
+- Know location of **eyewash/showers**, fire extinguishers, exits
+
+**Shop tools:** Guards stay on; secure workpieces; never bypass interlocks; training before power tools
+
+**Electrical:** De-energize before servicing; lockout/tagout; avoid water near circuits
+
+**Chemical:** Read SDS; never mix unknowns; proper ventilation
+
+**Reporting:** Near-misses and injuries reported to prevent recurrence
+
+**Ethics:** Do not disable safety systems to ""save time.""","MSDS/SDS sections: hazards, first aid. Machine shop dress code. Buddy system for heavy lifts. Digital safety: ergonomic breaks.","Students should list three PPE items and when used, define SDS purpose, and give two shop rules (guards, training) plus one electrical safety rule.","Easy","20","safety|ppe|lab","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"eng008","Forces and Free-Body Diagrams","engineering","Represent forces on objects and apply equilibrium for static systems.","**Force** is a vector (magnitude + direction), unit **newton (N)**.
+
+**Common forces in diagrams:**
+- **Weight (W=mg)** downward
+- **Normal force (N)** perpendicular to contact surface
+- **Friction (f)** parallel to surface; static vs kinetic
+- **Tension (T)** along ropes/cables
+- **Applied push/pull (F)**
+
+**Free-body diagram (FBD):** Isolate one body; draw arrows for external forces only.
+
+**Static equilibrium (no acceleration):**
+- ΣF_x = 0, ΣF_y = 0
+- Στ = 0 (torques) for extended bodies
+
+**Moments (torque):** τ = r × F; lever arm perpendicular to force.
+
+**Newton's third law** pairs act on different bodies — not on same FBD.","Choose coordinate axes wisely. Sign conventions consistent. Distributed loads simplified to equivalent point force for intro.","Students should draw an FBD for a block on a table with weight and normal force, state equilibrium equations, and define torque with lever arm.","Medium","35","statics|forces|diagrams","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"eng009","Structures and Loads","engineering","Tension, compression, beams, bridges, and why shapes matter.","Structures carry **loads** to supports safely.
+
+**Load types:**
+- **Dead load** — permanent weight (structure itself)
+- **Live load** — variable (people, vehicles, snow)
+- **Environmental** — wind, earthquake, thermal
+
+**Internal forces:**
+- **Tension** — stretching (cables, truss members in tension)
+- **Compression** — squeezing (columns); slender columns may **buckle**
+- **Bending** in beams — compression on one side, tension on other
+
+**Shapes:** I-beams put material far from neutral axis; triangles stable in trusses; arches convert loads to compression.
+
+**Factor of safety (design factor):** design capacity > expected maximum load.
+
+**Materials + geometry** together determine capacity.","Truss zero-force members optional. Deflection serviceability limit. Famous failures (Tacoma Narrows) discuss resonance/wind.","Students should define dead vs live load, contrast tension and compression, explain why I-beams are efficient, and define factor of safety.","Medium","35","structures|civil|loads","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"eng010","Basic Electrical Circuits for Engineers","engineering","Ohm's law, series/parallel resistors, and power in DC circuits.","**DC circuit analysis** tools:
+
+**Ohm's law:** V = I R
+
+**Series:** I same; V_total = V₁+V₂; R_eq = R₁+R₂
+
+**Parallel:** V same; I_total = I₁+I₂; 1/R_eq = 1/R₁+1/R₂
+
+**Power:** P = V I = I²R = V²/R (watts)
+
+**Kirchhoff's laws (preview):**
+- **KCL** — current into junction equals out
+- **KVL** — voltage drops around loop sum to zero
+
+**Practical:** LED needs current-limiting resistor; batteries have internal resistance.
+
+**Safety:** Never exceed component ratings; power dissipation heats resistors.","Multimeter measures V and I. Breadboard prototyping. Short circuit draws excessive current. Color code for resistors optional.","Students should solve V=IR for one resistor, find equivalent resistance of two series and two parallel resistors, and compute power with P=VI.","Medium","35","electrical|circuits|ohm","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"eng011","Fluid Mechanics Introduction","engineering","Pressure, buoyancy, continuity, and Bernoulli idea for moving fluids.","**Fluids** include liquids and gases.
+
+**Pressure (P)** = force / area (Pa = N/m²). In static liquid: **P = ρgh** (ρ density, h depth)
+
+**Pascal's principle:** Pressure applied to confined fluid transmits equally — hydraulic lifts.
+
+**Buoyancy:** Upward force equals weight of displaced fluid (**Archimedes**); objects float if average density < fluid.
+
+**Continuity (steady flow):** A₁v₁ = A₂v₂ for incompressible flow in a pipe.
+
+**Bernoulli (ideal, along streamline):** Higher speed ↔ lower pressure — explains lift on airfoils (with viscosity corrections in real wings).
+
+**Viscosity** causes drag in pipes and past objects.","Gauge vs absolute pressure. Atmospheric pressure ≈ 101 kPa. Cavitation when local pressure drops below vapor pressure. Reynolds number preview.","Students should define pressure with units, use P=ρgh for depth increase, explain buoyancy, and state continuity equation meaning.","Medium","35","fluids|pressure|bernoulli","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"eng012","CAD and Parametric Modeling","engineering","Constraints, features, assemblies, and exporting for manufacturing.","**CAD** creates accurate 3D models for design and manufacturing.
+
+**Parametric modeling:**
+- **Sketch** 2D profiles with dimensions
+- **Constraints** (parallel, perpendicular, equal length) maintain intent when dimensions change
+- **Features** extrude, revolve, fillet, hole patterns
+
+**Assemblies** position parts; check **interference** and motion (mates)
+
+**Drawings** auto-generated from model; update when model changes
+
+**Export formats:**
+- **STL** for 3D printing (mesh)
+- **STEP** for machining/CAM interchange
+
+**Design intent:** Model so changes propagate logically (hole always centered on face).
+
+**Simulation add-ons:** stress analysis (FEA) validates before building.","Sketch fully constrained before extrude. Version control CAD files. Tolerance stack-up from assemblies. CAM toolpaths from solid models.","Students should explain sketch→feature workflow, define constraint and parametric change, name STL vs STEP purpose, and describe design intent.","Medium","35","cad|modeling|manufacturing","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"eng013","Robotics and Automation","engineering","Sensors, actuators, control, and programmable automation in industry.","**Robot** — programmable machine performing physical tasks.
+
+**Components:**
+- **Sensors** (encoders, cameras, LIDAR, limit switches) gather state
+- **Actuators** (motors, pneumatics, servos) produce motion
+- **Controller** (PLC, microcontroller, industrial PC) runs program loop
+
+**Control loop:**
+1. Sense
+2. Decide (software / logic)
+3. Act
+
+**Degrees of freedom** — independent motions (arm joints)
+
+**Industrial automation:** Repetitive assembly, welding, packaging — improves consistency; requires safety guarding (fences, light curtains).
+
+**Collaborative robots (cobots)** work near humans with force limits.
+
+**Ethics/jobs:** Automation shifts skill demands toward maintenance and programming.","Open-loop vs closed-loop (feedback). PID control preview. G-code for 3D printers related. Safety standards ISO 10218 mention.","Students should list sensor, actuator, controller roles, describe sense-decide-act loop, and give one factory automation benefit and one safety measure.","Medium","35","robotics|automation|control","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"eng014","Renewable Energy Systems","engineering","Solar, wind, hydro, and grid integration at an introductory level.","**Renewable energy** comes from replenished natural flows.
+
+**Solar photovoltaic:** Cells convert sunlight to DC electricity; **inverter** to AC; output depends on irradiance, panel area, efficiency (typical modules ~15–22%).
+
+**Wind:** Turbines extract kinetic energy; power rises with wind speed (cube relationship in ideal range); site dependent.
+
+**Hydropower:** Gravitational potential of water drives turbines — reliable where geography allows.
+
+**Geothermal / biomass** fill regional niches.
+
+**Grid challenges:** Intermittency — storage (batteries), demand response, transmission upgrades.
+
+**Life-cycle:** Manufacturing and disposal have impacts — systems thinking required.
+
+**Efficiency vs conservation:** Reduce demand AND improve supply.","Capacity factor differs from peak rating. Net metering policies vary. Carbon intensity of grid affects electric vehicle benefits.","Students should describe solar and wind energy conversion, explain intermittency, and name two grid integration strategies (storage, transmission).","Medium","35","energy|renewable|sustainability","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"eng015","Quality Control and Testing","engineering","Specifications, inspection, statistical sampling, and continuous improvement.","**Quality control (QC)** ensures products meet **specifications**.
+
+**Specification** — measurable tolerances (shaft diameter 20.0 ± 0.1 mm)
+
+**Inspection tools:** calipers, micrometers, CMM (coordinate measuring machine), go/no-go gauges
+
+**Destructive vs non-destructive testing (NDT):** ultrasound, X-ray for internal flaws without breaking part
+
+**Sampling:** Test subset of batch (AQL concepts at intro) — balance cost vs risk
+
+**Process control charts** track measurements over time; detect drift before scrap
+
+**Continuous improvement (Kaizen, Six Sigma overview):** Reduce variation, root-cause analysis (5 Whys), corrective actions
+
+**Reliability testing:** accelerated life tests for electronics","ISO 9001 quality management system. Defect vs defectives. Poka-yoke (mistake-proofing) examples. Feedback loop to design.","Students should define specification and tolerance, contrast destructive vs NDT, explain why sampling is used, and describe a control chart purpose.","Medium","30","quality|testing|manufacturing","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"eng016","Stress, Strain, and Elastic Modulus","engineering","Normal stress and strain, Hooke's law, and material stiffness.","**Normal stress (σ)** = force / area (Pa or MPa) — tension (+) or compression (−) by convention.
+
+**Normal strain (ε)** = change in length / original length (dimensionless)
+
+**Hooke's law (elastic region):** σ = E ε  
+**E** = **Young's modulus** (stiffness of material)
+
+**Stress–strain curve:** elastic region → yield point → plastic deformation → ultimate strength → fracture
+
+**Safety factor:** allowable stress = yield strength / SF
+
+**Poisson's ratio (ν):** lateral strain / axial strain (steel ~0.3)
+
+**Shear stress (τ)** and **shear modulus (G)** for torsion and shear loads (intro mention).","Units: MPa common in US texts. Brittle vs ductile materials. Concentration at holes — stress risers. Elastic vs plastic permanent deformation.","Students should define stress and strain with formulas, state Hooke's law, identify elastic vs plastic regions on a curve, and explain safety factor.","Hard","40","mechanics|materials|stress","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"eng017","Feedback Control Systems","engineering","Open vs closed loop, setpoints, sensors, and PID control intuition.","**Control systems** regulate outputs (temperature, speed, position).
+
+**Open-loop:** No measurement of output — toaster timer (approximate)
+
+**Closed-loop (feedback):** Sensor measures output; controller adjusts input to reduce **error** = setpoint − measured
+
+**Block diagram:** setpoint → controller → plant → output → sensor → back
+
+**PID controller components:**
+- **P** proportional to current error
+- **I** integral of error (removes steady-state offset)
+- **D** derivative (dampens oscillations)
+
+**Stability:** Poor tuning causes oscillation or slow response.
+
+**Examples:** Thermostat, cruise control, drone attitude control, industrial oven zones.","Overshoot vs rise time tradeoff. Ziegler-Nichols tuning mention optional. Digital sampling and delay affect stability.","Students should contrast open vs closed loop with examples, define setpoint and error, and describe roles of P, I, D qualitatively.","Hard","45","control|feedback|systems","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"eng018","Thermodynamics for Engineers","engineering","Laws of thermodynamics, heat engines, and efficiency limits.","**Thermodynamics** governs energy conversion in engines and power plants.
+
+**First law:** Energy conserved — ΔU = Q − W (closed system)
+
+**Second law:** Natural processes increase total entropy; heat flows spontaneously hot → cold
+
+**Heat engine:** Converts heat Q_h from hot reservoir to work W, rejects Q_c to cold reservoir  
+**Thermal efficiency η = W / Q_h = 1 − Q_c/Q_h
+
+**Carnot maximum efficiency:** η_Carnot = 1 − T_c/T_h (temperatures in **kelvin**)
+
+**Refrigerator/heat pump:** Moves heat from cold to hot with work input; COP measures performance
+
+**Entropy** quantifies dispersal of energy — real processes are **irreversible** (friction, mixing)
+
+**Power generation:** Steam cycles, gas turbines, combined cycle improve overall efficiency","Kelvin scale required for Carnot formula. Perpetual motion machines impossible. Entropy production in real components. Enthalpy for flow systems advanced.","Students should state first and second laws, define heat engine efficiency, write Carnot efficiency formula with kelvin temps, and explain why 100% efficiency is impossible.","Hard","45","thermodynamics|energy|engines","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"eng019","Systems Engineering","engineering","Holistic design of complex systems with requirements, interfaces, and trade studies.","**Systems engineering** coordinates large interdisciplinary projects (aircraft, satellites, transportation networks).
+
+**Key activities:**
+- **Stakeholder requirements** → verified **system requirements**
+- **Architecture** — partition into subsystems with clear **interfaces**
+- **Trade studies** — score alternatives against weighted criteria (cost, risk, performance)
+- **Verification & validation (V&V):** built right vs right thing
+- **Risk management** — identify, mitigate, monitor
+
+**Lifecycle:** concept → development → production → operations → retirement
+
+**Emergent behavior:** Whole system properties not obvious from parts alone (reliability, latency)
+
+**Model-Based Systems Engineering (MBSE)** uses diagrams/models to track requirements and interfaces.","INCOSE handbook reference optional. Interface control documents (ICD). Human factors in systems. Examples: Apollo, GPS constellation.","Students should define system requirements and interface, explain trade study purpose, contrast verification vs validation, and give one emergent property example.","Hard","40","systems|requirements|integration","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"eng020","Engineering Economics and Decisions","engineering","Cost estimates, benefit-cost thinking, and choosing between design options.","Engineering decisions include **economic** factors, not only technical performance.
+
+**Cost categories:**
+- **Capital (CAPEX)** — initial purchase/construction
+- **Operating (OPEX)** — energy, maintenance, labor
+
+**Life-cycle cost (LCC)** sums costs over service life (with discounting in advanced courses).
+
+**Benefit-cost analysis** compares monetized benefits to costs for public projects (safety time savings, reduced emissions).
+
+**Payback period** — time for savings to recover extra upfront cost (simple, ignores time value of money).
+
+**Decision matrix:** Weight criteria (performance, cost, risk, sustainability); score options objectively.
+
+**Uncertainty:** Sensitivity analysis shows how conclusions change if assumptions shift.
+
+**Ethics:** Lowest bid not always best value if quality/safety suffers.","Present value introduces discount rate r. Depreciation tax effects for firms. Risk premium for innovative tech. Triple bottom line: people, planet, profit.","Students should distinguish CAPEX and OPEX, define life-cycle cost concept, use a weighted decision matrix example, and explain payback period limitation.","Hard","35","economics|decisions|project","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"

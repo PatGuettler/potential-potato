@@ -1,121 +1,281 @@
 id,title,category,summary,content,answerGuide,answer,difficulty,estimatedMinutes,tags,authorId,createdAt,schoolId
-sci001,Introduction to Physics,science,Learn the fundamentals of physics and motion,"Physics is the study of matter and energy. In this lesson, we'll explore basic concepts like force, motion, and energy.
+"sci001","The Scientific Method","science","Learn how scientists ask questions, test ideas, and build reliable knowledge.","The scientific method is a systematic way to investigate the natural world.
 
-**What is Physics?**
-Physics helps us understand how the world works around us. From the motion of planets to the behavior of atoms, physics explains natural phenomena.
+**Typical steps:**
+1. **Observe** a phenomenon and ask a clear question.
+2. **Research** what is already known.
+3. **Hypothesis** — propose a testable explanation.
+4. **Experiment** — design a fair test with one changed variable (independent variable) and measure outcomes (dependent variable). Keep other conditions the same (controlled variables).
+5. **Analyze** data using tables, graphs, and statistics where appropriate.
+6. **Conclusion** — state whether evidence supports or refutes the hypothesis.
+7. **Communicate** results so others can replicate the work.
 
-**Key Concepts:**
-- Force: A push or pull that can change an object's motion
-- Motion: The change in position of an object over time
-- Energy: The ability to do work or cause change
+**Key ideas:**
+- A hypothesis must be **falsifiable** (it can be shown wrong by evidence).
+- **Peer review** helps catch errors before ideas are widely accepted.
+- Scientific knowledge is **provisional** — it improves when new evidence appears.","Emphasize: testable hypothesis, controlled experiments, replication. Distinguish hypothesis (educated guess) from theory (well-supported explanation) and law (description of a pattern). Common error: ""proving"" a hypothesis — scientists support or fail to support it.","Students should describe the scientific method as a cycle of observation, question, hypothesis, controlled experiment, data analysis, and conclusion. They should define a hypothesis as a testable explanation, identify independent and dependent variables, and explain why replication and peer review increase reliability.","Easy","25","scientific-method|inquiry|basics","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"sci002","States of Matter","science","Understand solids, liquids, gases, and how particles behave in each state.","Matter is made of tiny particles (atoms or molecules) in constant motion.
 
-**Examples:**
-1. When you push a ball, you apply force
-2. A car moving down the road demonstrates motion
-3. A battery stores electrical energy","**Answer Guide for Teachers:**
+**States at ordinary conditions:**
+- **Solid** — particles are closely packed in a fixed arrangement; shape and volume are definite.
+- **Liquid** — particles are close but can slide past each other; definite volume, variable shape.
+- **Gas** — particles are far apart and move freely; volume and shape expand to fill their container.
 
-1. Force is measured in Newtons (N)
-2. Newton's First Law: Objects at rest stay at rest, objects in motion stay in motion
-3. Examples of forces: gravity, friction, magnetic force
-4. Energy types: kinetic (motion), potential (stored), thermal (heat)
+**Phase changes** (temperature/pressure change energy):
+- Melting (solid → liquid), freezing (liquid → solid)
+- Vaporization/boiling (liquid → gas), condensation (gas → liquid)
+- Sublimation (solid → gas), deposition (gas → solid)
 
-**Common Student Questions:**
-- Why do objects fall? (Gravity)
-- How do rockets work? (Newton's Third Law)
-- What makes things stop moving? (Friction)","**Expected Student Answer:**
-Students should be able to explain:
-1. **Force** is a push or pull that can change an object's motion (examples: pushing a ball, gravity pulling objects down)
-2. **Motion** is the change in position of an object over time (examples: car driving, walking)
-3. **Energy** is the ability to do work or cause change (examples: battery power, kinetic energy of moving objects)
-4. Basic understanding that physics explains natural phenomena around us
-5. Identify at least 2-3 examples of each concept from daily life",Easy,30,physics|introduction|basics,default-admin,2024-09-14T00:00:00.000Z,default-school
-sci002,The Water Cycle,science,Understanding how water moves through Earth's systems,"The water cycle describes how water continuously moves through Earth's atmosphere, land, and oceans.
+**Plasma** is a high-energy state with ionized particles (e.g., in stars and fluorescent lights).","Link particle spacing and motion to macroscopic properties. Energy is absorbed during melting/vaporization and released during freezing/condensation (latent heat at phase-change temperature).","Students should compare solids, liquids, and gases using particle spacing and motion. They should name phase changes and note that temperature/pressure determine state. Example: ice melts at 0°C at standard pressure when energy is added.","Easy","20","matter|particles|phase","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"sci003","Cell Structure and Function","science","Explore the basic parts of cells and how they support life.","The **cell** is the smallest unit of life. All living organisms are made of one or more cells.
 
-**The Water Cycle Process:**
+**Cell theory (core ideas):**
+1. All living things are composed of cells.
+2. The cell is the basic unit of structure and function.
+3. New cells come from existing cells.
 
-1. **Evaporation**: Heat from the sun causes water to change from liquid to vapor
-2. **Condensation**: Water vapor cools and forms clouds
-3. **Precipitation**: Water falls as rain, snow, or hail
-4. **Collection**: Water gathers in oceans, lakes, and rivers
+**Prokaryotic cells** (bacteria, archaea) lack a membrane-bound nucleus.
+**Eukaryotic cells** (plants, animals, fungi, protists) have a nucleus and organelles.
 
-**Why It's Important:**
-- Provides fresh water for all living things
-- Helps regulate Earth's temperature
-- Distributes nutrients across the planet","**Teacher Answer Guide:**
+**Common organelles (eukaryotes):**
+- **Nucleus** — stores DNA; controls activities
+- **Mitochondria** — aerobic respiration; ATP energy
+- **Ribosomes** — protein synthesis
+- **Cell membrane** — controls entry/exit
+- **Chloroplasts** (plants) — photosynthesis
+- **Cell wall** (plants, fungi, bacteria) — structural support
 
-**Key Terms:**
-- Evaporation: Liquid → gas (water vapor)
-- Condensation: Gas → liquid (cloud formation)
-- Precipitation: Water falling from sky
-- Transpiration: Plants releasing water vapor
+**Unicellular** organisms are one cell; **multicellular** organisms have specialized cell types.","Contrast prokaryote vs eukaryote. Plant cells have chloroplasts and cell walls; animal cells do not. ATP is the cell's energy currency from cellular respiration.","Students should state cell theory, compare prokaryotic and eukaryotic cells, and describe functions of nucleus, mitochondria, ribosomes, and membrane. They should give one plant-only structure (chloroplast or cell wall).","Easy","30","biology|cells|life","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"sci004","Earth's Internal Structure","science","Learn the layers inside Earth and how we know about them.","Earth is layered by composition and by physical behavior.
 
-**Additional Details:**
-- 97% of Earth's water is in oceans
-- Only 3% is fresh water
-- Water cycle is powered by solar energy
-- Groundwater is part of the cycle too
+**By composition:**
+- **Crust** — thin outer rock (continental and oceanic)
+- **Mantle** — hot, mostly solid rock that flows slowly
+- **Core** — mostly iron and nickel; **outer core** is liquid, **inner core** is solid
 
-**Lab Ideas:**
-- Create mini water cycle in a jar
-- Measure daily precipitation
-- Observe cloud types","**Expected Student Answer:**
-Students should be able to explain the 4 main steps of the water cycle in order:
-1. **Evaporation**: Sun heats water in oceans/lakes, turning it into water vapor that rises into the atmosphere
-2. **Condensation**: Water vapor cools and forms tiny droplets that create clouds
-3. **Precipitation**: Water falls from clouds as rain, snow, sleet, or hail
-4. **Collection**: Water gathers back in oceans, lakes, rivers, and underground
-Students should also explain why the water cycle is important (provides fresh water for living things, helps regulate temperature) and that it's powered by solar energy.",Medium,25,water|cycle|earth|environment,default-admin,2024-09-14T00:00:00.000Z,default-school
-sci003,Chemical Reactions,science,Explore how substances change and interact,"Chemical reactions occur when substances interact and form new compounds with different properties.
+**By physical behavior (rheology):**
+- **Lithosphere** — rigid plates (crust + upper mantle)
+- **Asthenosphere** — weaker, ductile mantle below plates
 
-**What is a Chemical Reaction?**
-A process where atoms rearrange to form new substances. The original substances are called reactants, and the new substances are products.
+**Evidence for structure:**
+- Seismic waves change speed and reflect at boundaries (Mohorovičić discontinuity, core-mantle boundary)
+- Meteorite composition suggests an iron-rich core
+- Earth's magnetic field is generated by motion in the liquid outer core (geodynamo)","Oceanic crust is thinner and denser than continental crust. Plate tectonics acts on the lithosphere. P-waves travel through liquid; S-waves do not pass through the outer core.","Students should list crust, mantle, and core, note liquid outer core and solid inner core, and cite seismic waves as evidence. They should connect the outer core to Earth's magnetic field.","Easy","25","earth-science|geology|layers","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"sci005","Forms of Energy","science","Identify energy types and how energy transforms while total energy is conserved.","**Energy** is the capacity to do work or transfer heat.
 
-**Signs of Chemical Reactions:**
-- Color change
-- Gas production (bubbling)
-- Temperature change
-- Formation of precipitate (solid)
+**Common forms:**
+- **Kinetic** — motion (KE = ½mv²)
+- **Gravitational potential** — height in a field (PE = mgh near Earth's surface)
+- **Thermal** — random motion of particles (temperature related)
+- **Chemical** — stored in bonds (food, fuels, batteries)
+- **Electrical** — moving charges and fields
+- **Light (electromagnetic)** — radiation
+- **Nuclear** — binding energy in atomic nuclei
 
-**Types of Reactions:**
-1. **Synthesis**: A + B → AB
-2. **Decomposition**: AB → A + B
-3. **Combustion**: Fuel + Oxygen → CO₂ + H₂O
+**Law of conservation of energy:** In an isolated system, total energy stays constant; it transforms between forms. In real systems, some mechanical energy often becomes thermal energy (friction) — not ""lost,"" but spread out.","Distinguish energy from force. Efficiency is useful output divided by total input. Units: joule (J) in SI.","Students should define energy, list at least four forms with examples, and state conservation of energy. Example: a falling book converts gravitational potential energy to kinetic energy (and some thermal from air resistance).","Easy","25","physics|energy|conservation","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"sci006","Photosynthesis","science","How plants capture light energy to build sugars and release oxygen.","**Photosynthesis** converts light energy into chemical energy stored in sugars.
 
-**Example:**
-When iron rusts: Iron + Oxygen → Iron Oxide (rust)","**Teacher Guide:**
+**Overall equation (simplified):**
+6 CO₂ + 6 H₂O + light energy → C₆H₁₂O₆ + 6 O₂
 
-**Chemical Equation Basics:**
-- Reactants on left, products on right
-- Arrow shows direction of reaction
-- Must balance equations (same number of atoms on each side)
+**Where it occurs:** Chloroplasts, mainly in leaf mesophyll cells. **Chlorophyll** absorbs red and blue light (green light is mostly reflected).
 
-**Safety Notes:**
-- Always wear safety goggles
-- Use proper ventilation
-- Never mix unknown chemicals
+**Two main stages:**
+1. **Light-dependent reactions** (thylakoid membranes) — light splits water; produces ATP, NADPH, and O₂ as a by-product.
+2. **Calvin cycle** (stroma) — uses ATP and NADPH to fix CO₂ into carbohydrates.
 
-**Common Reactions to Demonstrate:**
-- Vinegar + Baking Soda (acid-base)
-- Iron + Oxygen (oxidation)
-- Sugar + Heat (decomposition)
+**Ecological role:** Producers form the base of most food webs; photosynthesis also shapes atmospheric O₂ and CO₂ levels.","Reactants: CO₂ and H₂O. Products: glucose (or other sugars) and O₂. Oxygen comes from water splitting, not from CO₂. Connect to food chains and carbon cycle.","Students should write the balanced summary equation, state that chloroplasts/chlorophyll are required, and explain that plants produce O₂ and organic molecules while consuming CO₂. They should place photosynthesis at the base of food webs.","Easy","30","biology|plants|energy","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"sci007","The Water Cycle","science","Follow water as it moves through oceans, air, land, and living things.","Water cycles through Earth's **hydrosphere**, **atmosphere**, **biosphere**, and **geosphere**.
 
-**Assessment Ideas:**
-- Identify reaction types
-- Balance simple equations
-- Predict products","**Expected Student Answer:**
-Students should be able to explain:
-1. **Definition**: Chemical reaction is when atoms rearrange to form new substances with different properties
-2. **Components**: Reactants (starting materials) → Products (new substances formed)
-3. **Signs of Chemical Reactions** (identify at least 3):
-   - Color change
-   - Gas production (bubbling)
-   - Temperature change (getting hot/cold)
-   - Formation of precipitate (solid forming)
-4. **Basic Reaction Types**:
-   - Synthesis: Two things combine (A + B → AB)
-   - Decomposition: One thing breaks apart (AB → A + B)
-   - Combustion: Burning with oxygen
-5. **Real Example**: Iron + Oxygen → Rust (iron oxide)",Hard,45,chemistry|reactions|equations,default-admin,2024-09-14T00:00:00.000Z,default-school340HAObPZaDH_NV3MmnLy,"Test science ",science,"Test description ","Test content ","Test guide ","",Easy,30,,Pat,2025-09-14T15:06:03.434Z,default-school
-4Musf7JNGx4rD4jfiOMS3,"Test Science ",science,"Test description ","Test content ","Test Guide: Test answer","Test answer",Easy,30,,Pat,2025-09-14T15:40:15.463Z,default-school
-c00jsivCthlyRSS82Of00,"tsetsdf",science,"asdfasdf","asdfasdf","asdfasdf","asdfasdf",Easy,30,,Pat,2025-09-15T01:30:43.859Z,default-school
-R_jfEGx6l4LwfdEKEiReU,"test wsl",science,"test wsl description","{""type"":""structured"",""sections"":[{""id"":""section-1757900493498"",""title"":""asdfsadf"",""description"":""asdfasdfasdf"",""questions"":[{""id"":""question-1757900500753"",""prompt"":""quest"",""type"":""text"",""expectedAnswer"":""test"",""caseSensitive"":true,""options"":[]}]}]}","","test",Easy,30,,Pat,2025-09-15T01:41:56.072Z,default-school
+**Main processes:**
+1. **Evaporation** — liquid water → water vapor (sun-driven; also **transpiration** from plants)
+2. **Condensation** — vapor forms liquid droplets (clouds)
+3. **Precipitation** — rain, snow, sleet, hail
+4. **Collection/runoff** — water flows in rivers and soaks into **groundwater**
+
+**Energy source:** Solar radiation powers evaporation. Gravity drives precipitation and runoff.
+
+**Importance:** Distributes fresh water, moves nutrients, regulates regional climate. About 97% of Earth's water is in oceans; most fresh water is ice or groundwater.","Include transpiration as biological evaporation. Groundwater and aquifers are part of collection. Human use (irrigation, reservoirs) alters but does not replace the cycle.","Students should describe evaporation, condensation, precipitation, and collection in order, name solar energy as the driver, and explain why the cycle matters for life and climate.","Easy","25","earth-science|water|cycle","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"sci008","Newton's Laws of Motion","science","Apply three fundamental laws that predict how forces affect motion.","**First law (inertia):** If net force on an object is zero, its velocity stays constant (including rest).
+
+**Second law:** Net force equals mass times acceleration: **F_net = ma** (SI: newtons, kilograms, m/s²).
+
+**Third law:** Forces occur in equal-and-opposite pairs on different objects: if A pushes B, B pushes A with the same magnitude and opposite direction.
+
+**Free-body diagrams** show forces as arrows (gravity, normal force, friction, tension, applied pushes/pulls).
+
+**Friction:** Static friction prevents start of motion; kinetic friction opposes sliding. On smooth surfaces friction is smaller.
+
+**Weight vs mass:** Weight = mg (force, newtons); mass (kg) is amount of matter.","Net force causes acceleration, not motion itself. Third-law pairs act on different bodies — they do not cancel on one object. g ≈ 9.8 m/s² near Earth's surface.","Students should state all three laws in their own words, use F=ma with correct units, draw a simple free-body diagram, and give a third-law example (rocket exhaust pushes rocket forward).","Medium","35","physics|forces|motion","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"sci009","Atomic Structure","science","Protons, neutrons, electrons, and how the periodic table is organized.","Atoms contain a dense **nucleus** (protons + neutrons) surrounded by **electrons**.
+
+**Subatomic particles:**
+- **Proton** — positive charge, defines atomic number Z
+- **Neutron** — no charge, contributes to mass number A
+- **Electron** — negative charge, occupies orbitals/energy levels; in neutral atoms, electron count = proton count
+
+**Isotopes** — same Z, different neutron number (e.g., carbon-12 vs carbon-14).
+
+**Periodic table:**
+- Rows = **periods** (energy levels)
+- Columns = **groups** with similar valence electron patterns
+- Metals, metalloids, nonmetals show distinct properties
+
+**Ions** form when atoms gain or lose electrons (cations +, anions −).","Atomic number = protons. Mass number ≈ protons + neutrons. Electrons determine chemical behavior. Avoid saying electrons orbit in fixed circles — use energy levels/orbitals at intro level.","Students should identify proton, neutron, electron charges and locations, define atomic number and isotope, and explain that the periodic table is organized by increasing atomic number with repeating chemical properties in groups.","Medium","30","chemistry|atoms|periodic-table","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"sci010","Ecosystems and Food Webs","science","Energy flow, roles of organisms, and interactions in ecosystems.","An **ecosystem** includes living (**biotic**) and nonliving (**abiotic**) parts interacting in an area.
+
+**Trophic levels:**
+- **Producers** (autotrophs) — photosynthesis or chemosynthesis
+- **Primary consumers** — herbivores
+- **Secondary/tertiary consumers** — carnivores/omnivores
+- **Decomposers** — recycle nutrients (bacteria, fungi)
+
+**Food chains** show one path; **food webs** show multiple linked chains.
+
+**Energy rule:** Roughly **10%** of energy transfers to the next level; the rest is lost mainly as heat in metabolism — limits chain length.
+
+**Biomass pyramids** usually narrow at the top for terrestrial systems.
+
+**Abiotic factors:** sunlight, water, temperature, soil, nutrients shape distribution of life.","Nutrients (N, P, carbon) cycle; energy flows one way. Keystone species disproportionately affect community structure. Habitat vs niche distinction is useful.","Students should define producer/consumer/decomposer, contrast food chain and web, explain ~10% energy transfer, and list three abiotic factors affecting ecosystems.","Medium","30","biology|ecology|energy","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"sci011","Plate Tectonics","science","How Earth's lithospheric plates move and shape earthquakes, volcanoes, and mountains.","Earth's **lithosphere** is broken into plates that move slowly on the **asthenosphere**.
+
+**Three plate boundaries:**
+- **Divergent** — plates separate (mid-ocean ridges, rift valleys); new crust forms
+- **Convergent** — plates collide (subduction zones, continental collision); earthquakes and volcanoes common
+- **Transform** — plates slide past (e.g., San Andreas Fault); earthquakes
+
+**Driving mechanism:** Mantle **convection** plus slab pull at subduction zones move plates (rates ~ cm/year).
+
+**Evidence:** Continent shapes fit, matching fossils/rock ages across oceans, seafloor spreading stripes, earthquake/volcano patterns.
+
+**Continental drift** was proposed by Wegener; plate tectonics explains the mechanism.","Oceanic crust subducts under continental crust because it is denser. Himalayas from continental collision. Hot spots (Hawaii) are volcanic chains over mantle plumes.","Students should describe three boundary types with one landform or hazard each, cite seafloor spreading or fossil evidence, and state that mantle convection helps drive plate motion.","Medium","35","earth-science|tectonics|geology","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"sci012","Acids, Bases, and pH","science","Measure acidity, common lab acids/bases, and neutralization reactions.","**Acids** increase H⁺ concentration in water; **bases** increase OH⁻ (or accept H⁺).
+
+**pH scale** (0–14 at 25°C, pure water pH 7):
+- pH < 7 acidic; pH > 7 basic; pH 7 neutral
+- Each pH unit is a **tenfold** change in H⁺ activity
+
+**Indicators** (litmus, phenolphthalein, universal indicator) show approximate pH.
+
+**Neutralization:** Acid + base → salt + water  
+Example: HCl + NaOH → NaCl + H₂O
+
+**Safety:** Strong acids/bases are corrosive; always add acid to water when diluting, never the reverse.
+
+**Everyday examples:** Stomach acid (HCl), soap bases, vinegar (acetic acid), baking soda (base).","Logarithmic pH scale is challenging — emphasize factor-of-10 steps. Buffers resist pH change (blood bicarbonate). Arrhenius model is sufficient at this level.","Students should define acid and base using H⁺/OH⁻, interpret pH numbers, describe neutralization products, and give two household examples with approximate acidic/basic character.","Medium","30","chemistry|acids|ph","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"sci013","Waves and Sound","science","Properties of waves and how sound travels through matter.","A **wave** transfers energy without transferring matter.
+
+**Types:**
+- **Transverse** — particle motion perpendicular to direction (light, string waves)
+- **Longitudinal** — particle motion parallel to direction (**sound** in air)
+
+**Key terms:**
+- **Wavelength (λ)** — distance between repeating points
+- **Frequency (f)** — cycles per second (hertz, Hz)
+- **Amplitude** — maximum displacement; relates to loudness for sound
+- **Wave speed:** v = fλ
+
+**Sound** needs a medium (solids, liquids, gases); it cannot travel through a vacuum. Speed in air ≈ 343 m/s at room temperature.
+
+**Pitch** is perceived frequency; **loudness** relates to amplitude. Ultrasound (>20 kHz) and infrasound (<20 Hz) are outside human hearing.","Echo is reflected sound. Doppler effect shifts frequency when source or observer moves. Protect hearing from prolonged high amplitude.","Students should define wavelength, frequency, and amplitude, use v=fλ, explain why sound needs a medium, and contrast pitch and loudness.","Medium","30","physics|waves|sound","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"sci014","DNA, Genes, and Heredity","science","How genetic information is stored and passed from parents to offspring.","**DNA** (deoxyribonucleic acid) stores hereditary information in a sequence of four bases: A, T, C, G (paired A–T, C–G in the double helix).
+
+**Gene** — a segment of DNA that codes for a functional product (often a protein).
+
+**Chromosomes** — long DNA molecules with proteins; humans have 23 pairs in most body cells.
+
+**Mitosis** — produces two genetically identical diploid cells for growth/repair.
+
+**Meiosis** — produces gametes with half the chromosome number; **crossing over** and random assortment increase genetic variation.
+
+**Mendelian inheritance (single gene):**
+- **Alleles** — alternate forms of a gene
+- **Dominant** allele can mask **recessive** in heterozygotes
+- Punnett squares predict offspring ratios for simple traits","Diploid (2n) vs haploid (n). Somatic vs gamete. DNA → RNA → protein is central dogma (intro level). Not all traits are single-gene (height is polygenic).","Students should describe DNA's role, define gene and allele, contrast mitosis and meiosis, and use a Punnett square for a monohybrid cross (e.g., Bb × Bb).","Medium","35","biology|genetics|dna","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"sci015","Chemical Reactions and Equations","science","Represent reactions with balanced equations and recognize reaction types.","A **chemical reaction** rearranges atoms to form new substances.
+
+**Chemical equation:** reactants → products  
+Example: 2H₂ + O₂ → 2H₂O
+
+**Balancing** uses coefficients so atom counts match on both sides (never change subscripts).
+
+**Reaction types:**
+- **Synthesis** A + B → AB
+- **Decomposition** AB → A + B
+- **Single replacement** A + BC → AC + B
+- **Double replacement** AB + CD → AD + CB
+- **Combustion** fuel + O₂ → CO₂ + H₂O (hydrocarbons; incomplete combustion can produce CO)
+
+**Evidence of reaction:** color change, gas bubbles, precipitate, temperature change.
+
+**Conservation of mass:** Total mass of closed system unchanged (atoms are rearranged).","Coefficients multiply entire formulas. Ionic equations and net ionic forms come later. Oxidation–reduction can be introduced via combustion and single replacement.","Students should balance a simple equation (e.g., Fe + O₂ → Fe₂O₃), name two reaction types with examples, list three signs a reaction occurred, and state the law of conservation of mass.","Hard","40","chemistry|reactions|equations","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"sci016","Electricity and Simple Circuits","science","Voltage, current, resistance, and series vs parallel circuits.","Electric **current (I)** is flow of charge (amperes, A). **Voltage (V)** is energy per charge (volts). **Resistance (R)** opposes current (ohms, Ω).
+
+**Ohm's law (many conductors):** V = IR
+
+**Circuit elements:**
+- **Battery** — provides potential difference
+- **Resistor** — limits current
+- **Switch** — opens/closes path
+
+**Series:** one path — current same everywhere; voltages add; resistances add: R_total = R₁ + R₂
+
+**Parallel:** branches — voltage same across branches; currents split; 1/R_total = 1/R₁ + 1/R₂
+
+**Power:** P = IV (watts)
+
+**Safety:** Household current can be lethal; water lowers resistance of skin; use insulated tools and GFCI protection.","Conventional current is + to −. Electron flow is opposite. Short circuit: very low resistance path. Fuses/breakers limit current.","Students should define V, I, R with units, apply V=IR to one resistor, compare series vs parallel brightness of two identical bulbs qualitatively, and state P=IV.","Hard","40","physics|electricity|circuits","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"sci017","Climate and the Greenhouse Effect","science","Earth's energy balance, natural greenhouse effect, and human climate drivers.","**Climate** is long-term average weather; **weather** is short-term conditions.
+
+**Earth's energy balance:**
+- Incoming **shortwave** solar radiation is partly reflected (clouds, ice, aerosols).
+- Absorbed energy warms surface; Earth emits **longwave** infrared radiation.
+
+**Natural greenhouse effect:** Atmospheric gases (H₂O, CO₂, CH₄, N₂O) absorb outgoing IR and re-emit energy, keeping Earth's mean surface temperature habitable (~15°C average).
+
+**Enhanced greenhouse effect:** Burning fossil fuels and land-use change increase atmospheric CO₂ and CH₄, strengthening IR absorption — observed **global mean temperature rise** since industrial era, with corroborating evidence: ocean heat content, ice loss, sea-level rise, earlier springs.
+
+**Mitigation/adaptation:** Reduce emissions (efficiency, renewables), protect forests, prepare infrastructure for extremes.","Distinguish correlation vs causation using multiple independent lines of evidence. Weather events ≠ climate trend. Methane is potent but shorter-lived than CO₂.","Students should contrast weather and climate, explain natural greenhouse effect vs enhanced effect, name two greenhouse gases and a human source of CO₂, and list two observed impacts of recent warming.","Hard","40","earth-science|climate|atmosphere","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"sci018","Thermodynamics Essentials","science","Heat, temperature, laws of thermodynamics, and entropy at an introductory level.","**Temperature** measures average kinetic energy of particles (not the same as heat).
+
+**Heat (Q)** is energy transferred due to temperature difference (joules). Flows hot → cold until equilibrium.
+
+**Specific heat capacity (c):** Q = mcΔT — how much energy raises 1 kg by 1°C.
+
+**Zeroth law:** Thermal equilibrium is transitive (thermometers work).
+
+**First law:** ΔU = Q − W — internal energy change equals heat added minus work done **by** system.
+
+**Second law:** Natural processes increase total **entropy** of universe; heat engines cannot be 100% efficient. **Carnot** sets ideal maximum efficiency bounded by hot/cold reservoir temperatures.
+
+**Third law:** Entropy approaches a minimum as temperature approaches absolute zero (0 K).","Entropy is dispersal of energy/microstates — qualitative OK. Refrigerators move heat from cold to hot with work input. Perpetual motion machines violate laws.","Students should distinguish heat and temperature, use Q=mcΔT, state first law in words, and explain second law as energy spreading out (engines waste some energy as heat).","Hard","45","physics|thermodynamics|heat","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"sci019","Evolution by Natural Selection","science","How populations change over generations through variation, selection, and inheritance.","**Evolution** is change in heritable traits in populations over time.
+
+**Natural selection requirements:**
+1. **Variation** in traits
+2. **Heritability** (genetic component)
+3. **Differential reproduction** (fitness differences)
+4. **Time** across generations
+
+**Result:** Alleles that improve survival/reproduction in a given environment become more common — **adaptation**.
+
+**Other mechanisms:** genetic drift (chance, strong in small populations), gene flow (migration), mutation (ultimate source of new alleles).
+
+**Speciation** can occur when populations are reproductively isolated (geographic, behavioral, temporal barriers).
+
+**Evidence:** Fossils, comparative anatomy, embryology, molecular DNA sequences, observed selection (antibiotic resistance). **Common ancestry** explains unity and diversity of life.","Evolution is change in populations, not individuals ""trying"" to evolve. Fitness is reproductive success in an environment. ""Survival of the fittest"" is misleading without reproduction.","Students should list four requirements for natural selection, define adaptation, name two evidence sources for evolution, and explain antibiotic resistance as selection on bacteria.","Hard","40","biology|evolution|natural-selection","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"sci020","The Periodic Table and Bonding","science","Predict properties and bond types using periodic trends and valence electrons.","**Periodic trends** (general, same period/group):
+- **Atomic radius** decreases across a period; increases down a group
+- **Metallic character** decreases across a period
+- **Electronegativity** increases across a period (F is most electronegative)
+
+**Valence electrons** (outer shell) guide bonding:
+- **Ionic bonding** — electron transfer metal + nonmetal → ions (NaCl)
+- **Covalent bonding** — electron sharing nonmetals (H₂O, CO₂)
+- **Metallic bonding** — delocalized electrons in metals
+
+**Lewis dot structures** show valence electrons for small molecules.
+
+**Polarity:** Unequal sharing when electronegativity differs; polar molecules interact strongly with water.
+
+**States at room conditions** relate to bond strength and intermolecular forces (later: hydrogen bonding in water explains high boiling point).","Noble gases are largely unreactive (full valence shell). Transition metals show variable oxidation states. Intro only — VSEPR and MO theory are advanced.","Students should describe one periodic trend with direction, contrast ionic and covalent bonding with examples, and explain that valence electrons determine how atoms bond.","Hard","40","chemistry|periodic-table|bonding","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"

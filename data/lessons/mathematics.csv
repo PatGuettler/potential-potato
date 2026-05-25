@@ -1,223 +1,294 @@
 id,title,category,summary,content,answerGuide,answer,difficulty,estimatedMinutes,tags,authorId,createdAt,schoolId
-math001,Algebra Fundamentals,mathematics,Introduction to algebraic thinking and solving equations,"Algebra is the branch of mathematics that uses letters and symbols to represent unknown numbers and quantities.
+"math001","Number Systems and Order of Operations","mathematics","Whole numbers, integers, rationals, and PEMDAS for correct calculation.","**Number sets (expanding):**
+- **Natural numbers** ℕ: 1, 2, 3, … (sometimes include 0)
+- **Integers** ℤ: …, −2, −1, 0, 1, 2, …
+- **Rational numbers** ℚ: fractions a/b where b ≠ 0
+- **Real numbers** ℝ: include irrationals like √2, π
 
-**What is Algebra?**
-Algebra helps us solve problems where we don't know all the numbers. We use letters (like x and y) to represent unknown values.
+**Order of operations (PEMDAS / BODMAS):**
+1. **P**arentheses (and other grouping)
+2. **E**xponents
+3. **M**ultiplication and **D**ivision left to right
+4. **A**ddition and **S**ubtraction left to right
 
-**Key Concepts:**
-- **Variable**: A letter that represents an unknown number (x, y, a, b)
-- **Expression**: Mathematical phrase with numbers and variables (3x + 5)
-- **Equation**: Statement that two expressions are equal (3x + 5 = 14)
-- **Solving**: Finding the value of the variable that makes the equation true
+Example: 3 + 4 × 2 = 3 + 8 = 11 (not 14)
 
-**Basic Rules:**
-1. **Addition Property**: Add same number to both sides
-2. **Subtraction Property**: Subtract same number from both sides  
-3. **Multiplication Property**: Multiply both sides by same number
-4. **Division Property**: Divide both sides by same number (not zero)
+**Absolute value** |x| is distance from zero on the number line.","Division by zero undefined. Fractions require common denominator for addition. Negative times negative is positive.","Students should name ℕ, ℤ, ℚ examples, apply PEMDAS to 2 + 3 × (4 − 1), and define absolute value.","Easy","25","arithmetic|pemdas|numbers","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"math002","Fractions, Decimals, and Percents","mathematics","Convert between forms and solve practical percent problems.","**Fractions** represent parts of a whole: a/b (b ≠ 0).
 
-**Example Problem:**
-Solve: 2x + 3 = 11
-- Subtract 3 from both sides: 2x = 8
-- Divide both sides by 2: x = 4
-- Check: 2(4) + 3 = 8 + 3 = 11 ✓","**Teacher Answer Guide:**
+**Equivalent fractions:** multiply/divide numerator and denominator by same nonzero number.
 
-**Common Student Errors:**
-- Adding/subtracting only from one side
-- Confusing expressions with equations
-- Not checking answers
-- Misunderstanding negative numbers
+**Addition/subtraction:** common denominator first.
 
-**Step-by-Step Problem Solving:**
-1. Identify what you're solving for
-2. Use inverse operations to isolate variable
-3. Perform same operation on both sides
-4. Check answer in original equation
+**Multiplication:** (a/b)(c/d) = ac/bd  
+**Division:** multiply by reciprocal (a/b) ÷ (c/d) = (a/b)(d/c)
 
-**Practice Problems:**
-1. x + 7 = 15 (Answer: x = 8)
-2. 3y - 4 = 17 (Answer: y = 7)  
-3. 2a + 6 = 3a - 2 (Answer: a = 8)
+**Decimals** are base-10 fractions (0.25 = 25/100 = 1/4).
 
-**Word Problems:**
-- Age problems: ""John is 5 years older than Mary...""
-- Money problems: ""Sarah has twice as many coins...""
-- Distance problems: ""A car travels at 60 mph for x hours...""
+**Percent** means per hundred: 35% = 35/100 = 0.35
 
-**Visual Aids:**
-- Use balance scales to show equation properties
-- Number line for adding/subtracting
-- Algebra tiles for manipulating expressions","**Expected Student Answer:**
-Students should be able to explain:
-1. **Algebra Definition**: Algebra uses letters and symbols to represent unknown numbers and helps solve problems where we don't know all the values
-2. **Key Terms**:
-   - **Variable**: A letter (like x or y) that represents an unknown number
-   - **Expression**: Mathematical phrase with numbers and variables (like 3x + 5)
-   - **Equation**: Statement showing two expressions are equal (like 3x + 5 = 14)
-   - **Solving**: Finding the value of the variable that makes the equation true
-3. **Equation Solving Rules** (identify at least 3):
-   - Addition Property: Add same number to both sides
-   - Subtraction Property: Subtract same number from both sides
-   - Multiplication Property: Multiply both sides by same number
-   - Division Property: Divide both sides by same non-zero number
-4. **Step-by-Step Solving Process**:
-   - Use inverse operations to isolate the variable
-   - Perform the same operation on both sides
-   - Always check your answer by substituting back
-5. **Example**: Be able to solve simple equations like 2x + 3 = 11 (answer: x = 4) and show all steps",Easy,30,algebra|equations|variables|problem-solving,default-admin,2024-09-14T00:00:00.000Z,default-school
-math002,Geometry: Shapes and Areas,mathematics,Understanding geometric shapes and how to calculate their areas,"Geometry is the study of shapes, sizes, and the properties of space.
+**Percent problems:**
+- Part = percent × whole
+- Percent change = (new − old) / old × 100%","Simplify fractions. Repeating decimals 0.333… = 1/3. Tax/tip word problems. Percent increase vs decrease sign.","Students should add 1/3 + 1/6, convert 3/8 to decimal and percent, and solve: 20% of 150 is what number?","Easy","30","fractions|decimals|percent","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"math003","Algebraic Expressions and Equations","mathematics","Variables, like terms, simplifying, and solving one-step equations.","**Variables** (x, y) stand for unknown or changing quantities.
 
-**Basic 2D Shapes:**
+**Expression** — no equals sign (3x + 2)  
+**Equation** — states equality (3x + 2 = 11)
 
-**Rectangle:**
-- 4 sides, 4 right angles
-- Opposite sides are equal and parallel
-- Area = length × width
-- Perimeter = 2(length + width)
+**Like terms** have same variable part; combine: 2x + 5x = 7x; constants separate from x terms.
 
-**Triangle:**
-- 3 sides, 3 angles
-- Sum of angles = 180°
-- Area = ½ × base × height
-- Types: Equilateral, Isosceles, Scalene
+**Distributive property:** a(b + c) = ab + ac
 
-**Circle:**
-- All points equal distance from center
-- Radius (r) = distance from center to edge
-- Diameter (d) = 2 × radius
-- Area = π × r²
-- Circumference = 2π × r
+**Solving linear equations:** isolate variable using inverse operations
+- Example: x + 5 = 12 → x = 7
+- 3x = 15 → x = 5
+- 2x + 1 = 9 → 2x = 8 → x = 4
 
-**Parallelogram:**
-- Opposite sides parallel and equal
-- Area = base × height
-- Perimeter = 2(side₁ + side₂)
+**Check solutions** by substitution.","Balanced equation metaphor (scale). No dividing by zero. Translating words: ""five more than x"" → x + 5.","Students should simplify 4x + 3 − x + 7, solve 5x − 2 = 18, and verify by substitution.","Easy","30","algebra|expressions|equations","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"math004","Ratios and Proportions","mathematics","Compare quantities, solve proportions, and apply to maps and recipes.","**Ratio** compares two quantities a:b (order matters).
 
-**Real-World Applications:**
-- Calculating room area for flooring
-- Finding garden space for planting
-- Designing architectural blueprints
-- Sports field dimensions","**Teacher Answer Guide:**
+**Equivalent ratios** scale both parts (3:4 = 6:8).
 
-**Key Formulas to Memorize:**
-- Rectangle Area: A = l × w
-- Triangle Area: A = ½bh  
-- Circle Area: A = πr²
-- Circle Circumference: C = 2πr or C = πd
+**Rate** is ratio with different units (60 miles / 2 hours = 30 mi/h).
 
-**Common Misconceptions:**
-- Confusing area and perimeter
-- Using diameter instead of radius in circle formulas
-- Not using height (perpendicular distance) for triangles
-- Thinking all quadrilaterals are rectangles
+**Proportion** states two ratios equal: a/b = c/d  
+Cross-multiply: ad = bc (when b,d ≠ 0)
 
-**Practice Problems:**
-1. Rectangle 8m × 5m: Area = 40 m²
-2. Triangle base 6cm, height 4cm: Area = 12 cm²
-3. Circle radius 3in: Area = 9π ≈ 28.3 in²
+**Scale drawings:** map scale 1 cm : 5 km means multiply map distance by 5 to get real distance.
 
-**Measurement Activities:**
-- Measure classroom dimensions
-- Calculate school playground area
-- Compare areas of different shapes with same perimeter
-- Use grid paper for area estimation
+**Unit rate** — per one unit (price per item).
 
-**Problem-Solving Strategy:**
-1. Identify the shape
-2. Find the correct formula
-3. Identify given measurements
-4. Substitute into formula
-5. Calculate and include units","**Expected Student Answer:**
-Students should be able to explain:
-1. **Geometry Definition**: Geometry is the study of shapes, sizes, and properties of space
-2. **Key Shape Properties**:
-   - **Rectangle**: 4 sides, 4 right angles, opposite sides equal and parallel
-   - **Triangle**: 3 sides, 3 angles that sum to 180°
-   - **Circle**: All points equal distance from center; radius = center to edge, diameter = 2 × radius
-   - **Parallelogram**: Opposite sides parallel and equal
-3. **Essential Area Formulas**:
-   - **Rectangle**: Area = length × width
-   - **Triangle**: Area = ½ × base × height
-   - **Circle**: Area = π × r² (pi times radius squared)
-   - **Parallelogram**: Area = base × height
-4. **Perimeter/Circumference Formulas**:
-   - **Rectangle**: Perimeter = 2(length + width)
-   - **Circle**: Circumference = 2π × r or π × d
-5. **Problem-Solving Steps**: Identify the shape, find correct formula, identify given measurements, substitute into formula, calculate with units
-6. **Real-World Applications**: Calculating room area for flooring, garden space, architectural blueprints, sports field dimensions",Medium,35,geometry|shapes|area|perimeter|measurement,default-admin,2024-09-14T00:00:00.000Z,default-school
-math003,Statistics and Data Analysis,mathematics,Learn to collect organize and interpret data,"Statistics helps us collect, organize, and understand information from data.
+**Direct proportion:** quantities rise together (more hours → more pay at fixed wage).","Set up consistent units. Inverse proportion preview (speed vs time for fixed distance). 3:4 ≠ 4:3.","Students should simplify ratio 12:8, solve 3/5 = x/20 for x, and solve a map scale word problem.","Easy","25","ratios|proportions|applications","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"math005","Graphing on the Coordinate Plane","mathematics","Plot points, read coordinates, and interpret basic graphs.","The **Cartesian plane** has horizontal **x-axis** and vertical **y-axis** meeting at **origin (0,0)**.
 
-**Types of Data:**
-- **Quantitative**: Numbers that can be measured (height, temperature, test scores)
-- **Qualitative**: Categories or descriptions (colors, favorite foods, yes/no)
-- **Discrete**: Countable numbers (number of students, cars)
-- **Continuous**: Measurable quantities (weight, time, temperature)
+**Ordered pair (x, y)** — x horizontal, y vertical (""run, then rise"").
 
-**Data Collection Methods:**
-- **Survey**: Asking questions to gather information
-- **Observation**: Recording what you see
-- **Experiment**: Testing to find cause and effect
-- **Census**: Collecting data from entire population
+**Quadrants** I (+,+), II (−,+), III (−,−), IV (+,−)
 
-**Displaying Data:**
-- **Bar Graph**: Comparing different categories
-- **Line Graph**: Showing change over time
-- **Pie Chart**: Showing parts of a whole
-- **Histogram**: Showing frequency of ranges
-- **Scatter Plot**: Showing relationships between two variables
+**Table → graph:** Choose x values, compute y from rule, plot points, connect if linear pattern.
 
-**Measures of Central Tendency:**
-- **Mean**: Average of all values (add all, divide by count)
-- **Median**: Middle value when arranged in order
-- **Mode**: Most frequently occurring value
-- **Range**: Difference between highest and lowest values","**Teacher Answer Guide:**
+**Intercepts:** x-intercept where y=0; y-intercept where x=0.
 
-**When to Use Each Average:**
-- **Mean**: When data is normally distributed, no extreme outliers
-- **Median**: When data has outliers or is skewed
-- **Mode**: When looking for most common response
+**Real graphs:** distance vs time, temperature vs day — identify trends (increasing, decreasing, constant).","Common error: swapping x and y. Discrete data vs continuous curves. Label axes with units.","Students should plot (3, −2), name quadrant, graph y = 2x + 1 from a small table, and read intercepts.","Easy","25","graphing|coordinates|plane","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"math006","Basic Probability","mathematics","Experimental vs theoretical probability and compound events introduction.","**Probability** measures likelihood from 0 (impossible) to 1 (certain).
 
-**Sample Data Set:** Test Scores: 85, 92, 78, 85, 96, 82, 88
-- Mean: (85+92+78+85+96+82+88) ÷ 7 = 86.6
-- Median: Arrange in order: 78, 82, 85, 85, 88, 92, 96 → Median = 85
-- Mode: 85 (appears twice)
-- Range: 96 - 78 = 18
+**Theoretical (equally likely outcomes):** P(event) = favorable outcomes / total outcomes  
+Fair die: P(rolling 4) = 1/6
 
-**Common Student Errors:**
-- Not arranging data in order for median
-- Confusing mean and median
-- Misinterpreting graphs and charts
-- Not considering sample size and bias
+**Experimental:** relative frequency from trials (more trials → closer to theoretical often)
 
-**Real-World Applications:**
-- Sports statistics and averages
-- Weather data and forecasting  
-- Poll results and elections
-- Business sales and profits
-- Medical research and studies
+**Complement:** P(not A) = 1 − P(A)
 
-**Technology Integration:**
-- Use spreadsheets to calculate statistics
-- Create digital graphs and charts
-- Online survey tools for data collection","**Expected Student Answer:**
-Students should be able to explain:
-1. **Statistics Definition**: Statistics helps us collect, organize, and understand information from data
-2. **Types of Data**:
-   - **Quantitative**: Numbers that can be measured (height, test scores, temperature)
-   - **Qualitative**: Categories or descriptions (colors, favorite foods)
-   - **Discrete**: Countable numbers (number of students, cars)
-   - **Continuous**: Measurable quantities (weight, time, temperature)
-3. **Data Collection Methods** (identify at least 3):
-   - Survey (asking questions), Observation (recording what you see)
-   - Experiment (testing cause and effect), Census (collecting from entire population)
-4. **Data Display Methods** (identify at least 4):
-   - Bar Graph (comparing categories), Line Graph (change over time)
-   - Pie Chart (parts of whole), Histogram (frequency ranges), Scatter Plot (relationships)
-5. **Measures of Central Tendency** with calculation methods:
-   - **Mean**: Average = add all values ÷ count
-   - **Median**: Middle value when arranged in numerical order
-   - **Mode**: Most frequently occurring value
-   - **Range**: Difference between highest and lowest values
-6. **Practical Calculation**: Given a simple data set, calculate mean, median, mode, and range
-7. **When to Use**: Mean for normal data, median when outliers present, mode for most common response",Hard,40,statistics|data|graphs|mean|median|mode,default-admin,2024-09-14T00:00:00.000Z,default-schoolU8l-JAWnBvwiHEpj7K6gj,"Test math",mathematics,"Test math description ","","","Test answer ",Easy,30,,Pat,2025-09-14T21:34:51.554Z,default-school
-GsVom-7anckBtqSJeBVXN,"Basic Addition Test",mathematics,"Sum it up","{""type"":""structured"",""sections"":[{""id"":""section-1757988757476"",""title"":""Sum 1"",""description"":""1"",""questions"":[{""id"":""question-1757988759067"",""prompt"":""Add 1+1"",""type"":""number"",""expectedAnswer"":""2"",""caseSensitive"":true,""options"":[]},{""id"":""question-1757988780745"",""prompt"":""Add 1+2"",""type"":""number"",""expectedAnswer"":""3"",""caseSensitive"":true,""options"":[]},{""id"":""question-1757988794706"",""prompt"":""Add 1+3"",""type"":""number"",""expectedAnswer"":""4"",""caseSensitive"":true,""options"":[]}]}]}","","",Easy,5,,pat3,2025-09-16T02:13:26.581Z,default-school
+**Independent events:** outcomes don't affect each other — P(A and B) = P(A)×P(B) for independent
+
+**Sample space** lists all outcomes (tree diagrams help).
+
+**Mutually exclusive** events cannot both happen — P(A or B) = P(A)+P(B) if mutually exclusive.","Gambler's fallacy false. Small samples vary more. Cards without replacement is dependent (preview).","Students should compute P(even) on die, P(not A) given P(A)=0.3, and find P(two heads) for two fair coin flips.","Easy","30","probability|statistics|chance","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"math007","Linear Equations in One Variable","mathematics","Solve multi-step equations and model word problems.","**Linear equation in one variable:** ax + b = c form after simplification.
+
+**Steps:**
+1. Simplify both sides (distribute, combine like terms)
+2. Move variable terms one side, constants other (add/subtract)
+3. Divide by coefficient of variable
+
+Example: 3(2x − 1) = 2x + 7 → 6x − 3 = 2x + 7 → 4x = 10 → x = 2.5
+
+**Word problems:** Define variable, write equation from story (consecutive integers, perimeter, age problems).
+
+**Special cases:**
+- **Identity** — infinitely many solutions (both sides same)
+- **Contradiction** — no solution (e.g., x = x + 1 simplified)","Check extraneous from multiplying by variable if introduced later. Units in word problems. Inequality version similar.","Students should solve 4x − 7 = 2x + 5 and a perimeter problem: rectangle width x, length x+3, perimeter 42, find x.","Medium","35","algebra|linear|equations","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"math008","Geometry: Angles and Triangles","mathematics","Angle types, triangle sum, Pythagorean theorem, and area formulas.","**Angles:** acute (<90°), right (90°), obtuse (90–180°), straight (180°). Complementary sum 90°; supplementary sum 180°.
+
+**Triangle angle sum:** interior angles sum to **180°**.
+
+**Types:** equilateral (3 equal sides, 60° each), isosceles (2 equal sides), scalene.
+
+**Pythagorean theorem (right triangle):** a² + b² = c² where c is hypotenuse.  
+Example: legs 3 and 4 → c = 5.
+
+**Areas:**
+- Triangle: A = ½bh
+- Rectangle: A = lw
+- Circle: A = πr²; circumference C = 2πr
+
+**π ≈ 3.14159** — irrational constant.","Hypotenuse only opposite right angle. Units squared for area. 3-4-5 triple generalizes 3k-4k-5k.","Students should find missing angle in triangle with 65° and 48°, use Pythagorean theorem for legs 5 and 12, and compute area of triangle base 10 height 6.","Medium","35","geometry|triangles|pythagorean","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"math009","Slope and Linear Functions","mathematics","Rate of change, slope-intercept form, and graph lines.","A **linear function** graphs as a straight line: **y = mx + b**
+
+**m = slope** = rise/run = (y₂−y₁)/(x₂−x₁) — rate of change
+
+**b = y-intercept** — value when x = 0
+
+**Positive slope** rises left to right; **negative** falls; **zero** horizontal; **undefined** vertical line x = k
+
+**Parallel lines** — equal slopes  
+**Perpendicular lines** — slopes multiply to −1 (m₁·m₂ = −1)
+
+**Point-slope form:** y − y₁ = m(x − x₁)
+
+**Modeling:** Fixed cost + per-unit cost → C = mx + b","Vertical line not a function in x→y form. Slope from table of differences. Interpolate along line between points.","Students should find slope through (1,2) and (4,8), write equation with m=−3, b=5, and interpret slope as dollars per item in a cost model.","Medium","35","algebra|slope|linear-functions","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"math010","Systems of Linear Equations","mathematics","Solve by graphing, substitution, and elimination.","A **system** is two (or more) equations with same variables.
+
+**Solution** is ordered pair satisfying **both** — geometrically intersection of lines.
+
+**Graphing:** Plot both lines; estimate intersection (may be approximate).
+
+**Substitution:** Solve one equation for a variable, plug into other.
+
+**Elimination:** Add/subtract equations to cancel a variable (multiply first if needed).
+
+Example:
+x + y = 10
+x − y = 2  
+Add → 2x = 12 → x = 6, y = 4
+
+**Cases:** one solution (transversing lines), none (parallel), infinitely many (same line).","Check solution in both originals. Word problems: two unknowns need two independent equations. Matrix methods later.","Students should solve {x+y=7, x−y=1} by elimination and interpret solution as intersection point.","Medium","40","algebra|systems|elimination","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"math011","Exponents and Scientific Notation","mathematics","Laws of exponents and express very large/small numbers.","**Exponent rules** (a,m,n positive integers; extend to rationals later):
+- a^m · a^n = a^(m+n)
+- (a^m)^n = a^(mn)
+- (ab)^n = a^n b^n
+- a^0 = 1 (a ≠ 0)
+- a^(−n) = 1/a^n
+
+**Scientific notation:** a × 10^n where 1 ≤ |a| < 10  
+Example: 300,000,000 = 3 × 10^8  
+0.00042 = 4.2 × 10^(−4)
+
+**Operations:** multiply coefficients, add exponents on 10; divide subtract exponents.
+
+**Applications:** Astronomy distances, microscopic sizes, chemistry (Avogadro scale).","Negative exponent not negative base. 10^0 = 1. Engineering notation uses exponents multiples of 3. Significant figures with sci notation.","Students should simplify x³·x⁴, write 0.00056 in scientific notation, and multiply (2×10³)(3×10⁵).","Medium","30","exponents|scientific-notation|powers","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"math012","Statistics: Center and Spread","mathematics","Mean, median, mode, range, and interpret data sets fairly.","**Measures of center:**
+- **Mean** — sum / count (sensitive to outliers)
+- **Median** — middle value when sorted (robust)
+- **Mode** — most frequent value
+
+**Spread:**
+- **Range** = max − min
+- **Interquartile range (IQR)** = Q3 − Q1 (middle 50% spread)
+- **Standard deviation** (intro) — typical distance from mean
+
+**Five-number summary:** min, Q1, median, Q3, max → **box plot**
+
+**Misleading graphs:** truncated y-axis exaggerates changes; always read scales.
+
+**Sampling:** Random sample represents population; bias if sample flawed.","Mean of grouped data uses midpoints. Outlier definition (1.5×IQR rule) optional. Categorical data uses mode not mean.","Students should compute mean and median of a small data set, identify outlier effect on mean, and read a box plot quartiles.","Medium","35","statistics|mean|median","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"math013","Polynomials and Factoring","mathematics","Add, multiply polynomials, and factor quadratics by grouping/GCF.","**Polynomial** — sum of terms a_n x^n + … + a_1 x + a_0
+
+**Degree** — highest exponent with nonzero coefficient
+
+**Operations:**
+- Add/subtract like terms
+- Multiply using distributive property (FOIL for binomials)
+
+**Factoring reverses multiplication:**
+- **GCF** first: 6x² + 9x = 3x(2x + 3)
+- **Trinomial x² + bx + c** find numbers multiplying to c and adding to b
+- **Difference of squares:** a² − b² = (a+b)(a−b)
+
+**Zero product property:** If AB = 0, then A=0 or B=0 — solves factored equations.","Prime polynomials over integers. Complete square preview for quadratics. Sign chart for factored inequalities later.","Students should multiply (x+3)(x−2), factor x²+5x+6, and solve x²+5x+6=0 by factoring.","Medium","40","polynomials|factoring|algebra","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"math014","Quadratic Functions and Equations","mathematics","Parabolas, vertex, factoring, and quadratic formula.","**Standard form:** y = ax² + bx + c (a ≠ 0) — graph is **parabola**
+
+**Vertex form:** y = a(x − h)² + k with vertex (h, k)  
+**Axis of symmetry:** x = −b/(2a)
+
+**Direction:** a > 0 opens up (minimum); a < 0 opens down (maximum)
+
+**Solving ax² + bx + c = 0:**
+1. Factoring if easy
+2. **Quadratic formula:** x = (−b ± √(b²−4ac)) / (2a)
+**Discriminant** D = b²−4ac: D>0 two real roots; D=0 one; D<0 no real roots
+
+**Projectile motion** height often quadratic in time (neglecting air resistance).","Complete the square derives vertex form. Imaginary roots if D<0 (intro mention). Applications: max area with fixed perimeter.","Students should find vertex of y = x² − 4x + 3, solve x² − 4x + 3 = 0 by factoring, and use quadratic formula for x² + 2x − 5 = 0.","Hard","45","quadratics|parabolas|formula","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"math015","Introduction to Trigonometry","mathematics","Sine, cosine, tangent in right triangles and unit circle preview.","For **right triangles** relative to acute angle θ:
+
+**SOHCAHTOA:**
+- sin θ = opposite/hypotenuse
+- cos θ = adjacent/hypotenuse
+- tan θ = opposite/adjacent
+
+**Pythagorean identity:** sin²θ + cos²θ = 1
+
+**Common angles (exact):**
+- 30°: sin=1/2, cos=√3/2
+- 45°: sin=cos=√2/2
+- 60°: sin=√3/2, cos=1/2
+
+**Inverse trig** finds angle from ratio.
+
+**Applications:** heights, distances, forces at angles.
+
+**Unit circle (preview):** angles on circle radius 1; x=cos θ, y=sin θ.","Calculator in degree vs radian mode. Angles of elevation/depression word problems. Only right triangle definitions at this level.","Students should find sin and cos of 30°, solve right triangle given hypotenuse 10 and angle 40° opposite side, and state SOHCAHTOA meanings.","Hard","40","trigonometry|right-triangle|sohcahtoa","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"math016","Radicals and Rational Exponents","mathematics","Simplify square roots, rationalize denominators, and connect to fractional exponents.","**Square root** √a is nonnegative number whose square is a (a ≥ 0 for real).
+
+**Properties (√a real):**
+- √(ab) = √a · √b
+- √(a/b) = √a / √b (b>0)
+
+**Simplify:** √50 = √(25·2) = 5√2
+
+**Rational exponents:** a^(1/n) = ⁿ√a  
+a^(m/n) = (ⁿ√a)^m
+
+**Rationalize denominator:** 3/√2 = 3√2/2 multiply top and bottom by √2
+
+**Extraneous solutions:** Squaring both sides when solving √(x+5)=x−1 can introduce false roots — **check** in original.","Even roots of negatives non-real. Cube root of −8 is −2. Domain restrictions on radical equations.","Students should simplify √72, write 8^(2/3) as radical, rationalize 5/√3, and solve √(x)=3 checking solution.","Hard","35","radicals|roots|exponents","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"math017","Combinatorics and Counting","mathematics","Fundamental counting principle, permutations, and combinations.","**Fundamental counting principle:** If one choice has m options and another n options independent, together m×n ways.
+
+**Factorial n!** = n×(n−1)×…×1; 0! = 1
+
+**Permutation** — order matters: arrange r from n: P(n,r) = n!/(n−r)!  
+Example: 3-letter codes from ABCDE without repeat: 5×4×3 = 60
+
+**Combination** — order doesn't matter: C(n,r) = n! / (r!(n−r)!)  
+Example: choose 3 students from 10: C(10,3) = 120
+
+**With/without replacement** changes counts.
+
+**Probability link:** favorable outcomes / total outcomes when equally likely.","Distinguish permutation vs combination keywords (arrange vs choose). Overcounting in Venn problems. Binomial coefficient notation C(n,r).","Students should apply counting principle (4 shirts × 3 pants), compute C(5,2), and explain when order matters using one example each.","Hard","40","combinatorics|permutations|combinations","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"math018","Exponential and Logarithmic Functions","mathematics","Growth/decay models and inverse relationship of exp and log.","**Exponential function:** f(x) = a·b^x (b>0, b≠1)
+
+**Growth** b>1; **decay** 0<b<1
+
+**Compound interest:** A = P(1 + r/n)^(nt)
+
+**Logarithm** is inverse of exponential: if b^y = x then log_b(x) = y
+
+**Common log** base 10; **natural log ln** base e ≈ 2.718
+
+**Properties:**
+- log(ab) = log a + log b
+- log(a^n) = n log a
+
+**Solve:** 2^x = 32 → x = 5; 10^x = 1000 → x = 3
+
+**Half-life** decay: N = N₀(1/2)^(t/h)","Continuous growth A=Pe^(rt) with e. Change of base formula. log(0) undefined. Exponential beats polynomial for large x.","Students should graph y=2^x key points, solve 3^x=81, use log properties on log(2)+log(5), and write decay model with half-life.","Hard","45","exponential|logarithms|growth","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"math019","Introduction to Limits","mathematics","Intuitive limits, continuity, and foundation for calculus.","**Calculus** studies change and accumulation.
+
+**Limit (intuitive):** Value f(x) approaches as x approaches a (possibly without reaching a).
+
+Example: lim(x→2) (x²−4)/(x−2) = lim(x→2) (x+2) = 4 (cancel factor first)
+
+**One-sided limits** from left/right; limit exists if both agree.
+
+**Continuity at a:** f(a) defined, lim(x→a) f(x) exists, and they equal f(a)
+
+**Types of discontinuity:** removable (hole), jump, infinite
+
+**Applications:** instantaneous velocity as limit of average velocity; tangent slope as limit of secant slopes.","Limit laws for sums/products. Notation lim_{x→a}. Piecewise functions check left/right. ε-δ definition is formal advanced.","Students should evaluate lim(x→3) (x²−9)/(x−3), define continuity at a point in words, and explain limit idea for tangent slope.","Hard","45","calculus|limits|continuity","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"
+"math020","Introduction to Derivatives","mathematics","Rate of change, derivative as slope of tangent, and basic rules.","**Derivative** f′(x) measures instantaneous rate of change of f at x.
+
+**Geometric meaning:** slope of tangent line to y=f(x) at point x.
+
+**Definition:** f′(x) = lim(h→0) [f(x+h) − f(x)] / h
+
+**Basic rules (power rule):** if f(x)=x^n then f′(x)=n x^(n−1)  
+Examples: d/dx (x³) = 3x²; d/dx (5x²) = 10x
+
+**Constant rule:** derivative of constant is 0  
+**Sum rule:** (f+g)′ = f′ + g′
+
+**Applications:**
+- Velocity v(t) = s′(t) if s is position
+- Marginal cost approximates cost of one more unit
+
+**Higher derivatives** — acceleration is second derivative of position.","Differentiability implies continuity but not converse. Notation dy/dx Leibniz. Product/quotient/chain rules come next course. Interpret signs: f′>0 increasing.","Students should find derivative of x⁴ and 7x²−3x, interpret f′(2)>0 as increasing at x=2, and state derivative as velocity if s(t) is position.","Hard","45","calculus|derivatives|rates","stemgenius-curriculum","2025-05-24T12:00:00.000Z","default-school"

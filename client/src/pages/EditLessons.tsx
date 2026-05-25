@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
-import { ProgressCard } from "@/components/ProgressCard";
+import { AppShell } from "@/components/AppShell";
 
 export default function EditLessons() {
   const { user } = useAuth() as { user: { role: string } | null };
@@ -56,7 +56,8 @@ export default function EditLessons() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <AppShell>
+    <div>
       <h1 className="text-3xl font-bold mb-6">Edit Lessons</h1>
       {/* Category Selection */}
       <div className="mb-6">
@@ -125,10 +126,10 @@ export default function EditLessons() {
                     </Button>
                     <Button
                       variant="outline"
-                      onClick={() => navigate(`/lesson-edit/${lesson.id}`)}
+                      onClick={() => navigate(`/lesson/${lesson.id}`)}
                       data-testid={`edit-lesson-${lesson.id}`}
                     >
-                      Edit
+                      Open
                     </Button>
                     <Button
                       variant="destructive"
@@ -146,5 +147,6 @@ export default function EditLessons() {
       )}
     </div>
     </div>
+    </AppShell>
   );
 }

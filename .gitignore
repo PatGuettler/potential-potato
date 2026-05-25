@@ -29,6 +29,8 @@ client/dist/
 **/dist/
 # Vite cache
 .vite/
+node_modules/.vite/
+.npm-session.log
 # npm logs
 npm-debug.log*
 yarn-debug.log*

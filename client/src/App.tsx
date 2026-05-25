@@ -3,7 +3,10 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { ThemeSync } from "@/components/ThemeSync";
 import { useAuth } from "@/hooks/useAuth";
+import Profile from "@/pages/Profile";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
@@ -34,6 +37,7 @@ function Router() {
           <Route path="/lesson-creation" component={LessonCreation} />
           <Route path="/proposals/:id" component={ProposalDetails} />
           <Route path="/lesson-edit" component={EditLessons} />
+          <Route path="/profile" component={Profile} />
         </>
       )}
       {isLoading && (
@@ -54,10 +58,13 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <ThemeProvider>
+        <TooltipProvider>
+          <ThemeSync />
+          <Toaster />
+          <Router />
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

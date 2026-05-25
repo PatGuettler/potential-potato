@@ -8,6 +8,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { ArrowLeft } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import type { User, Category } from "@shared/schema";
+import { AppShell } from "@/components/AppShell";
 import { LessonForm } from "@/components/LessonForm";
 import { QuizBuilder } from "@/components/QuizBuilder";
 import { LessonContentTypeToggle } from "@/components/LessonContentTypeToggle";
@@ -219,7 +220,8 @@ export default function LessonCreation() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8" data-testid="lesson-creation-page">
+    <AppShell>
+    <div data-testid="lesson-creation-page">
       <div className="flex items-center gap-4 mb-6">
         <Link href="/dashboard">
           <Button variant="ghost" size="sm" data-testid="button-back">
@@ -304,5 +306,6 @@ export default function LessonCreation() {
         </Card>
       </div>
     </div>
+    </AppShell>
   );
 }

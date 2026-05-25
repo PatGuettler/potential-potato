@@ -4,7 +4,13 @@ import session from 'express-session';
 import MemoryStore from 'memorystore';
 import bcrypt from 'bcrypt';
 import type { Express, RequestHandler } from 'express';
+import { getUsersFilePath } from './paths';
 import { storage } from './storage';
+import {
+  isThemePreference,
+  normalizeThemePreference,
+  type ThemePreference,
+} from '../shared/theme';
 
 interface LocalUser {
   username: string;
@@ -13,7 +19,30 @@ interface LocalUser {
   firstName?: string;
   lastName?: string;
   role: 'student' | 'teacher' | 'admin';
+  themePreference?: ThemePreference;
   createdAt: string;
+}
+
+export interface SessionUser {
+  id: string;
+  username: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  role: 'student' | 'teacher' | 'admin';
+  themePreference: ThemePreference;
+}
+
+function toSessionUser(user: LocalUser): SessionUser {
+  return {
+    id: user.username,
+    username: user.username,
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    role: user.role,
+    themePreference: normalizeThemePreference(user.themePreference),
+  };
 }
 
 interface UserStorage {
@@ -21,14 +50,17 @@ interface UserStorage {
   lastModified: string;
 }
 
-const USERS_FILE = path.join(process.cwd(), 'users.json');
-
 export class FileUserManager {
   private usersCache: UserStorage | null = null;
 
+  clearCache(): void {
+    this.usersCache = null;
+  }
+
   async loadUsers(): Promise<UserStorage> {
+    const usersFile = getUsersFilePath();
     try {
-      const data = await fs.readFile(USERS_FILE, 'utf-8');
+      const data = await fs.readFile(usersFile, 'utf-8');
       this.usersCache = JSON.parse(data);
       return this.usersCache!;
     } catch (error) {
@@ -45,7 +77,7 @@ export class FileUserManager {
 
   async saveUsers(storage: UserStorage): Promise<void> {
     storage.lastModified = new Date().toISOString();
-    await fs.writeFile(USERS_FILE, JSON.stringify(storage, null, 2));
+    await fs.writeFile(getUsersFilePath(), JSON.stringify(storage, null, 2));
     this.usersCache = storage;
   }
 
@@ -98,6 +130,7 @@ export class FileUserManager {
       firstName: userData.firstName,
       lastName: userData.lastName,
       role: userData.role || 'student',
+      themePreference: 'system',
       createdAt: new Date().toISOString()
     };
 
@@ -124,6 +157,46 @@ export class FileUserManager {
   async hasAnyUsers(): Promise<boolean> {
     const userStorage = await this.loadUsers();
     return userStorage.users.length > 0;
+  }
+
+  async updateProfile(
+    username: string,
+    updates: {
+      email?: string;
+      firstName?: string;
+      lastName?: string;
+      themePreference?: ThemePreference;
+    },
+  ): Promise<LocalUser> {
+    const userStorage = await this.loadUsers();
+    const index = userStorage.users.findIndex(
+      (u) => u.username.toLowerCase() === username.toLowerCase(),
+    );
+
+    if (index === -1) {
+      throw new Error('User not found');
+    }
+
+    const user = userStorage.users[index];
+
+    if (updates.email !== undefined) user.email = updates.email;
+    if (updates.firstName !== undefined) user.firstName = updates.firstName;
+    if (updates.lastName !== undefined) user.lastName = updates.lastName;
+    if (updates.themePreference !== undefined) {
+      user.themePreference = updates.themePreference;
+    }
+
+    await this.saveUsers(userStorage);
+
+    await storage.upsertUser({
+      id: user.username,
+      email: user.email || null,
+      firstName: user.firstName || null,
+      lastName: user.lastName || null,
+      role: user.role,
+    });
+
+    return user;
   }
 }
 
@@ -182,15 +255,8 @@ export async function setupAuth(app: Express) {
           console.error('Session regeneration error:', err);
         }
         
-        // Set session
-        (req as any).session.user = {
-          username: user.username,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: user.role,
-          id: user.username // Use username as ID
-        };
+        const sessionUser = toSessionUser(user);
+        (req as any).session.user = sessionUser;
         
         (req as any).session.save((err: any) => {
           if (err) {
@@ -200,13 +266,7 @@ export async function setupAuth(app: Express) {
           
           res.json({ 
             message: 'Login successful',
-            user: {
-              username: user.username,
-              email: user.email,
-              firstName: user.firstName,
-              lastName: user.lastName,
-              role: user.role
-            }
+            user: sessionUser,
           });
         });
       });
@@ -241,14 +301,8 @@ export async function setupAuth(app: Express) {
           console.error('Session regeneration error:', err);
         }
         
-        (req as any).session.user = {
-          username: newUser.username,
-          email: newUser.email,
-          firstName: newUser.firstName,
-          lastName: newUser.lastName,
-          role: newUser.role,
-          id: newUser.username
-        };
+        const sessionUser = toSessionUser(newUser);
+        (req as any).session.user = sessionUser;
         
         (req as any).session.save((err: any) => {
           if (err) {
@@ -258,13 +312,7 @@ export async function setupAuth(app: Express) {
           
           res.json({ 
             message: 'Account created successfully',
-            user: {
-              username: newUser.username,
-              email: newUser.email,
-              firstName: newUser.firstName,
-              lastName: newUser.lastName,
-              role: newUser.role
-            }
+            user: sessionUser,
           });
         });
       });
@@ -285,21 +333,55 @@ export async function setupAuth(app: Express) {
     });
   });
 
-  // Get current user
+  // Get current user (fresh from disk for profile fields like theme)
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const user = req.user;
-      res.json({
-        id: user.id || user.username,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        username: user.username
-      });
+      const username = req.user.id || req.user.username;
+      const stored = await fileUserManager.findUser(username);
+      if (!stored) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      const sessionUser = toSessionUser(stored);
+      req.user = sessionUser;
+      req.session.user = sessionUser;
+      res.json(sessionUser);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Update profile (appearance, name, email)
+  app.patch('/api/auth/profile', isAuthenticated, async (req: any, res) => {
+    try {
+      const username = req.user.id || req.user.username;
+      const { email, firstName, lastName, themePreference } = req.body;
+
+      if (themePreference !== undefined && !isThemePreference(themePreference)) {
+        return res.status(400).json({
+          message: 'themePreference must be light, dark, or system',
+        });
+      }
+
+      const updated = await fileUserManager.updateProfile(username, {
+        ...(email !== undefined && { email }),
+        ...(firstName !== undefined && { firstName }),
+        ...(lastName !== undefined && { lastName }),
+        ...(themePreference !== undefined && { themePreference }),
+      });
+
+      const sessionUser = toSessionUser(updated);
+      req.user = sessionUser;
+      req.session.user = sessionUser;
+
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err: Error | null) => (err ? reject(err) : resolve()));
+      });
+
+      res.json(sessionUser);
+    } catch (error: any) {
+      console.error('Profile update error:', error);
+      res.status(400).json({ message: error.message || 'Failed to update profile' });
     }
   });
 

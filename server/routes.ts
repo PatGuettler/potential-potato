@@ -113,6 +113,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete('/api/lessons/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (user?.role !== 'teacher' && user?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const { id } = req.params;
+      const deleted = await storage.deleteLesson(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Lesson not found" });
+      }
+
+      res.json({ message: "Lesson deleted" });
+    } catch (error) {
+      console.error("Error deleting lesson:", error);
+      res.status(500).json({ message: "Failed to delete lesson" });
+    }
+  });
+
   app.get('/api/lessons/:id', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;

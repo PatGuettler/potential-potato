@@ -1,10 +1,13 @@
+import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import type { User } from "@shared/schema";
+import { logout } from "@/lib/authUtils";
 
 export function Header() {
-  const { user } = useAuth() as { user: User | null };
+  const { user } = useAuth() as {
+    user: { firstName?: string | null; lastName?: string | null } | null;
+  };
 
   const getInitials = (firstName?: string | null, lastName?: string | null) => {
     if (!firstName && !lastName) return "U";
@@ -36,9 +39,11 @@ export function Header() {
           </button>
           
           <div className="flex items-center space-x-2">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-xs sm:text-sm font-medium">
-              <span data-testid="user-initials">{getInitials(user?.firstName, user?.lastName)}</span>
-            </div>
+            <Link href="/profile">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-xs sm:text-sm font-medium hover:opacity-90 transition-opacity cursor-pointer" data-testid="profile-avatar-link">
+                <span data-testid="user-initials">{getInitials(user?.firstName, user?.lastName)}</span>
+              </div>
+            </Link>
             <span className="text-sm font-medium hidden sm:inline" data-testid="user-full-name">
               {getFullName(user?.firstName, user?.lastName)}
             </span>
@@ -47,7 +52,7 @@ export function Header() {
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={() => window.location.href = '/api/logout'}
+            onClick={() => logout()}
             data-testid="logout-button"
             className="hidden sm:inline-flex"
           >
@@ -57,7 +62,7 @@ export function Header() {
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={() => window.location.href = '/api/logout'}
+            onClick={() => logout()}
             data-testid="logout-button-mobile"
             className="sm:hidden"
           >

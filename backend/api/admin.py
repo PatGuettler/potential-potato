@@ -12,16 +12,15 @@ CATEGORIES = {
 }
 
 def is_admin():
-    """Check if user is admin"""
+    print(f"Checking admin role from session: {session.get('role')}")
     return session.get('role') == 'admin'
 
 def is_authenticated():
-    """Check if user is authenticated"""
+    print(f"Checking authentication, session: {session}")
     return 'user_id' in session
 
 @admin_bp.route('/lessons', methods=['POST'])
 def create_lesson():
-    """Create a new lesson (admin only)"""
     if not is_authenticated():
         return jsonify({'message': 'Unauthorized'}), 401
     
@@ -69,7 +68,6 @@ def create_lesson():
 
 @admin_bp.route('/lessons/<lesson_id>', methods=['PUT'])
 def update_lesson(lesson_id: str):
-    """Update existing lesson (admin only)"""
     if not is_authenticated():
         return jsonify({'message': 'Unauthorized'}), 401
     
@@ -105,7 +103,6 @@ def update_lesson(lesson_id: str):
 
 @admin_bp.route('/lessons/<lesson_id>', methods=['DELETE'])
 def delete_lesson(lesson_id: str):
-    """Delete lesson (admin only)"""
     if not is_authenticated():
         return jsonify({'message': 'Unauthorized'}), 401
     

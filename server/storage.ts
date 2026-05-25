@@ -27,6 +27,7 @@ import {
 import { nanoid } from "nanoid";
 import * as fs from "fs";
 import * as path from "path";
+import { getDataDir } from "./paths";
 
 // Types for question progress tracking
 export interface QuestionProgress {
@@ -132,7 +133,7 @@ function parseCSV(content: string): Record<string, string>[] {
 // Load lessons from CSV files
 function loadLessonsFromCSV(): Lesson[] {
   const lessons: Lesson[] = [];
-  const dataDir = path.join(process.cwd(), 'data', 'lessons');
+  const dataDir = path.join(getDataDir(), 'data', 'lessons');
   const csvFiles = ['science.csv', 'technology.csv', 'engineering.csv', 'mathematics.csv'];
   
   for (const csvFile of csvFiles) {
@@ -186,7 +187,7 @@ function loadLessonsFromCSV(): Lesson[] {
 
 // Load question progress from CSV file
 function loadQuestionProgressFromCSV(): QuestionProgress[] {
-  const progressFile = path.join(process.cwd(), 'data', 'progress', 'questions.csv');
+  const progressFile = path.join(getDataDir(), 'data', 'progress', 'questions.csv');
   const questionProgress: QuestionProgress[] = [];
   
   try {
@@ -215,9 +216,115 @@ function loadQuestionProgressFromCSV(): QuestionProgress[] {
   return questionProgress;
 }
 
+function loadUserProgressFromCSV(): UserProgress[] {
+  const progressFile = path.join(getDataDir(), 'data', 'progress', 'progress.csv');
+  const records: UserProgress[] = [];
+
+  try {
+    if (!fs.existsSync(progressFile)) {
+      return records;
+    }
+
+    const content = fs.readFileSync(progressFile, 'utf-8');
+    if (!content.trim()) {
+      return records;
+    }
+
+    const rows = parseCSV(content);
+    for (const row of rows) {
+      if (!row.userId || !row.lessonId) {
+        continue;
+      }
+
+      const status = (row.status || '').toLowerCase();
+      records.push({
+        id: `${row.userId}-${row.lessonId}`,
+        userId: row.userId,
+        lessonId: row.lessonId,
+        isCompleted: status === 'completed' || row.isCompleted === 'true',
+        score: row.score ? parseInt(row.score, 10) : null,
+        timeSpent: row.attempts ? parseInt(row.attempts, 10) : null,
+        lastAccessed: new Date(row.lastUpdated || Date.now()),
+        completedAt: status === 'completed' ? new Date(row.lastUpdated || Date.now()) : null,
+      });
+    }
+  } catch (error) {
+    console.warn('Failed to load user progress from CSV:', error);
+  }
+
+  return records;
+}
+
+function upsertUserProgressToCSV(progress: UserProgress): void {
+  const progressFile = path.join(getDataDir(), 'data', 'progress', 'progress.csv');
+
+  try {
+    const dir = path.dirname(progressFile);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    let existingRows: Record<string, string>[] = [];
+    if (fs.existsSync(progressFile)) {
+      const content = fs.readFileSync(progressFile, 'utf-8');
+      if (content.trim()) {
+        existingRows = parseCSV(content);
+      }
+    }
+
+    const rowKey = `${progress.userId}-${progress.lessonId}`;
+    let foundExisting = false;
+    const status = progress.isCompleted ? 'completed' : 'in-progress';
+
+    const updatedRows = existingRows.map(row => {
+      const currentKey = `${row.userId}-${row.lessonId}`;
+      if (currentKey === rowKey) {
+        foundExisting = true;
+        return {
+          userId: progress.userId,
+          lessonId: progress.lessonId,
+          status,
+          score: progress.score?.toString() || '',
+          attempts: progress.timeSpent?.toString() || '0',
+          lastUpdated: (progress.lastAccessed || new Date()).toISOString(),
+        };
+      }
+      return row;
+    });
+
+    if (!foundExisting) {
+      updatedRows.push({
+        userId: progress.userId,
+        lessonId: progress.lessonId,
+        status,
+        score: progress.score?.toString() || '',
+        attempts: progress.timeSpent?.toString() || '0',
+        lastUpdated: (progress.lastAccessed || new Date()).toISOString(),
+      });
+    }
+
+    let csvContent = 'userId,lessonId,status,score,attempts,lastUpdated\n';
+    for (const row of updatedRows) {
+      csvContent += [
+        row.userId,
+        row.lessonId,
+        row.status,
+        row.score,
+        row.attempts,
+        row.lastUpdated,
+      ].join(',') + '\n';
+    }
+
+    fs.writeFileSync(progressFile, csvContent, 'utf-8');
+  } catch (error) {
+    console.error('Failed to write user progress to CSV:', error);
+    throw error;
+  }
+}
+
 // Write question progress to CSV file
 function upsertQuestionProgressToCSV(progress: QuestionProgress): void {
-  const progressFile = path.join(process.cwd(), 'data', 'progress', 'questions.csv');
+  const progressFile = path.join(getDataDir(), 'data', 'progress', 'questions.csv');
   
   try {
     // Ensure directory exists
@@ -323,7 +430,7 @@ function serializeLessonContent(content: LessonContentUnion | null): string {
 
 // Write a lesson to CSV file
 function appendLessonToCSV(lesson: Lesson): void {
-  const csvFile = path.join(process.cwd(), 'data', 'lessons', `${lesson.categoryId}.csv`);
+  const csvFile = path.join(getDataDir(), 'data', 'lessons', `${lesson.categoryId}.csv`);
   
   try {
     // Read existing content to get headers
@@ -393,6 +500,57 @@ function appendLessonToCSV(lesson: Lesson): void {
   }
 }
 
+function deleteLessonFromCSV(lessonId: string, categoryId?: string): boolean {
+  const categories = categoryId
+    ? [categoryId]
+    : ['science', 'technology', 'engineering', 'mathematics'];
+
+  for (const category of categories) {
+    const csvFile = path.join(getDataDir(), 'data', 'lessons', `${category}.csv`);
+    if (!fs.existsSync(csvFile)) {
+      continue;
+    }
+
+    const content = fs.readFileSync(csvFile, 'utf-8');
+    if (!content.trim()) {
+      continue;
+    }
+
+    const rows = parseCSV(content);
+    const filtered = rows.filter(row => row.id !== lessonId);
+    if (filtered.length === rows.length) {
+      continue;
+    }
+
+    const headerLine = content.split('\n').find(line => line.startsWith('id,')) || 'id,title,category,summary,content,answerGuide,answer,difficulty,estimatedMinutes,tags,authorId,createdAt,schoolId';
+    let newContent = headerLine + '\n';
+
+    for (const row of filtered) {
+      const values = [
+        row.id,
+        `"${(row.title || '').replace(/"/g, '""')}"`,
+        row.category,
+        `"${(row.summary || '').replace(/"/g, '""')}"`,
+        `"${(row.content || '').replace(/"/g, '""')}"`,
+        `"${(row.answerGuide || '').replace(/"/g, '""')}"`,
+        `"${(row.answer || '').replace(/"/g, '""')}"`,
+        row.difficulty,
+        row.estimatedMinutes,
+        row.tags || '',
+        row.authorId,
+        row.createdAt,
+        row.schoolId || 'default-school',
+      ];
+      newContent += values.join(',') + '\n';
+    }
+
+    fs.writeFileSync(csvFile, newContent, 'utf-8');
+    return true;
+  }
+
+  return false;
+}
+
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
@@ -411,6 +569,7 @@ export interface IStorage {
   getLessonsByDifficulty(difficulty: DifficultyLevel): Promise<Lesson[]>;
   getLessonById(id: string): Promise<Lesson | undefined>;
   createLesson(lesson: InsertLesson): Promise<Lesson>;
+  deleteLesson(id: string): Promise<boolean>;
   
   // Progress operations
   getUserProgress(userId: string): Promise<UserProgress[]>;
@@ -537,6 +696,13 @@ export class MemoryStorage implements IStorage {
       const key = `${progress.userId}-${progress.lessonId}-${progress.questionId}`;
       this.questionProgress.set(key, progress);
     });
+
+    // Load lesson progress from CSV
+    const userProgressData = loadUserProgressFromCSV();
+    userProgressData.forEach(progress => {
+      const key = `${progress.userId}-${progress.lessonId}`;
+      this.userProgress.set(key, progress);
+    });
   }
 
   // User operations
@@ -642,6 +808,23 @@ export class MemoryStorage implements IStorage {
     return newLesson;
   }
 
+  async deleteLesson(id: string): Promise<boolean> {
+    const lesson = this.lessons.get(id);
+    if (!lesson) {
+      return false;
+    }
+
+    this.lessons.delete(id);
+
+    try {
+      deleteLessonFromCSV(id, lesson.categoryId);
+    } catch (error) {
+      console.error(`Failed to remove lesson ${id} from CSV:`, error);
+    }
+
+    return true;
+  }
+
   // Progress operations
   async getUserProgress(userId: string): Promise<UserProgress[]> {
     return Array.from(this.userProgress.values())
@@ -674,6 +857,13 @@ export class MemoryStorage implements IStorage {
     };
     
     this.userProgress.set(key, updated);
+
+    try {
+      upsertUserProgressToCSV(updated);
+    } catch (error) {
+      console.error('Failed to save user progress to CSV:', error);
+    }
+
     return updated;
   }
 
@@ -733,9 +923,13 @@ export class MemoryStorage implements IStorage {
   }
 
   async checkLessonPermission(studentId: string, lessonId: string): Promise<boolean> {
-    const hasPermission = Array.from(this.lessonPermissions.values())
-      .some(p => p.studentId === studentId && p.lessonId === lessonId);
-    return hasPermission;
+    const studentPermissions = Array.from(this.lessonPermissions.values())
+      .filter(p => p.studentId === studentId);
+    // Standalone/local mode: no explicit grants means all lessons are available
+    if (studentPermissions.length === 0) {
+      return true;
+    }
+    return studentPermissions.some(p => p.lessonId === lessonId);
   }
 
   // Lesson proposal operations
@@ -1003,4 +1197,24 @@ export class MemoryStorage implements IStorage {
   }
 }
 
-export const storage = new MemoryStorage();
+let storageInstance: MemoryStorage | null = null;
+
+export function getStorage(): MemoryStorage {
+  if (!storageInstance) {
+    storageInstance = new MemoryStorage();
+  }
+  return storageInstance;
+}
+
+/** Clears the singleton so the next access reloads from STEMGENIUS_DATA_DIR. */
+export function resetStorageForTests(): void {
+  storageInstance = null;
+}
+
+export const storage: IStorage = new Proxy({} as MemoryStorage, {
+  get(_target, prop) {
+    const instance = getStorage() as Record<string | symbol, unknown>;
+    const value = instance[prop as string];
+    return typeof value === "function" ? (value as Function).bind(getStorage()) : value;
+  },
+});

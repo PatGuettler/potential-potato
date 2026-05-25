@@ -1,0 +1,55 @@
+
+> stemgenius@1.0.0 test
+> vitest run
+
+
+ RUN  v3.2.4 /home/guettlerpj/dev/StemGenius
+
+stderr | tests/api.test.ts > StemGenius API > authentication > rejects duplicate registration
+Registration error: Error: Username already exists
+    at FileUserManager.createUser [90m(/home/guettlerpj/dev/StemGenius/[39mserver/fileAuth.ts:119:13[90m)[39m
+    at [90m/home/guettlerpj/dev/StemGenius/[39mserver/fileAuth.ts:289:23
+
+stdout | tests/api.test.ts > StemGenius API > lessons — create and interact > lets teachers create lessons, fetch them, validate answers, and delete them
+Lesson ov88O7JAyXALlWUcID6WU successfully written to /tmp/stemgenius-test-czNBRY/data/lessons/science.csv
+
+stdout | tests/api.test.ts > StemGenius API > lessons — create and interact > strips answers for students but allows validation when no permission lock
+Lesson xmPE4b7OT5bwlJ5-MBGXM successfully written to /tmp/stemgenius-test-2mDCHR/data/lessons/science.csv
+
+stderr | tests/api.test.ts > StemGenius API > lessons — create and interact > strips answers for students but allows validation when no permission lock
+Failed to parse lesson content for student view, returning empty content for security
+
+stdout | tests/api.test.ts > StemGenius API > lessons — create and interact > validates structured quiz questions and tracks progress
+Lesson kfEjFo83AnYERPZ99fXjw successfully written to /tmp/stemgenius-test-5qQeiG/data/lessons/science.csv
+
+stdout | tests/api.test.ts > StemGenius API > lessons — create and interact > validates structured quiz questions and tracks progress
+Question progress updated for s3/kfEjFo83AnYERPZ99fXjw/q1
+
+stdout | tests/api.test.ts > StemGenius API > lessons — create and interact > validates structured quiz questions and tracks progress
+Question progress updated for s3/kfEjFo83AnYERPZ99fXjw/q2
+
+stdout | tests/api.test.ts > StemGenius API > progress > records and returns user progress
+Lesson 6EHuqyJsV8ykxlEhCzgoN successfully written to /tmp/stemgenius-test-FotiaL/data/lessons/science.csv
+
+stdout | tests/api.test.ts > StemGenius API > teacher classrooms and permissions > creates classrooms, lists students, and grants lesson permissions
+Lesson ie8dgx7gZzn5bhLK1Cvo2 successfully written to /tmp/stemgenius-test-WWYXUs/data/lessons/science.csv
+
+stdout | tests/api.test.ts > StemGenius API > proposals and ratings > rates a lesson
+Lesson sSVDFKLnUkqIoWzmhc3JJ successfully written to /tmp/stemgenius-test-Mm5PrU/data/lessons/science.csv
+
+stdout | tests/api.test.ts > StemGenius API > admin > allows admins to create lessons via admin endpoint
+Lesson S5g2pR8aXDc3Iqo7j1zAh successfully written to /tmp/stemgenius-test-th6bFu/data/lessons/science.csv
+
+ ✓ tests/api.test.ts (15 tests) 3670ms
+   ✓ StemGenius API > authentication > reports setup needed when no users exist  376ms
+   ✓ StemGenius API > authentication > registers, logs in, fetches user, updates profile theme, and logs out  360ms
+   ✓ StemGenius API > authentication > rejects invalid login credentials  332ms
+   ✓ StemGenius API > lessons — create and interact > strips answers for students but allows validation when no permission lock  343ms
+   ✓ StemGenius API > lessons — create and interact > validates structured quiz questions and tracks progress  341ms
+   ✓ StemGenius API > progress > records and returns user progress  342ms
+
+ Test Files  1 passed (1)
+      Tests  15 passed (15)
+   Start at  20:57:39
+   Duration  4.24s (transform 233ms, setup 0ms, collect 192ms, tests 3.67s, environment 0ms, prepare 272ms)
+

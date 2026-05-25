@@ -1,10 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { Sidebar } from "@/components/Sidebar";
-import { Header } from "@/components/Header";
+import { AppShell } from "@/components/AppShell";
 import { ProgressCard } from "@/components/ProgressCard";
 import { CategoryCard } from "@/components/CategoryCard";
-import { useLocation } from "wouter";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 
 const categoryData = [
   {
@@ -42,8 +39,6 @@ const categoryData = [
 ];
 
 export default function Dashboard() {
-  const [, navigate] = useLocation();
-
   const { data: progress = [] } = useQuery<any[]>({
     queryKey: ["/api/progress"],
     initialData: [],
@@ -97,14 +92,8 @@ export default function Dashboard() {
   // const featuredLessons = getFeaturedLessons();
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen">
-        <Sidebar />
-        
-        <SidebarInset className="flex-1">
-          <Header />
-          
-          <main className="flex-1 p-4 sm:p-6 space-y-6 sm:space-y-8">
+    <AppShell>
+      <div className="space-y-6 sm:space-y-8">
           {/* Progress Overview */}
           <section>
             <h3 className="text-lg sm:text-xl font-semibold mb-4">Your Progress</h3>
@@ -164,9 +153,7 @@ export default function Dashboard() {
               ))}
             </div>
           </section>
-          </main>
-        </SidebarInset>
       </div>
-    </SidebarProvider>
+    </AppShell>
   );
 }
