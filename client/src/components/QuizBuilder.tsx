@@ -13,7 +13,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { gradeQuestion } from "@shared/core/grading";
 import { parseQuizText } from "@shared/core/quizText";
 import { parseStructuredContent } from "@shared/core/lessons";
-import type { Lesson, LessonQuestion, LessonSection, QuestionType } from "@shared/core/types";
+import { gradeLabel, type Lesson, type LessonQuestion, type LessonSection, type QuestionType } from "@shared/core/types";
 
 const uid = (p: string) => `${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 
@@ -334,7 +334,13 @@ function CopyFromLessonDialog({ open, onOpenChange, onImport, excludeId }: { ope
   const { data: lessons = [] } = useQuery<{ id: string; title: string; gradeLevel?: number; questionCount: number }[]>({ queryKey: ["/api/lessons"], enabled: open });
   const { data: lesson } = useQuery<Lesson>({ queryKey: ["/api/lessons", lessonId], enabled: !!lessonId, queryFn: () => apiRequest("GET", `/api/lessons/${lessonId}`) });
   const questions = lesson ? [...(parseStructuredContent(lesson.content)?.sections ?? []), ...(lesson.quiz?.sections ?? [])].flatMap((s) => s.questions) : [];
-  const shown = lessons.filter((l) => l.id !== excludeId && l.questionCount > 0 && l.title.toLowerCase().includes(search.toLowerCase())).slice(0, 50);
+  const terms = search.toLowerCase().split(/\s+/).filter(Boolean);
+  const matches = lessons.filter((l) => {
+    if (l.id === excludeId || !l.questionCount) return false;
+    const text = `${l.title} ${gradeLabel(l.gradeLevel)}`.toLowerCase();
+    return terms.every((t) => text.includes(t));
+  });
+  const shown = matches.slice(0, 50);
 
   return (
     <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) { setLessonId(null); setPicked(new Set()); } }}>
@@ -351,11 +357,12 @@ function CopyFromLessonDialog({ open, onOpenChange, onImport, excludeId }: { ope
                 <li key={l.id}>
                   <button type="button" className="w-full text-left py-2 px-1 hover:bg-muted/50 rounded flex justify-between gap-2" onClick={() => setLessonId(l.id)}>
                     <span className="text-sm">{l.title}</span>
-                    <span className="text-xs text-muted-foreground shrink-0">{l.questionCount} questions</span>
+                    <span className="text-xs text-muted-foreground shrink-0">{l.gradeLevel === undefined ? "" : `${gradeLabel(l.gradeLevel)} · `}{l.questionCount} questions</span>
                   </button>
                 </li>
               ))}
             </ul>
+            {matches.length > shown.length && <p className="text-xs text-muted-foreground">Showing {shown.length} of {matches.length} lessons. Search by title or grade (e.g. "grade 7 ratio") to narrow.</p>}
           </>
         ) : (
           <>

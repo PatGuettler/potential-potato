@@ -1,7 +1,7 @@
 # STEM Academy
 
-Lessons, assignments, and progress tracking for small schools, tutoring groups, co-ops, and clubs.
-Students do lessons and quizzes. Teachers assign work and grade it. Parents follow along. Admins run the place.
+A K–12 STEM curriculum with homeschool records and co-op tools, for families, homeschool co-ops, tutoring groups, and small schools.
+Students do lessons and quizzes. Parents plan courses and keep state records. Co-op teachers run shared classes. Admins run the place.
 
 **Live demo:** https://patguettler.github.io/potential-potato/ (runs entirely in your browser, nothing to install)
 
@@ -13,9 +13,9 @@ Every demo account uses the password **`demo1234`**. The login screen also has o
 |------------|---------|-------------|
 | `pat`      | Admin   | Pat's personal admin account |
 | `admin`    | Admin   | Users & families: create accounts, change roles, link parents to children, export a backup |
-| `teacher`  | Teacher | Open *Period 2* to see the gradebook, assign a lesson, grade work in the review queue, export CSV |
-| `parent`   | Parent  | Follow Alex and Emma, read the full report, leave a note for the teacher |
-| `student`  | Student | See overdue work, finish *Chemical Reactions*, submit a written response |
+| `parent`   | Homeschool parent | Jennifer runs *Johnson Family Academy* (Ohio) for Alex (7), Emma (5), and Liam (10): plan courses, attendance and hours, Liam's transcript and GPA, portfolios, co-op sign-ups |
+| `teacher`  | Co-op teacher | Ms. Rivera teaches *Life Science Lab* and *Middle School Math Circle*: gradebook, assign a unit, review queue, co-op class settings, calendar |
+| `student`  | Student | See overdue work, finish the overdue *Photosynthesis and Cellular Respiration* lesson, submit a written response |
 
 Demo data is saved in your browser's localStorage. Use **Reset demo data** in the yellow banner to start over.
 
@@ -23,21 +23,27 @@ Presenting it? Follow the 10-minute script in [docs/DEMO.md](docs/DEMO.md).
 
 ## Curriculum
 
-The app ships with a full K–12 STEM catalog: **32 courses, 128 lessons, 513 auto-graded questions**.
+The app ships with a full K–12 STEM catalog: **44 courses, 408 lessons, 1,633 auto-graded questions**, with 100+ lessons in each subject.
 
-| Band | Mathematics (Common Core) | Science (NGSS) | Technology & engineering |
-|---|---|---|---|
-| K–5 | Kindergarten–Grade 5 Math | Kindergarten–Grade 5 Science | Computing Foundations (K–2), Coding Foundations (3–5) |
-| 6–8 | Grade 6, 7, 8 Math | Earth & Space (6), Life (7), Physical (8) | CS Discoveries, Engineering Design |
-| 9–12 | Algebra I, Geometry, Algebra II, Precalculus | Biology, Chemistry, Physics, Environmental Science | CS Principles, Engineering Design & Robotics |
+| Subject | Lessons | Courses |
+|---|---|---|
+| Mathematics (Common Core) | 104 | Kindergarten–Grade 8 Math, Algebra I, Geometry, Algebra II, Precalculus |
+| Science (NGSS) | 104 | Kindergarten–Grade 5 Science, Earth & Space (6), Life (7), Physical (8), Biology, Chemistry, Physics, Environmental Science |
+| Technology (CSTA, ISTE) | 100 | Computing Foundations (K–2), Coding Foundations (3–5), CS Discoveries (6–8), Digital Literacy (6–8), CS Principles, Python Programming, Web Design & Development, Data Science & AI, Cybersecurity |
+| Engineering (NGSS ETS) | 100 | Engineering Explorers (K–2, 3–5), Engineering Design (6–8), Electricity & Electronics (6–8), Robotics & Automation (6–8), Engineering Design & Robotics, Principles of Engineering, Electronics & Circuits, Civil & Environmental Engineering |
 
-Each lesson has learning objectives, standards codes, vocabulary, a reading with worked examples, and a quiz in which every question explains its answer. 22 lessons also include a written response with a teacher rubric. Courses live in `shared/curriculum/` as plain TypeScript, so they're easy to review and extend. Teachers can create their own courses, units, and lessons in the app.
+Every grade from K to 12 has all four subjects. Each lesson has learning objectives, standards codes, vocabulary, a reading with worked examples, and a quiz in which every question explains its answer. 41 lessons also include a written response with a rubric. The lessons are original, written to a standard scope and sequence rather than copied from any published curriculum. Courses live in `shared/curriculum/` as plain TypeScript, so they're easy to review and extend. Teachers can create their own courses, units, and lessons in the app.
 
 ## What each role gets
 
 - **Students:** a dashboard with assignments and due dates (overdue ones flagged), lessons in progress, and per-subject progress. Lessons have reading material, auto-graded quizzes (multiple choice, number, text, code), and optional written responses. Students can join a class with a code.
 - **Teachers:** a quiz builder (multiple choice with click-to-mark answers, true/false, numbers with a tolerance, short answers with several accepted answers, hints, explanations, live student preview, paste-from-a-document, and copy questions from any lesson); courses and units; assign a whole unit with spaced due dates; classes with join codes; assignments with due dates; a gradebook (student × assignment) with CSV export; a review queue for written responses with score and feedback; a "needs attention" list of students with overdue work; private notes to parents; a lesson editor with quiz builder.
-- **Parents:** one card per child showing overdue alerts, scores, time spent, and what's coming up. A printable full report includes teacher feedback and a notes thread with the teacher.
+- **Homeschool parents (family mode):** add children, plan any course for any child at any level (courses are by level, not locked to grade) with a chosen pace, review their written work, and keep state records:
+  - **Attendance and hours:** logged automatically as children study, plus manual entries for reading, field trips, PE, and other subjects; progress toward the state's required days and hours; CSV export and print.
+  - **High school transcripts:** courses, credits, letter grades, and a credit-weighted 4.0 GPA, with suggested entries from finished courses; printable.
+  - **Portfolios:** work samples and notes per child for annual reviews.
+  - Co-parents share one family, and parents can sign children up for co-op classes.
+- **Co-ops:** classes with schedules, locations, grade ranges, seat limits, and fees; open enrollment that families sign up for; parent volunteers can teach classes and see progress for the students in them; a shared calendar of class days and field trips.
 - **Admins:** school-wide stats and activity; user management (roles, deactivation, password resets, parent ↔ child links, CSV export); all classes; the organization name; a full JSON backup.
 
 ## Running it for real

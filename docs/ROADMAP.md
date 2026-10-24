@@ -37,15 +37,29 @@
 - Quiz builder: five question types, click-to-mark correct answers, accepted alternate answers, number tolerance, hints and explanations, inline validation, a live student preview, reordering and duplicating, pasting from a document, and copying from other lessons.
 - Lesson editor with course and unit filing, objectives, vocabulary, standards, a reading template, a written-response rubric, and a readiness checklist.
 
+**Homeschool and co-op release (fourth release)**
+- Family mode: parents sign up as a family school, add children, invite a co-parent, and plan any course for any child at any level with a chosen pace.
+- Attendance and hours: automatic from study time, plus manual entries by subject; progress toward state-required days and hours; CSV export and print.
+- High school transcripts with credits, letter grades, and a credit-weighted GPA, with suggestions from finished courses; printable.
+- Portfolios of work samples per child.
+- Co-op tools: class schedules, locations, grade ranges, seat limits, fees, open enrollment by families, parent volunteer teachers, and a shared calendar.
+- Curriculum grew to 44 courses and 408 lessons: 104 math, 104 science, 100 technology, and 100 engineering. New courses include Python, Web Design, Data Science & AI, Cybersecurity, Digital Literacy, Engineering Explorers K–2 and 3–5, Electricity & Electronics, Robotics & Automation, Principles of Engineering, Electronics & Circuits, and Civil & Environmental Engineering. All lessons are original.
+
 ## Next up (suggested)
+
+To sell a family plan ($50–100 a year):
+1. **Hosted multi-tenant accounts:** one deployment serving many families and co-ops, each with its own isolated data (today a deployment is one school or co-op).
+2. **Billing:** Stripe Checkout and customer portal for a yearly family plan and a per-co-op plan, with trials and a free tier.
+3. **Normalized Postgres tables** behind the same `ApiStore` interface, so thousands of families fit in one database.
+4. **Adaptive practice:** generated practice problems per skill and spaced review, so practice never runs out.
+5. **Video and read-aloud** for younger learners.
+
+Also useful:
 
 1. **Email digests for parents:** a weekly summary and an overdue alert, reusing the SMTP setup and the activity log.
 2. **SSO:** Google Workspace / Microsoft sign-in for schools.
 3. **CSV roster import:** bulk-create students and parents and link families in one upload.
-4. **Multiple organizations** in one deployment, if this will be offered as hosted software.
-5. **Normalized tables:** the Postgres store keeps the whole school in one JSON document, which suits groups up to roughly a thousand people. Beyond that, split it into per-entity tables behind the same `ApiStore` interface.
-6. **Messaging beyond notes:** per-class announcements and read receipts.
-7. **Accessibility pass:** keyboard navigation of the gradebook, screen-reader labels on status chips.
-8. **Code-split the lesson page:** the Monaco editor and charts load only when needed.
-9. **Mastery and standards tagging:** map questions to standards and show mastery per standard.
-10. **Attendance:** a simple per-session check-in for tutoring groups that track hours.
+4. **Messaging beyond notes:** per-class announcements and read receipts.
+5. **Accessibility pass:** keyboard navigation of the gradebook, screen-reader labels on status chips.
+6. **Code-split the lesson page:** the Monaco editor and charts load only when needed.
+7. **Mastery and standards tagging:** map questions to standards and show mastery per standard.

@@ -24,12 +24,17 @@ async function demoApi() {
 
 test("bundled curriculum covers K–12 with quizzes on every lesson", () => {
   const { courses, lessons } = buildCurriculum();
-  assert.equal(courses.length, 32);
-  assert.equal(lessons.length, 128);
+  assert.equal(courses.length, 44);
+  assert.equal(lessons.length, 408);
   for (let g = 0; g <= 12; g++) {
     const subjects = new Set(courses.filter((c) => c.gradeLevel <= g && g <= (c.gradeLevelMax ?? c.gradeLevel)).map((c) => c.subject));
-    assert.ok(subjects.has("mathematics") && subjects.has("science"), `grade ${g} has math and science`);
+    assert.equal(subjects.size, 4, `grade ${g} has all four STEM subjects`);
   }
+  const subjectOf = new Map(courses.map((c) => [c.id, c.subject]));
+  for (const subject of ["mathematics", "science", "technology", "engineering"]) {
+    assert.ok(lessons.filter((l) => subjectOf.get(l.courseId!) === subject).length >= 100, `${subject} has 100+ lessons`);
+  }
+  assert.equal(new Set(lessons.map((l) => l.id)).size, lessons.length, "lesson ids are unique");
   assert.ok(lessons.every((l) => l.quiz && l.quiz.sections[0].questions.length >= 4 && l.objectives?.length && l.standards?.length));
 });
 
@@ -75,7 +80,7 @@ test("courses list progress for students and teachers can assign a whole unit", 
   await as("student");
   const courses: any[] = (await call("GET", "/api/courses")).body as any[];
   const sci7 = courses.find((c) => c.id === "sci-7");
-  assert.equal(sci7.lessonCount, 4);
+  assert.equal(sci7.lessonCount, 8);
   assert.equal(sci7.completedCount, 2);
   const detail: any = (await call("GET", "/api/courses/sci-7")).body;
   assert.equal(detail.lessons["sci-7-1-1"].status, "completed");
