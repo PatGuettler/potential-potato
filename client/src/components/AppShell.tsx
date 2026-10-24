@@ -33,13 +33,6 @@ const roleLabel: Record<Role, string> = {
   student: "Student",
 };
 
-const library: NavItem[] = [
-  { name: "Science", href: "/category/science", icon: "fas fa-microscope" },
-  { name: "Technology", href: "/category/technology", icon: "fas fa-laptop-code" },
-  { name: "Engineering", href: "/category/engineering", icon: "fas fa-cogs" },
-  { name: "Mathematics", href: "/category/mathematics", icon: "fas fa-calculator" },
-];
-
 function useNav(role: Role | undefined) {
   const staff = role === "teacher" || role === "admin";
   const { data: subs = [] } = useQuery<{ status: string }[]>({
@@ -52,11 +45,12 @@ function useNav(role: Role | undefined) {
   if (staff) main.push({ name: "Review queue", href: "/reviews", icon: "fas fa-inbox", badge: pending || undefined });
   if (role === "admin") main.push({ name: "Users & families", href: "/admin/users", icon: "fas fa-users-cog" });
   if (role === "student") main.push({ name: "My report", href: "/me/report", icon: "fas fa-chart-line" });
+  main.push({ name: "Course catalog", href: "/courses", icon: "fas fa-graduation-cap" });
 
   const content: NavItem[] = staff
     ? [
         { name: "All lessons", href: "/library", icon: "fas fa-book-open" },
-        { name: "Create lesson", href: "/lesson-creation", icon: "fas fa-plus-circle" },
+        { name: "New lesson", href: "/lesson-creation", icon: "fas fa-plus-circle" },
       ]
     : [];
   return { main, content };
@@ -72,7 +66,7 @@ function NavGroup({ label, items }: { label: string; items: NavItem[] }) {
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.href}>
-              <SidebarMenuButton asChild isActive={location === item.href} tooltip={item.name}>
+              <SidebarMenuButton asChild isActive={item.href === "/" ? location === "/" : location.startsWith(item.href)} tooltip={item.name}>
                 <Link href={item.href} data-testid={`nav-${item.name.toLowerCase().replace(/\W+/g, "-")}`}>
                   <i className={`${item.icon} w-4 text-center text-sm`} />
                   <span>{item.name}</span>
@@ -116,7 +110,6 @@ export function AppShell({ title, subtitle, actions, children }: { title: string
         <SidebarContent>
           <NavGroup label="Overview" items={main} />
           <NavGroup label="Content" items={content} />
-          <NavGroup label="Lesson library" items={library} />
         </SidebarContent>
         <SidebarFooter>
           <div className="flex items-center gap-2 px-2 py-1.5 group-data-[collapsible=icon]:hidden">

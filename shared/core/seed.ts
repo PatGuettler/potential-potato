@@ -1,6 +1,7 @@
 import type { Activity, Database, Lesson, Progress, Role, User } from "./types";
 import { DB_VERSION } from "./types";
 import { defaultCategories, lessonQuestions } from "./lessons";
+import { buildCurriculum } from "../curriculum";
 
 export const DEMO_PASSWORD = "demo1234";
 
@@ -13,7 +14,8 @@ export const demoAccounts: { username: string; role: Role; label: string; blurb:
   { username: "student", role: "student", label: "Student", blurb: "Do lessons, quizzes and assignments" },
 ];
 
-export function emptyDatabase(lessons: Lesson[], organizationName = "STEM Academy"): Database {
+export function emptyDatabase(organizationName = "STEM Academy"): Database {
+  const { courses, lessons } = buildCurriculum();
   return {
     version: DB_VERSION,
     organizationName,
@@ -29,6 +31,7 @@ export function emptyDatabase(lessons: Lesson[], organizationName = "STEM Academ
     ratings: [],
     activity: [],
     passwordResets: [],
+    courses,
   };
 }
 
@@ -43,11 +46,11 @@ function rng(seed: number) {
 const DAY = 86400000;
 
 export async function buildDemoDatabase(
-  lessons: Lesson[],
   hashPassword: (p: string) => Promise<string>,
   newId: () => string,
 ): Promise<Database> {
-  const db = emptyDatabase(lessons, "Riverside STEM Academy");
+  const db = emptyDatabase("Riverside STEM Academy");
+  const lessons = db.lessons;
   const rand = rng(42);
   const t0 = Date.now();
   const iso = (offsetDays: number) => new Date(t0 + offsetDays * DAY).toISOString();
@@ -102,25 +105,25 @@ export async function buildDemoDatabase(
   mk("parent2", "parent", "Marcus", "Lee", { childIds: [students[2].id] });
 
   const classes = [
-    { id: "c-p2", name: "Period 2 · Physical Science", subject: "Science", teacherId: rivera.id, studentIds: students.slice(0, 1).concat(students.slice(2, 9)).map((s) => s.id), joinCode: "SCI2RV" },
-    { id: "c-p4", name: "Period 4 · Intro to Coding", subject: "Technology", teacherId: rivera.id, studentIds: [alex, ...students.slice(3, 8)].map((s) => s.id), joinCode: "CODE4R" },
-    { id: "c-mc", name: "Math Club", subject: "Mathematics", teacherId: chen.id, studentIds: [emma, ...students.slice(9)].map((s) => s.id), joinCode: "MATHCB" },
+    { id: "c-p2", name: "Period 2 · Life Science", subject: "Science", courseId: "sci-7", teacherId: rivera.id, studentIds: students.slice(0, 1).concat(students.slice(2, 9)).map((s) => s.id), joinCode: "SCI2RV" },
+    { id: "c-p4", name: "Period 4 · Grade 7 Math", subject: "Mathematics", courseId: "math-7", teacherId: rivera.id, studentIds: [alex, ...students.slice(3, 8)].map((s) => s.id), joinCode: "MATH4R" },
+    { id: "c-mc", name: "Room 12 · Grade 5 Math", subject: "Mathematics", courseId: "math-5", teacherId: chen.id, studentIds: [emma, ...students.slice(9)].map((s) => s.id), joinCode: "MATH5C" },
   ];
   for (const c of classes) db.classrooms.push({ ...c, createdAt: iso(-45) });
 
   const plan: [string, string, number][] = [
-    ["c-p2", "sci001", -18],
-    ["c-p2", "sci002", -9],
-    ["c-p2", "eng001", -2],
-    ["c-p2", "sci003", 4],
-    ["c-p2", "eng002", 11],
-    ["c-p4", "tech001", -14],
-    ["c-p4", "tech002", -3],
-    ["c-p4", "tech003", 6],
-    ["c-mc", "math004", -10],
-    ["c-mc", "math001", -4],
-    ["c-mc", "math002", 3],
-    ["c-mc", "math003", 10],
+    ["c-p2", "sci-7-1-1", -18],
+    ["c-p2", "sci-7-1-2", -9],
+    ["c-p2", "sci-7-2-1", -2],
+    ["c-p2", "sci-7-2-2", 5],
+    ["c-p4", "math-7-1-1", -14],
+    ["c-p4", "math-7-1-2", -3],
+    ["c-p4", "math-7-2-1", 4],
+    ["c-p4", "math-7-2-2", 11],
+    ["c-mc", "math-5-1-1", -10],
+    ["c-mc", "math-5-1-2", -4],
+    ["c-mc", "math-5-2-1", 3],
+    ["c-mc", "math-5-2-2", 10],
   ];
 
   const byId = new Map(lessons.map((l) => [l.id, l]));
@@ -191,34 +194,34 @@ export async function buildDemoDatabase(
     });
     qs.slice(0, correct).forEach((q) => db.questionProgress.push({ userId, lessonId, questionId: q.id, isCorrect: true, answer: q.expectedAnswer, attempts: 1, lastUpdated: iso(-daysAgo) }));
   };
-  ensure(alex.id, "sci001", "completed", 100, 15);
-  ensure(alex.id, "sci002", "completed", 67, 8);
-  ensure(alex.id, "tech001", "completed", 100, 12);
-  ensure(alex.id, "eng001", "not_started", 0, 0);
-  ensure(alex.id, "tech002", "in_progress", 33, 1);
-  ensure(alex.id, "sci003", "not_started", 0, 0);
-  ensure(emma.id, "math004", "completed", 100, 9);
-  ensure(emma.id, "math001", "completed", 100, 3);
+  ensure(alex.id, "sci-7-1-1", "completed", 100, 15);
+  ensure(alex.id, "sci-7-1-2", "completed", 75, 8);
+  ensure(alex.id, "math-7-1-1", "completed", 100, 12);
+  ensure(alex.id, "sci-7-2-1", "not_started", 0, 0);
+  ensure(alex.id, "math-7-1-2", "in_progress", 50, 1);
+  ensure(alex.id, "sci-7-2-2", "not_started", 0, 0);
+  ensure(emma.id, "math-5-1-1", "completed", 100, 9);
+  ensure(emma.id, "math-5-1-2", "completed", 75, 3);
 
   db.submissions.push(
-    { id: newId(), userId: alex.id, lessonId: "sci001", answer: "Force is a push or pull, like when I kick a soccer ball. Motion is when something changes position over time, like a car driving. Energy is the ability to do work, like a battery powering a flashlight.", autoScore: 72, status: "reviewed", teacherScore: 92, feedback: "Great everyday examples, Alex! Next time mention gravity as a force too.", reviewedBy: rivera.id, submittedAt: iso(-15), reviewedAt: iso(-14) },
-    { id: newId(), userId: alex.id, lessonId: "sci002", answer: "Water evaporates from the ocean because of the sun, then it condenses into clouds and falls as rain.", autoScore: 55, status: "pending", submittedAt: iso(-1) },
-    { id: newId(), userId: students[2].id, lessonId: "sci002", answer: "Evaporation, condensation, precipitation and collection. The sun powers the cycle and it gives us fresh water.", autoScore: 81, status: "pending", submittedAt: iso(-2) },
-    { id: newId(), userId: students[4].id, lessonId: "sci001", answer: "Force makes things move. Energy is power.", autoScore: 30, status: "pending", submittedAt: iso(-3) },
+    { id: newId(), userId: alex.id, lessonId: "sci-7-1-2", answer: "When I eat, my digestive system breaks food into nutrients like glucose. My circulatory system carries the glucose and oxygen to my muscles. When I run, my respiratory system breathes faster to get more oxygen and get rid of carbon dioxide, and my heart beats faster.", autoScore: 74, status: "reviewed", teacherScore: 92, feedback: "Excellent, Alex! You connected three systems clearly. Next time, mention that the nervous system coordinates all of this.", reviewedBy: rivera.id, submittedAt: iso(-8), reviewedAt: iso(-7) },
+    { id: newId(), userId: students[2].id, lessonId: "sci-7-1-2", answer: "The digestive system turns food into glucose, the circulatory system carries it with oxygen from the lungs, and muscles use it for energy. The nervous system tells everything to speed up when I run.", autoScore: 81, status: "pending", submittedAt: iso(-2) },
+    { id: newId(), userId: students[4].id, lessonId: "sci-7-1-2", answer: "You eat food and then you run. Your heart beats.", autoScore: 22, status: "pending", submittedAt: iso(-3) },
+    { id: newId(), userId: students[6].id, lessonId: "sci-7-2-1", answer: "I disagree. Plants do cellular respiration in their mitochondria, which needs oxygen and glucose, so they need oxygen too. They just make more oxygen than they use during the day.", autoScore: 86, status: "pending", submittedAt: iso(-1) },
   );
-  act({ type: "submission_sent", actorId: alex.id, studentId: alex.id, lessonId: "sci002", message: "submitted a written response", createdAt: iso(-1) });
-  act({ type: "submission_reviewed", actorId: rivera.id, studentId: alex.id, lessonId: "sci001", message: "reviewed a written response (92%)", createdAt: iso(-14) });
+  act({ type: "submission_sent", actorId: students[6].id, studentId: students[6].id, lessonId: "sci-7-2-1", message: "submitted a written response", createdAt: iso(-1) });
+  act({ type: "submission_reviewed", actorId: rivera.id, studentId: alex.id, lessonId: "sci-7-1-2", message: "reviewed a written response (92%)", createdAt: iso(-7) });
 
   db.notes.push(
-    { id: newId(), studentId: alex.id, authorId: rivera.id, body: "Alex has been a great lab partner this unit. The Engineering Design lesson is overdue, so please encourage Alex to finish it this weekend.", createdAt: iso(-1.5) },
-    { id: newId(), studentId: alex.id, authorId: parent.id, body: "Thanks! We'll set aside time Saturday morning.", createdAt: iso(-1.2) },
-    { id: newId(), studentId: emma.id, authorId: chen.id, body: "Emma is flying through Math Club. She could try the Geometry lesson early if she likes.", createdAt: iso(-2) },
+    { id: newId(), studentId: alex.id, authorId: rivera.id, body: "Alex has been a great lab partner during our cells unit. The Photosynthesis lesson is overdue, so please encourage Alex to finish it this weekend.", createdAt: iso(-1.5) },
+    { id: newId(), studentId: alex.id, authorId: parent.id, body: "Thanks for letting us know! We'll set aside time Saturday morning.", createdAt: iso(-1.2) },
+    { id: newId(), studentId: emma.id, authorId: chen.id, body: "Emma is doing great with fractions. She's ready to try the Volume lesson early if she'd like a challenge.", createdAt: iso(-2) },
   );
   act({ type: "note_added", actorId: rivera.id, studentId: alex.id, message: "left a note about Alex Johnson", createdAt: iso(-1.5) });
 
   for (const s of students) {
-    if (rand() < 0.6) db.ratings.push({ userId: s.id, lessonId: "sci001", rating: 4 + Math.round(rand()), createdAt: iso(-10) });
-    if (rand() < 0.4) db.ratings.push({ userId: s.id, lessonId: "tech001", rating: 3 + Math.round(rand() * 2), createdAt: iso(-8) });
+    if (rand() < 0.6) db.ratings.push({ userId: s.id, lessonId: "sci-7-1-1", rating: 4 + Math.round(rand()), createdAt: iso(-10) });
+    if (rand() < 0.4) db.ratings.push({ userId: s.id, lessonId: "math-7-1-1", rating: 3 + Math.round(rand() * 2), createdAt: iso(-8) });
   }
 
   db.activity = activity.sort((a, b) => b.createdAt.localeCompare(a.createdAt));

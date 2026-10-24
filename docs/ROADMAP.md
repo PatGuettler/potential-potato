@@ -31,6 +31,12 @@
 - Password reset by email (SMTP), admin-issued reset links for people without email, and a "My account" page to change your password.
 - Production refuses to start without `SESSION_SECRET`. Reset requests are rate-limited and don't reveal whether an account exists.
 
+**Curriculum and quiz builder (third release)**
+- K–12 course catalog: 32 standards-aligned courses, 128 lessons with objectives, vocabulary, standards, worked examples, and quizzes with explanations.
+- Courses → units → lessons, course pages with progress, and "assign a whole unit" with spaced due dates. Classes can follow a course.
+- Quiz builder: five question types, click-to-mark correct answers, accepted alternate answers, number tolerance, hints and explanations, inline validation, a live student preview, reordering and duplicating, pasting from a document, and copying from other lessons.
+- Lesson editor with course and unit filing, objectives, vocabulary, standards, a reading template, a written-response rubric, and a readiness checklist.
+
 ## Next up (suggested)
 
 1. **Email digests for parents:** a weekly summary and an overdue alert, reusing the SMTP setup and the activity log.

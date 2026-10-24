@@ -9,6 +9,8 @@ import type {
   ActivityType,
   Assignment,
   Classroom,
+  Course,
+  CourseUnit,
   Database,
   Lesson,
   LessonContent,
@@ -185,7 +187,7 @@ function stripQuiz(content: LessonContent): LessonContent {
   return {
     sections: content.sections.map((s) => ({
       ...s,
-      questions: s.questions.map(({ expectedAnswer: _e, ...q }) => ({ ...q, expectedAnswer: "" })),
+      questions: s.questions.map(({ expectedAnswer: _e, acceptedAnswers: _a, explanation: _x, hint: _h, ...q }) => ({ ...q, expectedAnswer: "" })),
     })),
   };
 }
@@ -374,16 +376,85 @@ function submissionView(db: Database, s: Database["submissions"][number]) {
   };
 }
 
-function validateLessonBody(body: any, existing?: Lesson): Partial<Lesson> {
+function strList(value: unknown, field: string, maxItems = 30): string[] {
+  if (value === undefined || value === null) return [];
+  if (!Array.isArray(value)) fail(400, `${field} must be a list`);
+  return (value as unknown[]).map((v) => String(v).trim().slice(0, 500)).filter(Boolean).slice(0, maxItems);
+}
+
+const sanitizeQuestion = (q: any, i: number): LessonContent["sections"][number]["questions"][number] => {
+  const type = ["choice", "truefalse", "number", "text", "code"].includes(q?.type) ? q.type : "text";
+  const options = type === "truefalse" ? ["True", "False"] : type === "choice" ? strList(q.options, "options", 8) : undefined;
+  const tolerance = Number(q?.tolerance);
+  return {
+    id: String(q?.id || `q${i + 1}`).slice(0, 80),
+    prompt: str(q?.prompt, "question prompt", { max: 4000 }),
+    type,
+    expectedAnswer: str(q?.expectedAnswer, "correct answer", { max: 4000 }),
+    options,
+    acceptedAnswers: type === "text" ? strList(q.acceptedAnswers, "acceptedAnswers", 20) : undefined,
+    tolerance: type === "number" && Number.isFinite(tolerance) && tolerance > 0 ? tolerance : undefined,
+    caseSensitive: type === "text" ? !!q.caseSensitive : undefined,
+    hint: str(q?.hint, "hint", { required: false, max: 2000 }) || undefined,
+    explanation: str(q?.explanation, "explanation", { required: false, max: 4000 }) || undefined,
+  };
+};
+
+/** Keeps course units in sync when a lesson is created, moved, or archived. */
+function placeLessonInUnit(db: Database, lesson: Lesson) {
+  for (const c of db.courses) for (const u of c.units) u.lessonIds = u.lessonIds.filter((id) => id !== lesson.id);
+  if (!lesson.courseId || !lesson.unitId) return;
+  const unit = db.courses.find((c) => c.id === lesson.courseId)?.units.find((u) => u.id === lesson.unitId);
+  if (unit) unit.lessonIds.push(lesson.id);
+}
+
+function validateLessonBody(db: Database, body: any, existing?: Lesson): Partial<Lesson> {
   const difficulty = (body.difficulty ?? existing?.difficulty) as string;
   if (!difficultyLevels.includes(difficulty as any)) fail(400, "difficulty must be easy, medium, or hard");
   const categoryId = str(body.categoryId ?? existing?.categoryId, "categoryId", { max: 64 });
   const duration = Number(body.estimatedDuration ?? existing?.estimatedDuration ?? 30);
   let quiz: LessonContent | undefined = existing?.quiz;
   if (body.quiz !== undefined) {
-    quiz = body.quiz && Array.isArray(body.quiz.sections) ? { sections: body.quiz.sections } : undefined;
+    quiz = body.quiz && Array.isArray(body.quiz.sections)
+      ? {
+          sections: body.quiz.sections.map((s: any, si: number) => ({
+            id: String(s?.id || `section-${si + 1}`).slice(0, 80),
+            title: str(s?.title, "section title", { max: 200 }),
+            description: str(s?.description, "section description", { required: false, max: 2000 }) || undefined,
+            questions: Array.isArray(s?.questions) ? s.questions.map(sanitizeQuestion) : [],
+          })),
+        }
+      : undefined;
+    const choices = quiz?.sections.flatMap((s) => s.questions).filter((q) => q.type === "choice" || q.type === "truefalse") ?? [];
+    for (const q of choices) {
+      if ((q.options?.length ?? 0) < 2) fail(400, `"${q.prompt.slice(0, 60)}" needs at least two choices`);
+      if (!q.options!.includes(q.expectedAnswer)) fail(400, `Mark the correct choice for "${q.prompt.slice(0, 60)}"`);
+    }
   }
+  let courseId = existing?.courseId;
+  let unitId = existing?.unitId;
+  if (body.courseId !== undefined) {
+    courseId = body.courseId || undefined;
+    unitId = body.unitId || undefined;
+    const course = courseId ? db.courses.find((c) => c.id === courseId) : undefined;
+    if (courseId && !course) fail(400, "Course not found");
+    if (course && unitId && !course.units.some((u) => u.id === unitId)) fail(400, "Unit not found in that course");
+  }
+  const grade = body.gradeLevel === undefined ? existing?.gradeLevel : body.gradeLevel === null || body.gradeLevel === "" ? undefined : Number(body.gradeLevel);
+  if (grade !== undefined && !(Number.isInteger(grade) && grade >= 0 && grade <= 12)) fail(400, "gradeLevel must be K (0) through 12");
+  const vocabulary = body.vocabulary === undefined
+    ? existing?.vocabulary
+    : (Array.isArray(body.vocabulary) ? body.vocabulary : [])
+        .map((v: any) => ({ term: String(v?.term ?? "").trim().slice(0, 100), definition: String(v?.definition ?? "").trim().slice(0, 500) }))
+        .filter((v: { term: string }) => v.term)
+        .slice(0, 30);
   return {
+    courseId,
+    unitId,
+    gradeLevel: grade,
+    objectives: body.objectives === undefined ? existing?.objectives : strList(body.objectives, "objectives", 12),
+    standards: body.standards === undefined ? existing?.standards : strList(body.standards, "standards", 12),
+    vocabulary,
     title: str(body.title ?? existing?.title, "title", { max: 200 }),
     description: str(body.description ?? existing?.description, "description", { required: false, max: 2000 }),
     content: str(body.content ?? existing?.content, "content", { required: false, max: 200000 }),
@@ -562,13 +633,14 @@ on("GET", "/api/lessons/:id", ALL, ({ db, user, params }) => lessonList(db, user
 
 on("POST", "/api/lessons", STAFF, ({ db, user, body, env, dirty }) => {
   const lesson: Lesson = {
-    ...(validateLessonBody(body ?? {}) as Lesson),
+    ...(validateLessonBody(db, body ?? {}) as Lesson),
     id: env.newId(),
     authorId: user.id,
     isActive: true,
     createdAt: now(),
   };
   db.lessons.push(lesson);
+  placeLessonInUnit(db, lesson);
   dirty();
   return lesson;
 });
@@ -576,7 +648,9 @@ on("POST", "/api/lessons", STAFF, ({ db, user, body, env, dirty }) => {
 on("PUT", "/api/lessons/:id", STAFF, ({ db, user, params, body, dirty }) => {
   const lesson = findLesson(db, params.id);
   if (user.role !== "admin" && lesson.authorId !== user.id) fail(403, "Only the author or an admin can edit this lesson");
-  Object.assign(lesson, validateLessonBody(body ?? {}, lesson), { updatedAt: now() });
+  const before = `${lesson.courseId}/${lesson.unitId}`;
+  Object.assign(lesson, validateLessonBody(db, body ?? {}, lesson), { updatedAt: now() });
+  if (`${lesson.courseId}/${lesson.unitId}` !== before) placeLessonInUnit(db, lesson);
   dirty();
   return lesson;
 });
@@ -627,6 +701,7 @@ on("POST", "/api/lessons/:id/questions/:questionId/validate", ALL, ({ db, user, 
   qp.answer = answer;
   qp.isCorrect = qp.isCorrect || result.isCorrect;
   qp.lastUpdated = now();
+  const attempts = qp.attempts;
 
   if (user.role === "student") {
     const p = ensureProgress(db, user.id, lesson.id);
@@ -634,10 +709,15 @@ on("POST", "/api/lessons/:id/questions/:questionId/validate", ALL, ({ db, user, 
     if (!p.isCompleted) p.score = quizScore(db, user.id, lesson).percent;
   }
   dirty();
+  const isLearner = user.role === "student" || user.role === "parent";
   return {
     ...result,
     questionId: question.id,
-    expectedAnswer: user.role === "student" || user.role === "parent" ? undefined : question.expectedAnswer,
+    attempts,
+    hint: result.isCorrect ? undefined : question.hint,
+    // Explain once it's right, or after three misses so nobody stays stuck.
+    explanation: result.isCorrect || attempts >= 3 ? question.explanation : undefined,
+    expectedAnswer: isLearner ? undefined : question.expectedAnswer,
   };
 });
 
@@ -721,6 +801,121 @@ on("POST", "/api/progress", ALL, ({ db, user, body, env, dirty }) => {
   return p;
 });
 
+// ---- courses
+
+function courseView(db: Database, user: User, c: Course) {
+  const lessons = new Map(db.lessons.filter((l) => l.isActive).map((l) => [l.id, l]));
+  const units = c.units.map((u) => ({ ...u, lessonIds: u.lessonIds.filter((id) => lessons.has(id)) }));
+  const ids = units.flatMap((u) => u.lessonIds);
+  const done = user.role === "student" ? ids.filter((id) => getProgress(db, user.id, id)?.isCompleted).length : undefined;
+  return { ...c, units, lessonCount: ids.length, completedCount: done };
+}
+
+function validateCourseBody(body: any, existing?: Course) {
+  const grade = Number(body.gradeLevel ?? existing?.gradeLevel);
+  if (!(Number.isInteger(grade) && grade >= 0 && grade <= 12)) fail(400, "gradeLevel must be K (0) through 12");
+  const maxRaw = body.gradeLevelMax === undefined ? existing?.gradeLevelMax : body.gradeLevelMax === null || body.gradeLevelMax === "" ? undefined : Number(body.gradeLevelMax);
+  if (maxRaw !== undefined && !(Number.isInteger(maxRaw) && maxRaw >= grade && maxRaw <= 12)) fail(400, "gradeLevelMax must be between gradeLevel and 12");
+  return {
+    title: str(body.title ?? existing?.title, "title", { max: 200 }),
+    subject: str(body.subject ?? existing?.subject, "subject", { max: 64 }),
+    gradeLevel: grade,
+    gradeLevelMax: maxRaw,
+    description: str(body.description ?? existing?.description, "description", { required: false, max: 4000 }),
+    framework: str(body.framework ?? existing?.framework, "framework", { required: false, max: 200 }) || undefined,
+  };
+}
+
+function applyUnits(env: ApiEnv, body: any, existing: CourseUnit[]): CourseUnit[] {
+  if (!Array.isArray(body.units)) return existing;
+  return body.units.slice(0, 40).map((u: any) => {
+    const prior = existing.find((x) => x.id === u?.id);
+    return {
+      id: prior?.id ?? env.newId(),
+      title: str(u?.title, "unit title", { max: 200 }),
+      description: str(u?.description, "unit description", { required: false, max: 2000 }) || undefined,
+      lessonIds: prior?.lessonIds ?? [],
+    };
+  });
+}
+
+on("GET", "/api/courses", ALL, ({ db, user }) =>
+  db.courses
+    .filter((c) => c.isActive)
+    .sort((a, b) => a.gradeLevel - b.gradeLevel || a.subject.localeCompare(b.subject) || a.title.localeCompare(b.title))
+    .map((c) => courseView(db, user, c)),
+);
+
+on("GET", "/api/courses/:id", ALL, ({ db, user, params }) => {
+  const c = db.courses.find((x) => x.id === params.id && x.isActive) ?? fail(404, "Course not found");
+  const view = courseView(db, user, c);
+  const lessonInfo = Object.fromEntries(
+    view.units.flatMap((u) => u.lessonIds).map((id) => {
+      const l = db.lessons.find((x) => x.id === id)!;
+      const p = user.role === "student" ? getProgress(db, user.id, id) : undefined;
+      return [id, { id, title: l.title, description: l.description, estimatedDuration: l.estimatedDuration, difficulty: l.difficulty, questionCount: lessonQuestions(l).length, hasWrittenResponse: !!l.answer, status: p?.status ?? (user.role === "student" ? "not_started" : undefined), score: p?.score }];
+    }),
+  );
+  const classes = teacherClassrooms(db, user).filter((x) => x.courseId === c.id).map((x) => ({ id: x.id, name: x.name }));
+  return { ...view, lessons: lessonInfo, classes };
+});
+
+on("POST", "/api/courses", STAFF, ({ db, user, body, env, dirty }) => {
+  const course: Course = {
+    id: env.newId(),
+    ...validateCourseBody(body ?? {}),
+    units: applyUnits(env, body ?? {}, []),
+    authorId: user.id,
+    isActive: true,
+    createdAt: now(),
+  };
+  if (course.units.length === 0) course.units = [{ id: env.newId(), title: "Unit 1", lessonIds: [] }];
+  db.courses.push(course);
+  dirty();
+  return course;
+});
+
+on("PUT", "/api/courses/:id", STAFF, ({ db, user, params, body, env, dirty }) => {
+  const c = db.courses.find((x) => x.id === params.id && x.isActive) ?? fail(404, "Course not found");
+  if (user.role !== "admin" && c.authorId !== user.id) fail(403, "Only the course author or an admin can edit this course");
+  Object.assign(c, validateCourseBody(body ?? {}, c));
+  const units = applyUnits(env, body ?? {}, c.units);
+  const kept = new Set(units.map((u) => u.id));
+  // Lessons in a removed unit stay in the library, just unfiled.
+  for (const l of db.lessons) if (l.courseId === c.id && l.unitId && !kept.has(l.unitId)) l.unitId = undefined;
+  c.units = units;
+  dirty();
+  return c;
+});
+
+on("POST", "/api/teacher/classrooms/:id/assign-unit", STAFF, ({ db, user, params, body, env, dirty }) => {
+  const c = ownClassroom(db, user, params.id);
+  const course = db.courses.find((x) => x.id === str(body?.courseId, "courseId", { max: 100 })) ?? fail(404, "Course not found");
+  const unit = course.units.find((u) => u.id === str(body?.unitId, "unitId", { max: 100 })) ?? fail(404, "Unit not found");
+  const start = new Date(str(body?.startDate, "startDate", { max: 40 }));
+  if (isNaN(start.getTime())) fail(400, "startDate is not a valid date");
+  const spacing = Math.max(1, Math.min(14, Math.round(Number(body?.spacingDays) || 2)));
+  const lessons = unit.lessonIds.map((id) => db.lessons.find((l) => l.id === id && l.isActive)).filter((l): l is Lesson => !!l);
+  if (lessons.length === 0) fail(400, "That unit has no lessons yet");
+  const already = new Set(db.assignments.filter((a) => a.classroomId === c.id).map((a) => a.lessonId));
+  const created = lessons.filter((l) => !already.has(l.id)).map((l, i) => {
+    const a: Assignment = {
+      id: env.newId(),
+      classroomId: c.id,
+      lessonId: l.id,
+      dueDate: new Date(start.getTime() + i * spacing * 86400000).toISOString(),
+      note: `${course.title} · ${unit.title}`,
+      assignedBy: user.id,
+      createdAt: now(),
+    };
+    db.assignments.push(a);
+    return a;
+  });
+  log(db, env, { type: "assignment_created", actorId: user.id, classroomId: c.id, message: `assigned ${created.length} lessons from "${unit.title}" to ${c.name}` });
+  dirty();
+  return { created: created.length, skipped: lessons.length - created.length };
+});
+
 // ---- student self-service
 
 on("GET", "/api/me/assignments", ["student"], ({ db, user }) => assignmentsForStudent(db, user.id));
@@ -728,7 +923,7 @@ on("GET", "/api/me/assignments", ["student"], ({ db, user }) => assignmentsForSt
 on("GET", "/api/me/classrooms", ["student"], ({ db, user }) =>
   classroomsForStudent(db, user.id).map((c) => {
     const t = findUser(db, c.teacherId);
-    return { id: c.id, name: c.name, subject: c.subject, teacherName: t ? displayName(t) : "" };
+    return { id: c.id, name: c.name, subject: c.subject, courseId: c.courseId, teacherName: t ? displayName(t) : "" };
   }),
 );
 
@@ -813,6 +1008,7 @@ function classroomCard(db: Database, c: Classroom) {
   const teacher = findUser(db, c.teacherId);
   return {
     ...c,
+    courseTitle: c.courseId ? db.courses.find((x) => x.id === c.courseId)?.title : undefined,
     teacherName: teacher ? displayName(teacher) : "",
     studentCount: c.studentIds.length,
     assignmentCount: assignments.length,
@@ -855,6 +1051,7 @@ on("POST", "/api/teacher/classrooms", STAFF, ({ db, user, body, env, dirty }) =>
     teacherId: user.id,
     studentIds: [],
     joinCode: joinCode(),
+    courseId: body?.courseId && db.courses.some((x) => x.id === body.courseId) ? body.courseId : undefined,
     createdAt: now(),
   };
   db.classrooms.push(c);

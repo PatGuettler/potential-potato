@@ -5,14 +5,9 @@
  * persisting the database to localStorage so each visitor gets their own sandbox.
  */
 import { createApi, memoryStore, type Session } from "@shared/core/api";
-import { lessonsFromCsv } from "@shared/core/lessons";
 import { buildDemoDatabase } from "@shared/core/seed";
 import type { Database } from "@shared/core/types";
 import { DB_VERSION } from "@shared/core/types";
-import science from "@data/lessons/science.csv?raw";
-import technology from "@data/lessons/technology.csv?raw";
-import engineering from "@data/lessons/engineering.csv?raw";
-import mathematics from "@data/lessons/mathematics.csv?raw";
 
 const DB_KEY = "stem-academy-demo-db";
 const SESSION_KEY = "stem-academy-demo-session";
@@ -67,10 +62,9 @@ export function resetDemo() {
 }
 
 export async function installDemoBackend() {
-  const lessons = [science, technology, engineering, mathematics].flatMap(lessonsFromCsv);
   let db = read<Database>(DB_KEY);
   if (!db || db.version !== DB_VERSION) {
-    db = await buildDemoDatabase(lessons, hashPassword, newId);
+    db = await buildDemoDatabase(hashPassword, newId);
     write(DB_KEY, db);
   }
   let session: Session = read<Session>(SESSION_KEY) ?? {};

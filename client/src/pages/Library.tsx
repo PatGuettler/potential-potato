@@ -10,14 +10,17 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import type { Category } from "@shared/core/types";
+import { GRADES } from "@/components/CourseDialog";
+import { gradeLabel, type Category, type Course } from "@shared/core/types";
 
 export default function Library() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
-  const { data: lessons = [], isLoading } = useQuery<(LessonSummary & { authorId: string })[]>({ queryKey: ["/api/lessons"] });
+  const [grade, setGrade] = useState("all");
+  const { data: lessons = [], isLoading } = useQuery<(LessonSummary & { authorId: string; gradeLevel?: number; courseId?: string })[]>({ queryKey: ["/api/lessons"] });
+  const { data: courses = [] } = useQuery<Course[]>({ queryKey: ["/api/courses"] });
   const { data: categories = [] } = useQuery<Category[]>({ queryKey: ["/api/categories"] });
 
   const archive = useMutation({
@@ -30,8 +33,8 @@ export default function Library() {
   });
 
   const shown = lessons.filter(
-    (l) => (category === "all" || l.categoryId === category) && `${l.title} ${l.description}`.toLowerCase().includes(search.toLowerCase()),
-  );
+    (l) => (category === "all" || l.categoryId === category) && (grade === "all" || String(l.gradeLevel) === grade) && `${l.title} ${l.description}`.toLowerCase().includes(search.toLowerCase()),
+  ).sort((a, b) => (a.gradeLevel ?? 99) - (b.gradeLevel ?? 99));
 
   return (
     <AppShell
@@ -44,6 +47,10 @@ export default function Library() {
         {[{ id: "all", name: "All" }, ...categories].map((c) => (
           <Button key={c.id} size="sm" variant={category === c.id ? "default" : "outline"} onClick={() => setCategory(c.id)}>{c.name}</Button>
         ))}
+        <select className="h-9 rounded-md border border-input bg-background px-2 text-sm" value={grade} onChange={(e) => setGrade(e.target.value)} aria-label="Grade">
+          <option value="all">All grades</option>
+          {GRADES.map((g) => <option key={g.value} value={g.value}>{g.label === "K" ? "Kindergarten" : `Grade ${g.label}`}</option>)}
+        </select>
       </div>
       {isLoading ? (
         <Loading />
@@ -58,8 +65,8 @@ export default function Library() {
                     <CategoryIcon categoryId={l.categoryId} />
                     <div className="min-w-0 flex-1">
                       <Link href={`/lesson/${l.id}`} className="font-medium hover:underline">{l.title}</Link>
-                      <div className="text-xs text-muted-foreground capitalize">
-                        {l.difficulty} · {l.estimatedDuration} min · {l.questionCount} questions
+                      <div className="text-xs text-muted-foreground">
+                        {[gradeLabel(l.gradeLevel), courses.find((c) => c.id === l.courseId)?.title, `${l.estimatedDuration} min`, `${l.questionCount} questions`].filter(Boolean).join(" · ")}
                       </div>
                     </div>
                     <div className="flex gap-1">

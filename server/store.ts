@@ -4,27 +4,19 @@ import { createHash, randomBytes, randomUUID } from "crypto";
 import bcrypt from "bcrypt";
 import pg from "pg";
 import type { ApiStore } from "@shared/core/api";
-import type { Database, Lesson, User } from "@shared/core/types";
+import type { Database, User } from "@shared/core/types";
 import { migrateDatabase } from "@shared/core/types";
-import { lessonsFromCsv } from "@shared/core/lessons";
+import { addCurriculum } from "@shared/curriculum";
 import { buildDemoDatabase, emptyDatabase } from "@shared/core/seed";
 import { log } from "./vite";
 
 const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data");
-const LESSON_FILES = ["science", "technology", "engineering", "mathematics"];
 
 export const hashPassword = (p: string) => bcrypt.hash(p, 12);
 export const verifyPassword = (p: string, hash: string) => bcrypt.compare(p, hash).catch(() => false);
 export const newId = () => randomUUID();
 export const sha256 = async (text: string) => createHash("sha256").update(text).digest("hex");
 export const randomToken = () => randomBytes(32).toString("base64url");
-
-function bundledLessons(): Lesson[] {
-  return LESSON_FILES.flatMap((name) => {
-    const file = path.join(DATA_DIR, "lessons", `${name}.csv`);
-    return fs.existsSync(file) ? lessonsFromCsv(fs.readFileSync(file, "utf-8")) : [];
-  });
-}
 
 /** Pulls accounts from the legacy users.json so existing installs keep their logins. */
 function legacyUsers(): User[] {
@@ -52,12 +44,11 @@ function legacyUsers(): User[] {
 
 /** The database a brand-new install starts with. */
 async function initialDatabase(): Promise<Database> {
-  const lessons = bundledLessons();
   if (process.env.SEED_DEMO === "true") {
     log("Seeding the demo school (every account's password is demo1234)");
-    return buildDemoDatabase(lessons, hashPassword, newId);
+    return buildDemoDatabase(hashPassword, newId);
   }
-  const db = emptyDatabase(lessons, process.env.ORG_NAME || "STEM Academy");
+  const db = emptyDatabase(process.env.ORG_NAME || "STEM Academy");
   db.users = legacyUsers();
   if (db.users.length) log(`Imported ${db.users.length} users from users.json`);
   return db;
@@ -72,6 +63,7 @@ async function fileStore(): Promise<ApiStore> {
   let db: Database;
   if (fs.existsSync(file)) {
     db = migrateDatabase(JSON.parse(fs.readFileSync(file, "utf-8")));
+    if (addCurriculum(db)) log("Added new courses from the bundled curriculum");
   } else {
     db = await initialDatabase();
   }
@@ -126,8 +118,10 @@ export async function postgresStore(pool: pg.Pool): Promise<ApiStore> {
         await client.query("begin");
         const { rows } = await client.query(`select doc from stem_academy_state where id = 1${isWrite ? " for update" : ""}`);
         const db = migrateDatabase(rows[0].doc as Database);
+        // Upgrades pick up newly bundled courses on their first write.
+        const added = isWrite && addCurriculum(db);
         const { value, changed } = await fn(db);
-        if (isWrite && changed) {
+        if (isWrite && (changed || added)) {
           await client.query("update stem_academy_state set doc = $1, updated_at = now() where id = 1", [JSON.stringify(db)]);
         }
         await client.query("commit");

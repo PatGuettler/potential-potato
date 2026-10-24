@@ -6,7 +6,7 @@ export type Role = (typeof userRoles)[number];
 export const difficultyLevels = ["easy", "medium", "hard"] as const;
 export type DifficultyLevel = (typeof difficultyLevels)[number];
 
-export const questionTypes = ["text", "number", "code", "choice"] as const;
+export const questionTypes = ["choice", "truefalse", "number", "text", "code"] as const;
 export type QuestionType = (typeof questionTypes)[number];
 
 export interface User {
@@ -50,9 +50,18 @@ export interface LessonQuestion {
   id: string;
   prompt: string;
   type: QuestionType;
+  /** The correct answer. For choice and true/false it is the text of the correct option. */
   expectedAnswer: string;
   options?: string[];
+  /** Short-answer only: other spellings or phrasings that also count as correct. */
+  acceptedAnswers?: string[];
+  /** Number only: how far from the answer still counts as correct (default 0.001). */
+  tolerance?: number;
   caseSensitive?: boolean;
+  /** Shown after a wrong attempt. */
+  hint?: string;
+  /** Shown once the question is answered correctly (or after repeated misses): why the answer is right. */
+  explanation?: string;
 }
 
 export interface LessonSection {
@@ -66,9 +75,23 @@ export interface LessonContent {
   sections: LessonSection[];
 }
 
+export interface VocabularyTerm {
+  term: string;
+  definition: string;
+}
+
 export interface Lesson {
   id: string;
   title: string;
+  courseId?: string;
+  unitId?: string;
+  /** 0 = Kindergarten, 1–12 = grade. */
+  gradeLevel?: number;
+  /** "Students will be able to…" statements. */
+  objectives?: string[];
+  vocabulary?: VocabularyTerm[];
+  /** Standards codes, e.g. CCSS.MATH.CONTENT.7.RP.A.2 or NGSS MS-LS1-1. */
+  standards?: string[];
   description: string;
   /** Markdown reading material, or a JSON string of LessonContent for quiz-only lessons. */
   content: string;
@@ -87,6 +110,47 @@ export interface Lesson {
   isActive: boolean;
   createdAt: string;
   updatedAt?: string;
+}
+
+export interface CourseUnit {
+  id: string;
+  title: string;
+  description?: string;
+  /** Lessons in teaching order. */
+  lessonIds: string[];
+}
+
+export interface Course {
+  id: string;
+  title: string;
+  /** A category id: science, technology, engineering, mathematics. */
+  subject: string;
+  /** 0 = Kindergarten, 1–12 = grade. */
+  gradeLevel: number;
+  /** For courses spanning grades (electives), the highest grade. */
+  gradeLevelMax?: number;
+  description: string;
+  /** e.g. "Common Core State Standards" or "Next Generation Science Standards". */
+  framework?: string;
+  units: CourseUnit[];
+  authorId: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export const gradeLabel = (g: number | undefined, max?: number) => {
+  if (g === undefined || g === null) return "";
+  const one = (n: number) => (n === 0 ? "K" : String(n));
+  if (max !== undefined && max !== g) return `Grades ${one(g)}–${one(max)}`;
+  return g === 0 ? "Kindergarten" : `Grade ${g}`;
+};
+
+/** Reads a student's free-form grade label ("Grade 7", "K") as a number. */
+export function parseGrade(label: string | undefined): number | undefined {
+  if (!label) return undefined;
+  if (/^\s*(k|kindergarten)\s*$/i.test(label)) return 0;
+  const m = label.match(/(\d{1,2})/);
+  return m ? Math.min(12, Number(m[1])) : undefined;
 }
 
 export type ProgressStatus = "not_started" | "in_progress" | "completed";
@@ -120,6 +184,8 @@ export interface Classroom {
   teacherId: string;
   studentIds: string[];
   joinCode: string;
+  /** The course this class follows, if any. */
+  courseId?: string;
   createdAt: string;
 }
 
@@ -200,9 +266,10 @@ export interface Database {
   ratings: Rating[];
   activity: Activity[];
   passwordResets: PasswordReset[];
+  courses: Course[];
 }
 
-export const DB_VERSION = 3;
+export const DB_VERSION = 4;
 
 /** Upgrades a database saved by an older release in place. */
 export function migrateDatabase(db: Database): Database {
@@ -210,6 +277,7 @@ export function migrateDatabase(db: Database): Database {
     db.passwordResets = db.passwordResets ?? [];
     for (const u of db.users) u.sessionVersion = u.sessionVersion ?? 1;
   }
+  if (db.version < 4) db.courses = db.courses ?? [];
   db.version = DB_VERSION;
   return db;
 }

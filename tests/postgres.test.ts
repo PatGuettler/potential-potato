@@ -34,7 +34,7 @@ test("Postgres store: seeds, persists, and serializes concurrent writes", { skip
 
     // A failing write rolls back.
     const before = (await pool.query("select updated_at from stem_academy_state")).rows[0].updated_at;
-    await api({ method: "POST", path: "/api/teacher/classrooms/c-mc/assignments", body: { lessonId: "math001", dueDate: "x" }, session: s });
+    await api({ method: "POST", path: "/api/teacher/classrooms/c-mc/assignments", body: { lessonId: "math-5-1-1", dueDate: "x" }, session: s });
     const after = (await pool.query("select updated_at from stem_academy_state")).rows[0].updated_at;
     assert.deepEqual(after, before);
   } finally {

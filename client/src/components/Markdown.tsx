@@ -35,6 +35,35 @@ export function Markdown({ source, className = "" }: { source: string; className
       );
       continue;
     }
+    if (line.trim().startsWith("|") && lines[i + 1]?.trim().match(/^\|?\s*:?-{2,}/)) {
+      const cells = (row: string) => row.trim().replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
+      const head = cells(line);
+      i += 2;
+      const body: string[][] = [];
+      while (i < lines.length && lines[i].trim().startsWith("|")) body.push(cells(lines[i++]));
+      blocks.push(
+        <div key={blocks.length} className="overflow-x-auto">
+          <table className="w-full text-sm border border-border rounded-md">
+            <thead className="bg-muted/60">
+              <tr>{head.map((h, j) => <th key={j} className="text-left font-semibold px-3 py-2 border-b border-border">{inline(h)}</th>)}</tr>
+            </thead>
+            <tbody>
+              {body.map((r, k) => (
+                <tr key={k} className="border-b border-border last:border-0">
+                  {r.map((c, j) => <td key={j} className="px-3 py-2 align-top">{inline(c)}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>,
+      );
+      continue;
+    }
+    if (line.startsWith("> ")) {
+      blocks.push(<blockquote key={blocks.length} className="border-l-4 border-primary/60 bg-primary/5 px-4 py-2 rounded-r-md">{inline(line.slice(2))}</blockquote>);
+      i++;
+      continue;
+    }
     const heading = line.match(/^(#{1,4})\s+(.*)$/);
     if (heading) {
       const level = heading[1].length;
@@ -65,11 +94,21 @@ export function Markdown({ source, className = "" }: { source: string; className
       continue;
     }
     const para: string[] = [];
-    while (i < lines.length && lines[i].trim() && !/^(#{1,4}\s|```|\s*([-*•]|\d+\.)\s+)/.test(lines[i])) {
+    while (i < lines.length && lines[i].trim() && !/^(#{1,4}\s|```|>\s|\||\s*([-*•]|\d+\.)\s+)/.test(lines[i])) {
       para.push(lines[i++]);
     }
     if (para.length === 0) para.push(lines[i++]);
-    blocks.push(<p key={blocks.length}>{inline(para.join(" "))}</p>);
+    // Authored lessons put equations and examples on their own lines, so keep single line breaks.
+    blocks.push(
+      <p key={blocks.length}>
+        {para.map((ln, k) => (
+          <Fragment key={k}>
+            {k > 0 && <br />}
+            {inline(ln)}
+          </Fragment>
+        ))}
+      </p>,
+    );
   }
 
   return <div className={`space-y-3 leading-relaxed ${className}`}>{blocks}</div>;

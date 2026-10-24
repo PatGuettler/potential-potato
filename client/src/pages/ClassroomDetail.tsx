@@ -40,7 +40,17 @@ function AssignDialog({ classroomId }: { classroomId: string }) {
   const [lessonId, setLessonId] = useState("");
   const [due, setDue] = useState(() => new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10));
   const [note, setNote] = useState("");
-  const { data: lessons = [] } = useQuery<{ id: string; title: string; categoryId: string }[]>({ queryKey: ["/api/lessons"], enabled: open });
+  const { data: lessonList = [] } = useQuery<{ id: string; title: string; categoryId: string; courseId?: string }[]>({ queryKey: ["/api/lessons"], enabled: open });
+  const { data: courseList = [] } = useQuery<{ id: string; title: string; units: { lessonIds: string[] }[] }[]>({ queryKey: ["/api/courses"], enabled: open });
+  const { data: detail } = useQuery<{ classroom: { courseId?: string } }>({ queryKey: ["/api/teacher/classrooms", classroomId], enabled: open });
+  // The class's own course comes first, in teaching order.
+  const own = courseList.find((c) => c.id === detail?.classroom.courseId);
+  const ownIds = own ? own.units.flatMap((u) => u.lessonIds) : [];
+  const courseTitle = (cid?: string) => courseList.find((c) => c.id === cid)?.title;
+  const lessons = [
+    ...ownIds.map((lid) => lessonList.find((l) => l.id === lid)).filter((l): l is (typeof lessonList)[number] => !!l),
+    ...lessonList.filter((l) => !ownIds.includes(l.id)),
+  ];
   const assign = useMutation({
     // Due at the end of the chosen day, local time.
     mutationFn: () => apiRequest("POST", `/api/teacher/classrooms/${classroomId}/assignments`, { lessonId, dueDate: new Date(`${due}T23:59`).toISOString(), note }),
@@ -66,7 +76,7 @@ function AssignDialog({ classroomId }: { classroomId: string }) {
             <Select value={lessonId} onValueChange={setLessonId}>
               <SelectTrigger data-testid="select-lesson"><SelectValue placeholder="Choose a lesson" /></SelectTrigger>
               <SelectContent>
-                {lessons.map((l) => <SelectItem key={l.id} value={l.id}>{l.title}</SelectItem>)}
+                {lessons.map((l) => <SelectItem key={l.id} value={l.id}>{l.title}{l.courseId ? ` · ${courseTitle(l.courseId) ?? ""}` : ""}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -160,7 +170,10 @@ export default function ClassroomDetail() {
   return (
     <AppShell
       title={classroom.name}
-      subtitle={<>Join code <span className="font-mono font-semibold">{classroom.joinCode}</span> · {classroom.teacherName}</>}
+      subtitle={<>
+        {classroom.courseId && <><Link href={`/courses/${classroom.courseId}`} className="hover:underline">{classroom.courseTitle}</Link> · </>}
+        Join code <span className="font-mono font-semibold">{classroom.joinCode}</span> · {classroom.teacherName}
+      </>}
       actions={
         <>
           <AssignDialog classroomId={classroom.id} />

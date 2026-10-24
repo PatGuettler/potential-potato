@@ -1,19 +1,15 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import fs from "fs";
 import { createApi, memoryStore, type Session } from "../shared/core/api";
-import { lessonsFromCsv, parseCSV } from "../shared/core/lessons";
+import { buildCurriculum } from "../shared/curriculum";
 import { buildDemoDatabase, DEMO_PASSWORD, emptyDatabase } from "../shared/core/seed";
 import { gradeQuestion } from "../shared/core/grading";
 import { env } from "./helpers";
 
-const lessons = ["science", "technology", "engineering", "mathematics"].flatMap((n) =>
-  lessonsFromCsv(fs.readFileSync(`data/lessons/${n}.csv`, "utf-8")),
-);
 let n = 0;
 
 async function demoApi() {
-  const store = memoryStore(await buildDemoDatabase(lessons, async (p) => `h:${p}`, () => `id${++n}`));
+  const store = memoryStore(await buildDemoDatabase(async (p) => `h:${p}`, () => `id${++n}`));
   const db = () => store.current();
   const api = createApi(env(store));
   const session: Session = {};
@@ -26,41 +22,82 @@ async function demoApi() {
   return { call, as, db, api, session };
 }
 
-test("CSV parser handles quoted multi-line fields and escaped quotes", () => {
-  const rows = parseCSV('a,b\n"x\ny","say ""hi"""\n');
-  assert.deepEqual(rows, [{ a: "x\ny", b: 'say "hi"' }]);
-});
-
-test("bundled lessons load with quizzes", () => {
-  assert.equal(lessons.length, 13);
-  assert.ok(lessons.filter((l) => l.quiz).length >= 12);
+test("bundled curriculum covers K–12 with quizzes on every lesson", () => {
+  const { courses, lessons } = buildCurriculum();
+  assert.equal(courses.length, 32);
+  assert.equal(lessons.length, 128);
+  for (let g = 0; g <= 12; g++) {
+    const subjects = new Set(courses.filter((c) => c.gradeLevel <= g && g <= (c.gradeLevelMax ?? c.gradeLevel)).map((c) => c.subject));
+    assert.ok(subjects.has("mathematics") && subjects.has("science"), `grade ${g} has math and science`);
+  }
+  assert.ok(lessons.every((l) => l.quiz && l.quiz.sections[0].questions.length >= 4 && l.objectives?.length && l.standards?.length));
 });
 
 test("grading by question type", () => {
   assert.ok(gradeQuestion({ id: "1", prompt: "", type: "number", expectedAnswer: "97" }, " 97.0 ").isCorrect);
   assert.ok(!gradeQuestion({ id: "1", prompt: "", type: "choice", expectedAnswer: "Force" }, "Energy").isCorrect);
   assert.ok(gradeQuestion({ id: "1", prompt: "", type: "text", expectedAnswer: "energy" }, "Energy").isCorrect);
+  assert.ok(gradeQuestion({ id: "1", prompt: "", type: "text", expectedAnswer: "nucleus", acceptedAnswers: ["cell nucleus"] }, "The cell nucleus.").isCorrect);
+  assert.ok(gradeQuestion({ id: "1", prompt: "", type: "number", expectedAnswer: "0.75" }, "3/4").isCorrect);
+  assert.ok(gradeQuestion({ id: "1", prompt: "", type: "number", expectedAnswer: "31.4", tolerance: 0.05 }, "31.42").isCorrect);
+  assert.ok(!gradeQuestion({ id: "1", prompt: "", type: "choice", expectedAnswer: "Tt", options: ["Tt", "tt"] }, "tt").isCorrect);
 });
 
 test("students never receive answer keys", async () => {
   const { call, as } = await demoApi();
   await as("student");
-  const lesson: any = (await call("GET", "/api/lessons/sci001")).body;
+  const lesson: any = (await call("GET", "/api/lessons/sci-7-1-2")).body;
   assert.equal(lesson.answer, undefined);
-  assert.equal(lesson.answerGuide, undefined);
-  assert.ok(lesson.quiz.sections[0].questions.every((q: any) => q.expectedAnswer === ""));
+  assert.equal(lesson.hasWrittenResponse, true);
+  assert.ok(lesson.quiz.sections[0].questions.every((q: any) => q.expectedAnswer === "" && !q.explanation && !q.acceptedAnswers && !q.hint));
 });
 
 test("a lesson can only be completed once every question is right; score is first-try accuracy", async () => {
   const { call, as } = await demoApi();
   await as("student");
-  assert.equal((await call("POST", "/api/progress", { lessonId: "sci003", isCompleted: true })).status, 400);
-  await call("POST", "/api/lessons/sci003/questions/sci003-q1/validate", { answer: "A gas is produced" });
-  await call("POST", "/api/lessons/sci003/questions/sci003-q2/validate", { answer: "Products" });
-  await call("POST", "/api/lessons/sci003/questions/sci003-q2/validate", { answer: "Reactants" });
-  const done: any = (await call("POST", "/api/progress", { lessonId: "sci003", isCompleted: true })).body;
+  const L = "sci-7-2-2";
+  assert.equal((await call("POST", "/api/progress", { lessonId: L, isCompleted: true })).status, 400);
+  const wrong: any = (await call("POST", `/api/lessons/${L}/questions/${L}-q1/validate`, { answer: "500" })).body;
+  assert.equal(wrong.isCorrect, false);
+  assert.equal(wrong.explanation, undefined, "no explanation after one miss");
+  const right: any = (await call("POST", `/api/lessons/${L}/questions/${L}-q1/validate`, { answer: "5000" })).body;
+  assert.ok(right.isCorrect && right.explanation, "explanation shown once correct");
+  await call("POST", `/api/lessons/${L}/questions/${L}-q2/validate`, { answer: "Used for life processes and lost as heat" });
+  await call("POST", `/api/lessons/${L}/questions/${L}-q3/validate`, { answer: "True" });
+  await call("POST", `/api/lessons/${L}/questions/${L}-q4/validate`, { answer: "Less energy is available at higher trophic levels" });
+  const done: any = (await call("POST", "/api/progress", { lessonId: L, isCompleted: true })).body;
   assert.equal(done.status, "completed");
-  assert.equal(done.score, 50);
+  assert.equal(done.score, 75);
+});
+
+test("courses list progress for students and teachers can assign a whole unit", async () => {
+  const { call, as } = await demoApi();
+  await as("student");
+  const courses: any[] = (await call("GET", "/api/courses")).body as any[];
+  const sci7 = courses.find((c) => c.id === "sci-7");
+  assert.equal(sci7.lessonCount, 4);
+  assert.equal(sci7.completedCount, 2);
+  const detail: any = (await call("GET", "/api/courses/sci-7")).body;
+  assert.equal(detail.lessons["sci-7-1-1"].status, "completed");
+  await as("teacher");
+  const r: any = (await call("POST", "/api/teacher/classrooms/c-p4/assign-unit", { courseId: "math-7", unitId: "math-7-u2", startDate: "2030-01-06", spacingDays: 3 })).body;
+  assert.deepEqual(r, { created: 0, skipped: 2 }, "already-assigned lessons are skipped");
+  const r2: any = (await call("POST", "/api/teacher/classrooms/c-p4/assign-unit", { courseId: "algebra-1", unitId: "algebra-1-u1", startDate: "2030-01-06", spacingDays: 3 })).body;
+  assert.equal(r2.created, 2);
+});
+
+test("lesson builder: lessons file into a course unit and choice questions need a marked answer", async () => {
+  const { call, as } = await demoApi();
+  await as("teacher");
+  const base = { title: "Ratios Review", categoryId: "mathematics", difficulty: "easy", courseId: "math-6", unitId: "math-6-u1", gradeLevel: 6 };
+  const bad = await call("POST", "/api/lessons", { ...base, quiz: { sections: [{ title: "Check", questions: [{ type: "choice", prompt: "2:4 = ?", options: ["1:2", "2:1"], expectedAnswer: "3:4" }] }] } });
+  assert.equal(bad.status, 400);
+  const ok: any = (await call("POST", "/api/lessons", { ...base, objectives: ["Simplify ratios"], quiz: { sections: [{ title: "Check", questions: [{ type: "choice", prompt: "2:4 = ?", options: ["1:2", "2:1"], expectedAnswer: "1:2", explanation: "Divide by 2." }] }] } })).body;
+  const course: any = (await call("GET", "/api/courses/math-6")).body;
+  assert.ok(course.units[0].lessonIds.includes(ok.id));
+  await call("PUT", `/api/lessons/${ok.id}`, { courseId: "math-6", unitId: "math-6-u2" });
+  const moved: any = (await call("GET", "/api/courses/math-6")).body;
+  assert.ok(!moved.units[0].lessonIds.includes(ok.id) && moved.units[1].lessonIds.includes(ok.id));
 });
 
 test("role scoping: parents see only their children, teachers only their classes", async () => {
@@ -82,15 +119,15 @@ test("teacher review flows through to the parent's report", async () => {
   const { call, as } = await demoApi();
   await as("teacher");
   const subs: any[] = (await call("GET", "/api/teacher/submissions")).body as any[];
-  const alex = subs.find((s) => s.userId === "u-student" && s.status === "pending");
+  const alex = subs.find((s) => s.userId === "u-jordan" && s.status === "pending");
   assert.equal((await call("POST", `/api/teacher/submissions/${alex.id}/review`, { score: 88, feedback: "Nice" })).status, 200);
-  await as("parent");
-  const report: any = (await call("GET", "/api/students/u-student/report")).body;
+  await as("parent2");
+  const report: any = (await call("GET", "/api/students/u-jordan/report")).body;
   assert.ok(report.submissions.some((s: any) => s.teacherScore === 88 && s.feedback === "Nice"));
 });
 
 test("first registered account becomes admin; later self-registrations are students", async () => {
-  const api = createApi(env(memoryStore(emptyDatabase(lessons))));
+  const api = createApi(env(memoryStore(emptyDatabase())));
   const r1: any = await api({ method: "POST", path: "/api/register", body: { username: "boss", password: "password1" }, session: {} });
   assert.equal(r1.body.role, "admin");
   const r2: any = await api({ method: "POST", path: "/api/register", body: { username: "kid", password: "password1", role: "admin" }, session: {} });
@@ -148,6 +185,6 @@ test("a failed request leaves no partial changes", async () => {
   await as("student");
   const before = db().progress.length;
   // Starts progress implicitly, then fails validation: nothing should be saved.
-  assert.equal((await call("POST", "/api/progress", { lessonId: "eng003", isCompleted: true })).status, 400);
+  assert.equal((await call("POST", "/api/progress", { lessonId: "sci-7-2-2", isCompleted: true })).status, 400);
   assert.equal(db().progress.length, before);
 });

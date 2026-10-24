@@ -7,6 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { FormField } from "@/components/ui/FormField";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { gradeLabel, type Course } from "@shared/core/types";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -16,6 +19,8 @@ export type ClassCard = {
   name: string;
   subject: string;
   joinCode: string;
+  courseId?: string;
+  courseTitle?: string;
   teacherName: string;
   studentCount: number;
   assignmentCount: number;
@@ -36,8 +41,10 @@ export function CreateClassButton() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [subject, setSubject] = useState("");
+  const [courseId, setCourseId] = useState("");
+  const { data: courses = [] } = useQuery<Course[]>({ queryKey: ["/api/courses"], enabled: open });
   const create = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/teacher/classrooms", { name, subject }),
+    mutationFn: () => apiRequest("POST", "/api/teacher/classrooms", { name, subject, courseId: courseId || undefined }),
     onSuccess: () => {
       toast({ title: "Class created", description: "Share the class code with students so they can join." });
       setOpen(false);
@@ -67,6 +74,16 @@ export function CreateClassButton() {
           }}
         >
           <FormField id="class-name" label="Class name" value={name} onChange={setName} placeholder="Period 3 · Earth Science" required />
+          <div className="space-y-2">
+            <Label>Course this class follows</Label>
+            <Select value={courseId || "none"} onValueChange={(v) => { setCourseId(v === "none" ? "" : v); const c = courses.find((x) => x.id === v); if (c && !subject) setSubject(c.subject[0].toUpperCase() + c.subject.slice(1)); }}>
+              <SelectTrigger data-testid="class-course"><SelectValue placeholder="Choose a course" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No course (I'll pick lessons myself)</SelectItem>
+                {courses.map((c) => <SelectItem key={c.id} value={c.id}>{c.title} · {gradeLabel(c.gradeLevel, c.gradeLevelMax)}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
           <FormField id="class-subject" label="Subject" value={subject} onChange={setSubject} placeholder="Science" />
           <DialogFooter>
             <Button type="submit" disabled={create.isPending}>Create class</Button>
@@ -94,7 +111,7 @@ export function ClassGrid({ classes }: { classes: ClassCard[] }) {
               <div>
                 <div className="font-semibold">{c.name}</div>
                 <div className="text-xs text-muted-foreground">
-                  {c.subject || "General"} · {c.teacherName} · code <span className="font-mono">{c.joinCode}</span>
+                  {c.courseTitle ?? c.subject ?? "General"} · {c.teacherName} · code <span className="font-mono">{c.joinCode}</span>
                 </div>
               </div>
               <div className="flex gap-4 text-sm">

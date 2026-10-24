@@ -1,4 +1,4 @@
-# Demo script (about 10 minutes)
+# Demo script (about 12 minutes)
 
 **Link:** https://patguettler.github.io/potential-potato/
 Everything runs in the browser. There's nothing to install and no cost, and every visitor gets their own copy of the data.
@@ -6,38 +6,43 @@ Before you present, click **Reset demo data** in the yellow banner so you start 
 
 Switch roles any time with **Switch account** in the banner. Every account uses the password `demo1234`.
 
-## 1. Student: Alex (2 min)
-1. On the sign-in page, click **Student**.
-2. Point out the dashboard: 2 overdue assignments in red, what's due next, progress per subject.
-3. Open **Chemical Reactions** (due in a few days). Scroll through the reading.
-4. Answer the quiz: pick a wrong answer first (it shows feedback), then the right one.
-5. Click **Mark lesson complete**. The score is first-try accuracy, so the wrong guess counts.
-6. Write a sentence under **Written response** and submit it. It goes to the teacher.
+## 1. The curriculum (1 min, any account)
+1. Open **Course catalog** in the sidebar: 32 courses from Kindergarten through Grade 12, grouped into elementary, middle, and high school.
+2. Click the grade buttons to show that **every grade has math and science**, plus technology from K and engineering from Grade 6.
+3. Open **Algebra I** or **Grade 7 Life Science**: units in teaching order, each lesson with its length, question count, and written response.
 
-## 2. Teacher: Ms. Rivera (3 min)
-1. **Switch account → Teacher.**
-2. Dashboard: classes with completion rates, the **Needs attention** list, and Alex's new activity at the top of the feed.
-3. Open **Period 2 · Physical Science** to show the gradebook (green scores, red "late", yellow in progress). Click **Export CSV**.
-4. **Assign lesson:** pick *Robotics and Automation*, due next week.
-5. Go to **Review queue**, score Alex's response, write feedback, and click **Send**.
-6. Click a student's name to open their report, then leave a note for the parents.
+## 2. Student: Alex, Grade 7 (3 min)
+1. Sign in as **Student**. The dashboard shows 2 overdue assignments, what's due next, and **My courses** (the courses for Alex's classes).
+2. Open **Photosynthesis and Cellular Respiration** (overdue). Point out the **learning goals**, **standards** (NGSS MS-LS1-6), and **vocabulary**.
+3. Answer question 1 wrong first: it says "Not quite." Then pick the right answer and the **explanation** appears.
+4. Finish the quiz and click **Mark lesson complete**. The score is first-try accuracy, so the wrong guess counts.
+5. Answer the **written response** and submit it. It goes to Ms. Rivera's review queue.
+6. Click **Next: Energy Flow in Ecosystems** to show course navigation.
 
-## 3. Parent: Jennifer Johnson (2 min)
-1. **Switch account → Parent.**
-2. One card per child: Alex has overdue work flagged, and Emma is on track.
-3. Open **Full report** for Alex. The teacher's feedback and note are there. Reply in the notes thread.
-4. Click **Print** to show the printable report card.
+## 3. Teacher: Ms. Rivera (5 min)
+1. **Switch account → Teacher.** The dashboard shows classes tied to courses, a **Needs attention** list, and Alex's activity.
+2. Open **Period 2 · Life Science** to show the gradebook. Click **Export CSV**.
+3. **Build a lesson** (the highlight):
+   - Open **Course catalog → Grade 7 Math** and click **+ Lesson** on Unit 1.
+   - Course, unit, subject, and grade are already filled in. Type a title and one objective.
+   - Click **Start from a template** for the reading outline.
+   - In the quiz, click **Multiple choice**, type a question and four choices, and watch the amber "Mark the correct choice" note. Click a circle and it turns green.
+   - Click the 👁 eye to **try the question as a student**.
+   - Click **Paste questions**, then **Fill in the example**: four questions of different types are parsed from plain text.
+   - Click **Copy from a lesson** and pull in questions from an existing lesson.
+   - The **Ready to teach?** checklist updates live. Click **Create lesson**: it appears in the unit.
+4. **Assign a whole unit:** on any course page, click **Assign unit**, pick a class and a start date. Every lesson is scheduled with spaced due dates.
+5. Open the **Review queue**, score a response, and write feedback.
 
-## 4. Admin (2 min)
-1. **Switch account → Admin** (or **Pat (you)**).
-2. School-wide stats and activity across every class.
-3. **Users & families:** edit *Jennifer Johnson* to show the linked children, then click **Create reset link** (for a kid with no email).
-4. Rename the school under **Settings & data**. The new name shows on the sign-in page. Click **Download backup** to show a full JSON export.
+## 4. Parent: Jennifer Johnson (2 min)
+1. **Switch account → Parent.** One card per child: Alex has overdue work flagged, and Emma is on track.
+2. Open **Full report** for Alex. The teacher's feedback and note are there. Reply in the notes thread and click **Print**.
 
-## 5. Forgot password (30 seconds)
-On the sign-in page, click **Forgot your password?** and enter `parent`. The demo shows the link that would have been emailed. Open it and set a new password.
+## 5. Admin (1 min)
+1. **Switch account → Admin** (or **Pat (you)**). School-wide stats and activity.
+2. **Users & families:** edit *Jennifer Johnson* to show linked children, then click **Create reset link**.
 
 ## Talking points
-- Free to run: the demo is on GitHub Pages, and the real app runs on free tiers (see the README, "Free hosting").
-- Built for groups, not just schools: co-ops, tutoring centers, clubs.
-- Parents see what matters without logging into five different tools.
+- **Real curriculum:** 128 lessons aligned to Common Core math, NGSS science, CSTA computer science, and NGSS engineering design standards. Every lesson has objectives, vocabulary, worked examples, and an auto-graded quiz with explanations.
+- **Teachers can author like a school does:** courses → units → lessons, with a quiz builder that catches mistakes before students see them.
+- **Free to run:** the demo is on GitHub Pages, and the real app runs on free tiers (see the README, "Free hosting").

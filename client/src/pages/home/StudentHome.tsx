@@ -9,12 +9,12 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { styleFor } from "@/lib/format";
+import { CourseCard, type CourseSummary } from "@/pages/CourseCatalog";
+import { parseGrade } from "@shared/core/types";
 import type { Progress } from "@shared/core/types";
 
-type CategoryRow = { id: string; name: string; description: string; lessonCount: number };
 type LessonRow = { id: string; title: string; categoryId: string; estimatedDuration: number };
-type ClassRow = { id: string; name: string; teacherName: string };
+type ClassRow = { id: string; name: string; teacherName: string; courseId?: string };
 
 export default function StudentHome() {
   const { user } = useAuth();
@@ -24,7 +24,7 @@ export default function StudentHome() {
   const { data: assignments = [] } = useQuery<AssignmentRow[]>({ queryKey: ["/api/me/assignments"] });
   const { data: progress = [] } = useQuery<Progress[]>({ queryKey: ["/api/progress"] });
   const { data: lessons = [] } = useQuery<LessonRow[]>({ queryKey: ["/api/lessons"] });
-  const { data: categories = [] } = useQuery<CategoryRow[]>({ queryKey: ["/api/categories"] });
+  const { data: courses = [] } = useQuery<CourseSummary[]>({ queryKey: ["/api/courses"] });
   const { data: classes = [] } = useQuery<ClassRow[]>({ queryKey: ["/api/me/classrooms"] });
 
   const join = useMutation({
@@ -39,6 +39,13 @@ export default function StudentHome() {
   });
 
   const completed = progress.filter((p) => p.isCompleted);
+  // Courses from the student's classes first, then the rest of their grade's catalog.
+  const grade = parseGrade(user?.gradeLevel);
+  const classCourseIds = new Set(classes.map((c) => c.courseId).filter(Boolean));
+  const myCourses = [
+    ...courses.filter((c) => classCourseIds.has(c.id)),
+    ...courses.filter((c) => !classCourseIds.has(c.id) && grade !== undefined && c.gradeLevel <= grade && grade <= (c.gradeLevelMax ?? c.gradeLevel)),
+  ].slice(0, 6);
   const avg = completed.length ? Math.round(completed.reduce((s, p) => s + p.score, 0) / completed.length) : null;
   const todo = assignments.filter((a) => a.status !== "completed");
   const overdue = todo.filter((a) => a.overdue).length;
@@ -114,28 +121,12 @@ export default function StudentHome() {
       </div>
 
       <section>
-        <h2 className="font-semibold mb-3">Explore the library</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {categories.map((c) => {
-            const ids = new Set(lessons.filter((l) => l.categoryId === c.id).map((l) => l.id));
-            const done = completed.filter((p) => ids.has(p.lessonId)).length;
-            const s = styleFor(c.id);
-            return (
-              <Link key={c.id} href={`/category/${c.id}`} className="block" data-testid={`category-card-${c.id}`}>
-                <Card className="h-full hover:shadow-md transition-shadow">
-                  <CardContent className="p-5">
-                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${s.gradient} flex items-center justify-center mb-3`}>
-                      <i className={`${s.icon} text-white text-lg`} />
-                    </div>
-                    <div className="font-semibold">{c.name}</div>
-                    <div className="text-xs text-muted-foreground mb-3">{c.description}</div>
-                    <ProgressBar value={c.lessonCount ? (done / c.lessonCount) * 100 : 0} />
-                    <div className="text-xs text-muted-foreground mt-1.5">{done} of {c.lessonCount} lessons done</div>
-                  </CardContent>
-                </Card>
-              </Link>
-            );
-          })}
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-semibold">My courses</h2>
+          <Link href="/courses" className="text-sm text-primary hover:underline">Browse the catalog</Link>
+        </div>
+        <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          {myCourses.map((c) => <CourseCard key={c.id} c={c} />)}
         </div>
       </section>
     </AppShell>

@@ -22,6 +22,8 @@ import ReviewQueue from "@/pages/ReviewQueue";
 import UserManagement from "@/pages/UserManagement";
 import ResetPassword from "@/pages/ResetPassword";
 import Account from "@/pages/Account";
+import CourseCatalog from "@/pages/CourseCatalog";
+import CourseDetail from "@/pages/CourseDetail";
 
 const STAFF: Role[] = ["teacher", "admin"];
 
@@ -57,6 +59,9 @@ function Routes() {
       <Route path="/" component={Home} />
       <Route path="/lesson/:id" component={LessonView} />
       <Route path="/category/:category" component={CategoryView} />
+      <Route path="/courses" component={CourseCatalog} />
+      <Route path="/courses/:courseId/units/:unitId/new-lesson" component={guarded.editor} />
+      <Route path="/courses/:id" component={CourseDetail} />
       <Route path="/library" component={guarded.library} />
       <Route path="/lesson-creation" component={guarded.editor} />
       <Route path="/lesson-edit/:id" component={guarded.editor} />

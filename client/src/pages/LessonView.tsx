@@ -14,7 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { parseStructuredContent } from "@shared/core/lessons";
-import type { Lesson, LessonQuestion } from "@shared/core/types";
+import { gradeLabel, type Course, type Lesson, type LessonQuestion } from "@shared/core/types";
 
 type LessonData = Lesson & { hasWrittenResponse?: boolean; averageRating: number; totalRatings: number };
 type ProgressData = {
@@ -26,7 +26,9 @@ type ProgressData = {
   isCompleted: boolean;
 };
 type SubmissionData = { answer: string; status: string; teacherScore?: number; feedback?: string; reviewerName?: string } | null;
-type Feedback = Record<string, { isCorrect: boolean; feedback: string }>;
+type Result = { isCorrect: boolean; feedback: string; hint?: string; explanation?: string };
+type Feedback = Record<string, Result>;
+const YOUR_TURN = "\n\n## Your turn\n";
 
 function QuestionCard({
   q,
@@ -40,7 +42,7 @@ function QuestionCard({
   q: LessonQuestion;
   number: number;
   solved: boolean;
-  result?: { isCorrect: boolean; feedback: string };
+  result?: Result;
   onCheck: (answer: string) => void;
   pending: boolean;
   showAnswer: boolean;
@@ -60,7 +62,7 @@ function QuestionCard({
         {solved && <i className="fas fa-check-circle text-green-600" />}
       </div>
 
-      {q.type === "choice" && q.options?.length ? (
+      {(q.type === "choice" || q.type === "truefalse") && q.options?.length ? (
         <div className="grid sm:grid-cols-2 gap-2">
           {q.options.map((opt) => (
             <button
@@ -92,19 +94,29 @@ function QuestionCard({
       ) : (
         <div className="flex gap-2">
           <Input
-            type={q.type === "number" ? "number" : "text"}
-            step="any"
+            type="text"
+            inputMode={q.type === "number" ? "decimal" : "text"}
             value={solved && !answer ? "✓" : answer}
             onChange={(e) => setAnswer(e.target.value)}
             disabled={disabled}
-            placeholder={q.type === "number" ? "Enter a number" : "Your answer"}
+            placeholder={q.type === "number" ? "Enter a number (fractions like 3/4 are OK)" : "Your answer"}
             data-testid={`answer-${q.id}`}
           />
           {!solved && <Button type="submit" disabled={pending || !answer.trim()} data-testid={`check-${q.id}`}>Check</Button>}
         </div>
       )}
 
-      {result && !result.isCorrect && !solved && <p className="text-sm text-red-600 dark:text-red-400">{result.feedback}</p>}
+      {result && !result.isCorrect && !solved && (
+        <div className="text-sm text-red-600 dark:text-red-400 space-y-1">
+          <p>{result.feedback}</p>
+          {result.hint && <p className="rounded-md bg-amber-50 text-amber-900 dark:bg-amber-950 dark:text-amber-200 px-3 py-2"><i className="fas fa-lightbulb mr-1.5" />Hint: {result.hint}</p>}
+        </div>
+      )}
+      {result?.explanation && (
+        <p className="text-sm rounded-md bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-200 px-3 py-2" data-testid={`explanation-${q.id}`}>
+          <i className="fas fa-circle-info mr-1.5" />{result.explanation}
+        </p>
+      )}
       {showAnswer && q.expectedAnswer && (
         <p className="text-xs text-muted-foreground"><i className="fas fa-key mr-1" />Answer: <span className="font-mono">{q.expectedAnswer}</span></p>
       )}
@@ -146,6 +158,7 @@ export default function LessonView() {
   const isStaff = user?.role === "teacher" || user?.role === "admin";
 
   const { data: lesson, isLoading, error } = useQuery<LessonData>({ queryKey: ["/api/lessons", id] });
+  const { data: course } = useQuery<Course & { lessons: Record<string, { title: string }> }>({ queryKey: ["/api/courses", lesson?.courseId], enabled: !!lesson?.courseId });
   const { data: progress } = useQuery<ProgressData>({ queryKey: ["/api/lessons", id, "progress"], enabled: !!lesson });
   const { data: submission } = useQuery<SubmissionData>({ queryKey: ["/api/lessons", id, "submission"], enabled: !!lesson && isStudent });
 
@@ -177,7 +190,7 @@ export default function LessonView() {
 
   const check = useMutation({
     mutationFn: ({ questionId, answer }: { questionId: string; answer: string }) =>
-      apiRequest<{ isCorrect: boolean; feedback: string }>("POST", `/api/lessons/${id}/questions/${questionId}/validate`, { answer }),
+      apiRequest<Result>("POST", `/api/lessons/${id}/questions/${questionId}/validate`, { answer }),
     onSuccess: (res, { questionId }) => {
       setFeedback((f) => ({ ...f, [questionId]: res }));
       refreshProgress();
@@ -229,12 +242,27 @@ export default function LessonView() {
   const completed = !!progress?.isCompleted;
   const canEdit = isStaff && (user?.role === "admin" || lesson.authorId === user?.id);
   const writtenEnabled = isStudent ? lesson.hasWrittenResponse : !!lesson.answer;
+  const [reading, writtenPrompt] = (structured ? "" : lesson.content ?? "").split(YOUR_TURN);
+  const unit = course?.units.find((u) => u.id === lesson.unitId);
+  const order = course?.units.flatMap((u) => u.lessonIds) ?? [];
+  const pos = order.indexOf(lesson.id);
+  const prevId = pos > 0 ? order[pos - 1] : undefined;
+  const nextId = pos >= 0 && pos < order.length - 1 ? order[pos + 1] : undefined;
   let n = 0;
 
   return (
     <AppShell
       title={lesson.title}
-      subtitle={<><span className="capitalize">{lesson.categoryId} · {lesson.difficulty}</span> · {lesson.estimatedDuration} min</>}
+      subtitle={
+        course ? (
+          <>
+            <Link href={`/courses/${course.id}`} className="hover:underline">{course.title}</Link>
+            {unit && <> · {unit.title}</>}
+          </>
+        ) : (
+          <><span className="capitalize">{lesson.categoryId}</span>{lesson.gradeLevel !== undefined && <> · {gradeLabel(lesson.gradeLevel)}</>}</>
+        )
+      }
       actions={
         <>
           <Button size="sm" variant="ghost" onClick={() => window.history.back()}><i className="fas fa-arrow-left mr-2" />Back</Button>
@@ -258,8 +286,13 @@ export default function LessonView() {
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardContent className="p-5 sm:p-6 space-y-4">
-              {lesson.description && <p className="text-muted-foreground">{lesson.description}</p>}
-              {!structured && lesson.content && <Markdown source={lesson.content} />}
+              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                {lesson.gradeLevel !== undefined && <Badge variant="outline">{gradeLabel(lesson.gradeLevel)}</Badge>}
+                <span><i className="fas fa-clock mr-1" />{lesson.estimatedDuration} min</span>
+                {questions.length > 0 && <span><i className="fas fa-question-circle mr-1" />{questions.length} questions</span>}
+              </div>
+              {lesson.description && <p className="text-lg">{lesson.description}</p>}
+              {reading && <Markdown source={reading} />}
             </CardContent>
           </Card>
 
@@ -290,7 +323,8 @@ export default function LessonView() {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">Written response</CardTitle>
-                <p className="text-sm text-muted-foreground">Explain what you learned in your own words. Your teacher reviews it and leaves feedback.</p>
+                {writtenPrompt ? <Markdown source={writtenPrompt} className="text-sm" /> : <p className="text-sm text-muted-foreground">Explain what you learned in your own words.</p>}
+                <p className="text-xs text-muted-foreground">Your teacher reviews it and leaves feedback.</p>
               </CardHeader>
               <CardContent className="space-y-3">
                 {submission && (
@@ -331,6 +365,37 @@ export default function LessonView() {
         </div>
 
         <div className="space-y-6">
+          {(lesson.objectives?.length ?? 0) > 0 && (
+            <Card data-testid="objectives">
+              <CardHeader className="pb-2"><CardTitle className="text-base"><i className="fas fa-bullseye mr-2 text-primary" />Learning goals</CardTitle></CardHeader>
+              <CardContent>
+                <p className="text-xs text-muted-foreground mb-2">By the end of this lesson, you will be able to:</p>
+                <ul className="space-y-1.5 text-sm">
+                  {lesson.objectives!.map((o) => <li key={o} className="flex gap-2"><i className="fas fa-check text-green-600 mt-1 text-xs" /><span>{o}</span></li>)}
+                </ul>
+                {(lesson.standards?.length ?? 0) > 0 && (
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <div className="text-xs text-muted-foreground mb-1.5">Standards</div>
+                    <div className="flex flex-wrap gap-1">
+                      {lesson.standards!.map((st) => <Badge key={st} variant="outline" className="font-mono text-[10px]">{st.replace("CCSS.MATH.CONTENT.", "CCSS ")}</Badge>)}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+          {(lesson.vocabulary?.length ?? 0) > 0 && (
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-base"><i className="fas fa-book mr-2 text-primary" />Vocabulary</CardTitle></CardHeader>
+              <CardContent>
+                <dl className="space-y-2 text-sm">
+                  {lesson.vocabulary!.map((v) => (
+                    <div key={v.term}><dt className="font-semibold">{v.term}</dt><dd className="text-muted-foreground">{v.definition}</dd></div>
+                  ))}
+                </dl>
+              </CardContent>
+            </Card>
+          )}
           <Card className="lg:sticky lg:top-4">
             <CardHeader className="pb-2"><CardTitle className="text-base">{isStudent ? "Your progress" : "Questions"}</CardTitle></CardHeader>
             <CardContent className="space-y-4">
@@ -380,6 +445,17 @@ export default function LessonView() {
           )}
         </div>
       </div>
+
+      {(prevId || nextId) && course && (
+        <div className="flex flex-col sm:flex-row gap-3 justify-between border-t border-border pt-4" data-testid="lesson-nav">
+          {prevId ? (
+            <Link href={`/lesson/${prevId}`}><Button variant="outline" className="w-full sm:w-auto"><i className="fas fa-arrow-left mr-2" />{course.lessons[prevId]?.title ?? "Previous"}</Button></Link>
+          ) : <span />}
+          {nextId && (
+            <Link href={`/lesson/${nextId}`}><Button className="w-full sm:w-auto" data-testid="next-lesson">Next: {course.lessons[nextId]?.title ?? "lesson"}<i className="fas fa-arrow-right ml-2" /></Button></Link>
+          )}
+        </div>
+      )}
     </AppShell>
   );
 }

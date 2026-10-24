@@ -21,10 +21,22 @@ Demo data is saved in your browser's localStorage. Use **Reset demo data** in th
 
 Presenting it? Follow the 10-minute script in [docs/DEMO.md](docs/DEMO.md).
 
+## Curriculum
+
+The app ships with a full K–12 STEM catalog: **32 courses, 128 lessons, 513 auto-graded questions**.
+
+| Band | Mathematics (Common Core) | Science (NGSS) | Technology & engineering |
+|---|---|---|---|
+| K–5 | Kindergarten–Grade 5 Math | Kindergarten–Grade 5 Science | Computing Foundations (K–2), Coding Foundations (3–5) |
+| 6–8 | Grade 6, 7, 8 Math | Earth & Space (6), Life (7), Physical (8) | CS Discoveries, Engineering Design |
+| 9–12 | Algebra I, Geometry, Algebra II, Precalculus | Biology, Chemistry, Physics, Environmental Science | CS Principles, Engineering Design & Robotics |
+
+Each lesson has learning objectives, standards codes, vocabulary, a reading with worked examples, and a quiz in which every question explains its answer. 22 lessons also include a written response with a teacher rubric. Courses live in `shared/curriculum/` as plain TypeScript, so they're easy to review and extend. Teachers can create their own courses, units, and lessons in the app.
+
 ## What each role gets
 
 - **Students:** a dashboard with assignments and due dates (overdue ones flagged), lessons in progress, and per-subject progress. Lessons have reading material, auto-graded quizzes (multiple choice, number, text, code), and optional written responses. Students can join a class with a code.
-- **Teachers:** classes with join codes; assignments with due dates; a gradebook (student × assignment) with CSV export; a review queue for written responses with score and feedback; a "needs attention" list of students with overdue work; private notes to parents; a lesson editor with quiz builder.
+- **Teachers:** a quiz builder (multiple choice with click-to-mark answers, true/false, numbers with a tolerance, short answers with several accepted answers, hints, explanations, live student preview, paste-from-a-document, and copy questions from any lesson); courses and units; assign a whole unit with spaced due dates; classes with join codes; assignments with due dates; a gradebook (student × assignment) with CSV export; a review queue for written responses with score and feedback; a "needs attention" list of students with overdue work; private notes to parents; a lesson editor with quiz builder.
 - **Parents:** one card per child showing overdue alerts, scores, time spent, and what's coming up. A printable full report includes teacher feedback and a notes thread with the teacher.
 - **Admins:** school-wide stats and activity; user management (roles, deactivation, password resets, parent ↔ child links, CSV export); all classes; the organization name; a full JSON backup.
 
