@@ -1,283 +1,124 @@
-# STEM Academy - Standalone Educational Platform
+# STEM Academy
 
-A completely self-contained STEM education platform that runs locally with CSV-based data storage. No databases or external services required!
+Lessons, assignments, and progress tracking for small schools, tutoring groups, co-ops, and clubs.
+Students do lessons and quizzes. Teachers assign work and grade it. Parents follow along. Admins run the place.
 
-## 🎯 Features
+**Live demo:** https://patguettler.github.io/potential-potato/ (runs entirely in your browser, nothing to install)
 
-- **File-based Authentication** - User accounts stored in local JSON files
-- **CSV Lesson Storage** - Lessons organized by category in CSV files
-- **Progress Tracking** - Student progress saved to local CSV files
-- **Role-based Access** - Student, Teacher, and Admin roles
-- **Offline Capable** - Works without internet connection
-- **Cross-platform** - Runs on Windows, macOS, and Linux
+## Demo accounts
 
-## 📁 Project Structure
+Every demo account uses the password **`demo1234`**. The login screen also has one-click buttons for each.
 
-```
-stem-academy/
-├── backend/                 # Python Flask API server
-│   ├── api/                # API endpoints
-│   │   ├── auth.py         # Authentication routes
-│   │   ├── lessons.py      # Lesson management
-│   │   ├── progress.py     # Progress tracking
-│   │   └── admin.py        # Admin functions
-│   ├── services/           # Utility services
-│   │   └── csv_store.py    # CSV file operations
-│   ├── app.py              # Flask app configuration
-│   ├── run.py              # Server startup script
-│   └── requirements.txt    # Python dependencies
-├── client/                 # React frontend
-│   ├── src/                # Source code
-│   └── .env                # Frontend configuration
-├── data/                   # Local data storage
-│   ├── lessons/            # CSV files by category
-│   │   ├── science.csv     # Science lessons
-│   │   ├── technology.csv  # Technology lessons
-│   │   ├── engineering.csv # Engineering lessons
-│   │   └── mathematics.csv # Mathematics lessons
-│   ├── progress/           # User progress data
-│   │   └── progress.csv    # Student lesson progress
-│   └── permissions/        # Access control data
-├── users.json              # User account storage
-└── README.md              # This file
-```
+| Username   | Role    | What to try |
+|------------|---------|-------------|
+| `pat`      | Admin   | Pat's personal admin account |
+| `admin`    | Admin   | Users & families: create accounts, change roles, link parents to children, export a backup |
+| `teacher`  | Teacher | Open *Period 2* to see the gradebook, assign a lesson, grade work in the review queue, export CSV |
+| `parent`   | Parent  | Follow Alex and Emma, read the full report, leave a note for the teacher |
+| `student`  | Student | See overdue work, finish *Chemical Reactions*, submit a written response |
 
-## 🚀 Installation & Setup
+Demo data is saved in your browser's localStorage. Use **Reset demo data** in the yellow banner to start over.
 
-### Prerequisites
+## What each role gets
 
-- **Node.js** 18+ ([Download](https://nodejs.org/))
-- **Python** 3.8+ ([Download](https://python.org/downloads/))
-- **npm** (comes with Node.js)
-- **pip** (comes with Python)
+- **Students:** a dashboard with assignments and due dates (overdue ones flagged), lessons in progress, and per-subject progress. Lessons have reading material, auto-graded quizzes (multiple choice, number, text, code), and optional written responses. Students can join a class with a code.
+- **Teachers:** classes with join codes; assignments with due dates; a gradebook (student × assignment) with CSV export; a review queue for written responses with score and feedback; a "needs attention" list of students with overdue work; private notes to parents; a lesson editor with quiz builder.
+- **Parents:** one card per child showing overdue alerts, scores, time spent, and what's coming up. A printable full report includes teacher feedback and a notes thread with the teacher.
+- **Admins:** school-wide stats and activity; user management (roles, deactivation, password resets, parent ↔ child links, CSV export); all classes; the organization name; a full JSON backup.
 
-### Windows Installation
+## Running it for real
 
-1. **Clone or download this project**
-   ```bash
-   # If you have git
-   git clone <repository-url>
-   cd stem-academy
-   
-   # Or download and extract the ZIP file
-   ```
+Requires Node.js 20+.
 
-2. **Install Python dependencies**
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   cd ..
-   ```
-
-3. **Install Node.js dependencies**
-   ```bash
-   cd client
-   npm install
-   cd ..
-   ```
-
-### Linux/macOS Installation
-
-1. **Clone or download this project**
-   ```bash
-   # If you have git
-   git clone <repository-url>
-   cd stem-academy
-   
-   # Or download and extract the ZIP file
-   ```
-
-2. **Install Python dependencies**
-   ```bash
-   cd backend
-   python3 -m pip install -r requirements.txt
-   cd ..
-   ```
-
-3. **Install Node.js dependencies**
-   ```bash
-   cd client
-   npm install
-   cd ..
-   ```
-
-## 🏃 Running the Application
-
-You need to run both the backend (Python Flask) and frontend (React) servers.
-
-### Option 1: Two Terminal Approach (Recommended)
-
-**Terminal 1 - Start the Backend Server:**
 ```bash
-# Windows
-cd backend
-python run.py
-
-# Linux/macOS
-cd backend
-python3 run.py
-```
-
-The Flask backend will start on `http://localhost:8000`
-
-**Terminal 2 - Start the Frontend Server:**
-```bash
-cd client
-npm run dev
-```
-
-The React frontend will start on `http://localhost:5173`
-
-### Option 2: Background Process (Advanced)
-
-**Windows:**
-```bash
-# Start backend in background
-cd backend
-start /B python run.py
-
-# Start frontend
-cd ../client
-npm run dev
-```
-
-**Linux/macOS:**
-```bash
-# Start backend in background
-cd backend
-python3 run.py &
-
-# Start frontend
-cd ../client
-npm run dev
-```
-
-### 🌐 Access the Application
-
-Open your web browser and go to: **http://localhost:5173**
-
-The React frontend automatically connects to the Flask backend at `http://localhost:8000`
-
-## 👥 First Time Setup
-
-1. **Open the application** in your browser
-2. **Click "Create Account"** - You'll be the first user!
-3. **Choose your role:**
-   - **Student** - Access lessons and track progress
-   - **Teacher** - Manage classrooms and student permissions  
-   - **Admin** - Full access including lesson creation
-4. **Start exploring** the STEM categories!
-
-## 📚 Using the Platform
-
-### For Students
-- Browse lessons by category (Science, Technology, Engineering, Mathematics)
-- Complete lessons and track your progress
-- View your learning statistics on the dashboard
-
-### For Teachers
-- Access all student features
-- Manage classroom assignments
-- View student progress reports
-
-### For Administrators
-- Access all features
-- Create and edit lessons
-- Manage user accounts
-- Add new educational content
-
-## 📊 Data Storage
-
-All data is stored locally in your project directory:
-
-- **User Accounts**: `users.json` (encrypted passwords)
-- **Lessons**: `data/lessons/*.csv` (one file per category)
-- **Progress**: `data/progress/progress.csv` (student completion data)
-- **Permissions**: `data/permissions/` (access control)
-
-### Backing Up Your Data
-
-Simply copy the entire project folder to backup all user accounts, lessons, and progress data.
-
-## 🛠️ Customization
-
-### Adding New Lessons (Via Web Interface)
-1. Login as an Admin user
-2. Go to "Create Lesson" in the sidebar
-3. Fill in lesson details and content
-4. Lesson automatically saved to appropriate CSV file
-
-### Adding New Lessons (Manual CSV Edit)
-Edit the appropriate CSV file in `data/lessons/`:
-- `science.csv` - Physics, Chemistry, Biology lessons
-- `technology.csv` - Programming, Web Development, AI lessons  
-- `engineering.csv` - Design, Robotics, Structures lessons
-- `mathematics.csv` - Algebra, Geometry, Statistics lessons
-
-### Changing Ports
-- **Backend Port**: Set `PORT` environment variable or edit `backend/run.py`
-- **Frontend Port**: Edit `vite.config.ts` or use `npm run dev -- --port 3000`
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-**"Module not found" errors:**
-```bash
-# Reinstall Python dependencies
-cd backend
-pip install -r requirements.txt
-
-# Reinstall Node dependencies
-cd client
 npm install
+npm run dev            # http://localhost:5000 (API + app with hot reload)
 ```
 
-**"Port already in use" errors:**
-- Kill processes using the ports: `taskkill /F /IM node.exe` (Windows) or `killall node` (Linux/macOS)
-- Or change ports in configuration files
+On first start the server creates `data/db.json` from the lessons in `data/lessons/*.csv`.
+The first account registered becomes the **administrator**. Anyone who self-registers after that becomes a student. Teachers and parents are created by an admin.
 
-**"Permission denied" errors:**
-- Windows: Run terminal as Administrator
-- Linux/macOS: Use `sudo` if needed
+To start with the demo school instead, run `SEED_DEMO=true npm run dev` before `data/db.json` exists.
 
-**CSV file errors:**
-- Check that `data/` directory exists with proper structure
-- Verify CSV files have proper headers
-- Ensure write permissions on data directory
+### Production
 
-### Getting Help
+```bash
+npm run build
+SESSION_SECRET=$(openssl rand -hex 32) npm start
+```
 
-1. Check that both servers are running (Flask on :8000, React on :5173)
-2. Verify all dependencies are installed
-3. Check browser console for errors (F12)
-4. Look at terminal output for error messages
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `PORT` | `5000` | HTTP port |
+| `SESSION_SECRET` | none (required in production) | Cookie signing key: any long random string. Changing it signs everyone out |
+| `DATABASE_URL` | none | Postgres connection string. If unset, data is stored in `data/db.json` |
+| `DATABASE_SSL` | auto | Set to `false` to turn off TLS for a non-local database |
+| `APP_URL` | `http://localhost:PORT` | Public URL, used in password-reset links |
+| `SMTP_URL` | none | e.g. `smtps://user:pass@smtp.example.com:465`. Turns on reset emails |
+| `MAIL_FROM` | `STEM Academy <no-reply@localhost>` | Sender for reset emails |
+| `DATA_DIR` | `./data` | Where `db.json` (file storage) and `lessons/` live |
+| `ALLOW_SELF_REGISTRATION` | `true` | Set to `false` so only admins can create accounts |
+| `SEED_DEMO` | `false` | Seed the demo school on first boot |
+| `ORG_NAME` | `STEM Academy` | Initial organization name |
+| `INSECURE_COOKIES` | `false` | Allow cookies over plain HTTP in production (only behind a trusted proxy) |
 
-## 🔐 Security Notes
+Run it behind HTTPS (for example Caddy or nginx).
 
-- This is designed for local/educational use
-- User passwords are properly hashed with bcrypt
-- No external network dependencies
-- All data stays on your local machine
+### Storage: Postgres or a JSON file
 
-## 📋 System Requirements
+- **Postgres (recommended for anything shared):** set `DATABASE_URL` and the app creates its table on first start. Any provider works: Supabase, Neon, Render, Railway, or your own. Writes are transactional with a row lock, so you can run several app servers against one database, and a failed request never leaves half-saved data. Backups come from your Postgres provider.
+- **JSON file (zero setup):** without `DATABASE_URL`, data lives in `data/db.json`, written atomically. Fine for one server and a group of a few hundred people.
 
-- **RAM**: 2GB minimum, 4GB recommended  
-- **Storage**: 500MB for application, additional space for lesson content
-- **OS**: Windows 10+, macOS 10.14+, or Linux with Node.js support
+Sessions are signed cookies, so nobody is logged out when the server restarts or you add servers. Changing a password, resetting it, or deactivating an account signs that person out everywhere.
 
-## 🚫 What This App Does NOT Need
+#### Example: Supabase or Neon + Render
 
-- ❌ Internet connection (after initial setup)
-- ❌ Database servers (PostgreSQL, MySQL, etc.)
-- ❌ Cloud services or external APIs
-- ❌ Docker or containerization
-- ❌ Complex deployment procedures
+1. Create a Postgres database and copy its connection string.
+2. On Render (or Railway or Fly), create a web service from this repo with build command `npm ci && npm run build` and start command `npm start`.
+3. Set `DATABASE_URL`, `SESSION_SECRET`, `APP_URL` (your public URL), and `SMTP_URL`/`MAIL_FROM` if you want password-reset emails.
+4. Open the site and register: the first account becomes the administrator.
 
-## 📝 License
+### Password resets
 
-This project is for educational use. Feel free to modify and extend it for your learning needs!
+- **Self-service:** "Forgot your password?" on the sign-in page emails a one-hour, single-use link when `SMTP_URL` is set.
+- **For people without email (common for kids):** an admin opens the person in *Users & families* and clicks **Create reset link**. That link lasts 3 days.
+- Anyone signed in can change their password under **My account** (click your name in the sidebar).
 
----
+### Upgrading from the old version
 
-**Happy Learning! 🎓✨**
+If a `users.json` from the previous file-based login is present when `data/db.json` is first created, those accounts are imported with their existing passwords. Accounts that were `student` stay students. An admin can change roles afterwards.
+
+## Development
+
+```bash
+npm run check       # TypeScript
+npm test            # API tests (node:test)
+TEST_DATABASE_URL=postgres://user:pass@localhost/db npm test   # also run the Postgres store test
+npm run dev:demo    # the static demo with hot reload
+npm run build:demo  # build the GitHub Pages site into dist/demo
+```
+
+### How it fits together
+
+```
+shared/core/   One API (routes, permissions, grading, seed data), shared by both runtimes
+server/        Express: cookie sessions, bcrypt, Postgres or JSON-file store, SMTP, serves the built app
+client/        React + Tailwind + shadcn/ui, routed with wouter
+client/src/demo/backend.ts   Runs shared/core in the browser for the GitHub Pages demo
+data/lessons/  Lesson content as CSV (one file per subject)
+```
+
+The GitHub Pages build intercepts `fetch('/api/…')` and answers from the same `shared/core/api.ts` the server uses. The demo and the real app can't drift apart.
+
+### Deploying the demo
+
+`.github/workflows/pages.yml` builds and publishes the demo on every push to `main`.
+In the repo, go to **Settings → Pages → Build and deployment** and set **Source** to **GitHub Actions** (one-time).
+
+## Roadmap
+
+See [docs/ROADMAP.md](docs/ROADMAP.md) for what's done and what's next.
+
+## License
+
+GPL-3.0. See [LICENSE](LICENSE).

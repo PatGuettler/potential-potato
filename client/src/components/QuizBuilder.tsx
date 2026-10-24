@@ -143,7 +143,7 @@ export function QuizBuilder({
                   ) : (
                     <div className="space-y-3">
                       {section.questions.map((question, questionIndex) => (
-                        <Card key={question.id} className="p-3 bg-gray-50 dark:bg-gray-800" data-testid={`card-question-${question.id}`}>
+                        <Card key={question.id} className="p-3 bg-muted/50" data-testid={`card-question-${question.id}`}>
                           <div className="space-y-3">
                             <div className="flex items-center justify-between">
                               <span className="text-sm font-medium">Question {questionIndex + 1}</span>
@@ -180,6 +180,7 @@ export function QuizBuilder({
                                     <SelectValue placeholder="Select type" />
                                   </SelectTrigger>
                                   <SelectContent>
+                                    <SelectItem value="choice">Multiple choice</SelectItem>
                                     <SelectItem value="text">Text</SelectItem>
                                     <SelectItem value="number">Number</SelectItem>
                                     <SelectItem value="code">Code</SelectItem>
@@ -187,8 +188,20 @@ export function QuizBuilder({
                                 </Select>
                               </div>
                             </div>
+                            {question.type === "choice" && (
+                              <div className="space-y-2">
+                                <Label htmlFor={`question-options-${question.id}`}>Choices (one per line) *</Label>
+                                <Textarea
+                                  id={`question-options-${question.id}`}
+                                  value={(question.options || []).join("\n")}
+                                  onChange={(e) => updateQuestion(section.id, question.id, 'options', e.target.value.split("\n"))}
+                                  placeholder={"Force\nEnergy\nMass"}
+                                  rows={3}
+                                />
+                              </div>
+                            )}
                             <div className="space-y-2">
-                              <Label htmlFor={`question-answer-${question.id}`}>Expected Answer *</Label>
+                              <Label htmlFor={`question-answer-${question.id}`}>{question.type === "choice" ? "Correct choice (must match one line above) *" : "Expected Answer *"}</Label>
                               <Textarea
                                 id={`question-answer-${question.id}`}
                                 data-testid={`textarea-question-answer-${question.id}`}

@@ -1,5 +1,9 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import { installDemoBackend, isDemo } from "./demo/backend";
 
-createRoot(document.getElementById("root")!).render(<App />);
+(async () => {
+  if (isDemo) await installDemoBackend();
+  createRoot(document.getElementById("root")!).render(<App />);
+})();
