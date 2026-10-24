@@ -4,7 +4,7 @@
  * Runs the real shared API in the browser and answers every `/api/*` fetch from it,
  * persisting the database to localStorage so each visitor gets their own sandbox.
  */
-import { createApi, type Session } from "@shared/core/api";
+import { createApi, memoryStore, type Session } from "@shared/core/api";
 import { lessonsFromCsv } from "@shared/core/lessons";
 import { buildDemoDatabase } from "@shared/core/seed";
 import type { Database } from "@shared/core/types";
@@ -36,11 +36,18 @@ function write(key: string, value: unknown) {
   }
 }
 
-async function hashPassword(password: string) {
-  const bytes = new TextEncoder().encode(`stem-demo:${password}`);
-  if (!crypto?.subtle) return `plain:${password}`;
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
+async function sha256(text: string) {
+  if (!crypto?.subtle) return `plain:${text}`;
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
   return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+const hashPassword = (password: string) => sha256(`stem-demo:${password}`);
+
+function randomToken() {
+  const bytes = new Uint8Array(24);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 const newId = () =>
@@ -69,14 +76,15 @@ export async function installDemoBackend() {
   let session: Session = read<Session>(SESSION_KEY) ?? {};
 
   const api = createApi({
-    load: async () => db!,
-    save: async (next) => {
-      db = next;
-      write(DB_KEY, next);
-    },
+    store: memoryStore(db, (next) => write(DB_KEY, next)),
     hashPassword,
     verifyPassword: async (password, hash) => (await hashPassword(password)) === hash,
     newId,
+    sha256,
+    randomToken,
+    resetLink: (token) => `${window.location.origin}${window.location.pathname}#/reset/${token}`,
+    // There's no mail server in the demo, so show the link that would have been emailed.
+    exposeResetLinks: true,
   });
 
   const realFetch = window.fetch.bind(window);

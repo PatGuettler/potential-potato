@@ -50,14 +50,39 @@ SESSION_SECRET=$(openssl rand -hex 32) npm start
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `PORT` | `5000` | HTTP port |
-| `SESSION_SECRET` | random per boot | Cookie signing key. Set it, or everyone is logged out on restart |
-| `DATA_DIR` | `./data` | Where `db.json` and `lessons/` live. Back this folder up |
+| `SESSION_SECRET` | none (required in production) | Cookie signing key: any long random string. Changing it signs everyone out |
+| `DATABASE_URL` | none | Postgres connection string. If unset, data is stored in `data/db.json` |
+| `DATABASE_SSL` | auto | Set to `false` to turn off TLS for a non-local database |
+| `APP_URL` | `http://localhost:PORT` | Public URL, used in password-reset links |
+| `SMTP_URL` | none | e.g. `smtps://user:pass@smtp.example.com:465`. Turns on reset emails |
+| `MAIL_FROM` | `STEM Academy <no-reply@localhost>` | Sender for reset emails |
+| `DATA_DIR` | `./data` | Where `db.json` (file storage) and `lessons/` live |
 | `ALLOW_SELF_REGISTRATION` | `true` | Set to `false` so only admins can create accounts |
 | `SEED_DEMO` | `false` | Seed the demo school on first boot |
 | `ORG_NAME` | `STEM Academy` | Initial organization name |
 | `INSECURE_COOKIES` | `false` | Allow cookies over plain HTTP in production (only behind a trusted proxy) |
 
-Run it behind HTTPS (for example Caddy or nginx). The data is a single JSON file written atomically. That's plenty for a school or tutoring group of a few hundred people.
+Run it behind HTTPS (for example Caddy or nginx).
+
+### Storage: Postgres or a JSON file
+
+- **Postgres (recommended for anything shared):** set `DATABASE_URL` and the app creates its table on first start. Any provider works: Supabase, Neon, Render, Railway, or your own. Writes are transactional with a row lock, so you can run several app servers against one database, and a failed request never leaves half-saved data. Backups come from your Postgres provider.
+- **JSON file (zero setup):** without `DATABASE_URL`, data lives in `data/db.json`, written atomically. Fine for one server and a group of a few hundred people.
+
+Sessions are signed cookies, so nobody is logged out when the server restarts or you add servers. Changing a password, resetting it, or deactivating an account signs that person out everywhere.
+
+#### Example: Supabase or Neon + Render
+
+1. Create a Postgres database and copy its connection string.
+2. On Render (or Railway or Fly), create a web service from this repo with build command `npm ci && npm run build` and start command `npm start`.
+3. Set `DATABASE_URL`, `SESSION_SECRET`, `APP_URL` (your public URL), and `SMTP_URL`/`MAIL_FROM` if you want password-reset emails.
+4. Open the site and register: the first account becomes the administrator.
+
+### Password resets
+
+- **Self-service:** "Forgot your password?" on the sign-in page emails a one-hour, single-use link when `SMTP_URL` is set.
+- **For people without email (common for kids):** an admin opens the person in *Users & families* and clicks **Create reset link**. That link lasts 3 days.
+- Anyone signed in can change their password under **My account** (click your name in the sidebar).
 
 ### Upgrading from the old version
 
@@ -68,6 +93,7 @@ If a `users.json` from the previous file-based login is present when `data/db.js
 ```bash
 npm run check       # TypeScript
 npm test            # API tests (node:test)
+TEST_DATABASE_URL=postgres://user:pass@localhost/db npm test   # also run the Postgres store test
 npm run dev:demo    # the static demo with hot reload
 npm run build:demo  # build the GitHub Pages site into dist/demo
 ```
@@ -76,7 +102,7 @@ npm run build:demo  # build the GitHub Pages site into dist/demo
 
 ```
 shared/core/   One API (routes, permissions, grading, seed data), shared by both runtimes
-server/        Express: sessions, bcrypt, JSON-file store, serves the built app
+server/        Express: cookie sessions, bcrypt, Postgres or JSON-file store, SMTP, serves the built app
 client/        React + Tailwind + shadcn/ui, routed with wouter
 client/src/demo/backend.ts   Runs shared/core in the browser for the GitHub Pages demo
 data/lessons/  Lesson content as CSV (one file per subject)

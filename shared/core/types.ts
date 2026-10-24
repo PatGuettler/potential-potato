@@ -22,11 +22,21 @@ export interface User {
   /** Students only: free-form grade label, e.g. "Grade 7". */
   gradeLevel?: string;
   active: boolean;
+  /** Bumped on password change or deactivation; sessions carrying an older value are rejected. */
+  sessionVersion: number;
   createdAt: string;
   lastLoginAt?: string;
 }
 
-export type PublicUser = Omit<User, "passwordHash">;
+export type PublicUser = Omit<User, "passwordHash" | "sessionVersion">;
+
+export interface PasswordReset {
+  /** SHA-256 of the token; the token itself only ever exists in the emailed link. */
+  tokenHash: string;
+  userId: string;
+  expiresAt: string;
+  createdAt: string;
+}
 
 export interface Category {
   id: string;
@@ -189,6 +199,17 @@ export interface Database {
   notes: Note[];
   ratings: Rating[];
   activity: Activity[];
+  passwordResets: PasswordReset[];
 }
 
-export const DB_VERSION = 2;
+export const DB_VERSION = 3;
+
+/** Upgrades a database saved by an older release in place. */
+export function migrateDatabase(db: Database): Database {
+  if (db.version < 3) {
+    db.passwordResets = db.passwordResets ?? [];
+    for (const u of db.users) u.sessionVersion = u.sessionVersion ?? 1;
+  }
+  db.version = DB_VERSION;
+  return db;
+}

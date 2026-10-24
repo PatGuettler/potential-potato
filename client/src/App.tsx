@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { useHashLocation } from "wouter/use-hash-location";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
@@ -20,6 +20,8 @@ import ClassroomDetail from "@/pages/ClassroomDetail";
 import StudentReport from "@/pages/StudentReport";
 import ReviewQueue from "@/pages/ReviewQueue";
 import UserManagement from "@/pages/UserManagement";
+import ResetPassword from "@/pages/ResetPassword";
+import Account from "@/pages/Account";
 
 const STAFF: Role[] = ["teacher", "admin"];
 
@@ -43,7 +45,10 @@ const guarded = {
 
 function Routes() {
   const { isAuthenticated, isLoading } = useAuth();
+  const [location] = useLocation();
 
+  // Reset links must work whether or not someone is already signed in on this device.
+  if (location.startsWith("/reset/")) return <Route path="/reset/:token" component={ResetPassword} />;
   if (isLoading) return <div className="min-h-screen flex items-center justify-center"><Loading /></div>;
   if (!isAuthenticated) return <Login />;
 
@@ -60,6 +65,7 @@ function Routes() {
       <Route path="/me/report" component={guarded.myReport} />
       <Route path="/reviews" component={guarded.reviews} />
       <Route path="/admin/users" component={guarded.users} />
+      <Route path="/account" component={Account} />
       <Route component={NotFound} />
     </Switch>
   );

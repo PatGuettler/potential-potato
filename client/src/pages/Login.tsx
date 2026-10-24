@@ -20,7 +20,8 @@ const roleIcon: Record<Role, string> = {
 export default function Login() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const [mode, setMode] = useState<"login" | "register" | "forgot">("login");
+  const [forgot, setForgot] = useState<{ message: string; demoLink?: string } | null>(null);
   const [form, setForm] = useState({ username: "", password: "", firstName: "", lastName: "", email: "" });
   const set = (field: keyof typeof form) => (value: string) => setForm((f) => ({ ...f, [field]: value }));
 
@@ -43,6 +44,12 @@ export default function Login() {
     else auth.mutate({ path: "/api/login", body: { username: form.username, password: form.password } });
   };
 
+  const requestReset = useMutation({
+    mutationFn: () => apiRequest<{ message: string; demoLink?: string }>("POST", "/api/password/forgot", { login: form.username }),
+    onSuccess: setForgot,
+    onError: (error: Error) => toast({ title: "Couldn't send reset link", description: error.message, variant: "destructive" }),
+  });
+
   const quickLogin = (username: string) => auth.mutate({ path: "/api/login", body: { username, password: DEMO_PASSWORD } });
 
   return (
@@ -57,12 +64,41 @@ export default function Login() {
             <CardDescription>
               {setup?.setupNeeded
                 ? "Welcome! Create the administrator account to get started."
-                : registering
+                : mode === "forgot"
+                  ? "Reset your password"
+                  : registering
                   ? "Create a student account"
                   : "Sign in to continue learning"}
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {mode === "forgot" && !setup?.setupNeeded ? (
+              <div className="space-y-4">
+                {forgot ? (
+                  <div className="rounded-md bg-muted px-3 py-3 text-sm space-y-2" data-testid="forgot-result">
+                    <p>{forgot.message}</p>
+                    {forgot.demoLink && (
+                      <a href={forgot.demoLink} className="text-primary underline font-medium" data-testid="demo-reset-link">
+                        Demo: open the link that would have been emailed
+                      </a>
+                    )}
+                  </div>
+                ) : (
+                  <form
+                    className="space-y-4"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      requestReset.mutate();
+                    }}
+                  >
+                    <FormField id="login" label="Username or email" value={form.username} onChange={set("username")} required dataTestId="input-forgot" />
+                    <Button type="submit" className="w-full" disabled={requestReset.isPending} data-testid="forgot-submit">Send reset link</Button>
+                  </form>
+                )}
+                <Button variant="link" className="w-full" onClick={() => { setMode("login"); setForgot(null); }}>Back to sign in</Button>
+              </div>
+            ) : (
+            <>
             <form onSubmit={submit} className="space-y-4">
               <FormField id="username" label="Username" value={form.username} onChange={set("username")} required dataTestId="input-username" />
               <FormField id="password" label="Password" type="password" value={form.password} onChange={set("password")} required dataTestId="input-password" />
@@ -81,11 +117,16 @@ export default function Login() {
               </Button>
             </form>
             {!setup?.setupNeeded && (
-              <div className="mt-4 text-center">
-                <Button variant="link" onClick={() => setMode(registering ? "login" : "register")} data-testid="button-toggle-mode">
+              <div className="mt-4 flex flex-col items-center">
+                {!registering && (
+                  <Button variant="link" size="sm" onClick={() => setMode("forgot")} data-testid="forgot-link">Forgot your password?</Button>
+                )}
+                <Button variant="link" size="sm" onClick={() => setMode(registering ? "login" : "register")} data-testid="button-toggle-mode">
                   {registering ? "Already have an account? Sign in" : "New student? Create an account"}
                 </Button>
               </div>
+            )}
+            </>
             )}
           </CardContent>
         </Card>

@@ -22,16 +22,22 @@
 - Auto-graded quizzes on every bundled lesson. Lessons can only be completed once every question is answered correctly. The recorded score is first-try accuracy.
 - Time-on-task tracking and an activity feed scoped to each role.
 - Lesson editor with live preview, multiple-choice questions, rubric, and teacher guide. Archiving a lesson keeps students' history.
-- Login rate limiting, session rotation on login, httpOnly/secure cookies, and atomic database writes.
+- Login rate limiting, httpOnly/secure cookies, and atomic database writes.
 - A static GitHub Pages demo that runs the real API in the browser, with one-click demo accounts.
+
+**Production back end (second release)**
+- Postgres storage via `DATABASE_URL` (Supabase, Neon, Render, …), with transactional writes that are safe across several servers. A failed request rolls back cleanly.
+- Signed-cookie sessions that survive restarts and scale out. Password changes, resets and deactivation revoke all of a person's sessions.
+- Password reset by email (SMTP), admin-issued reset links for people without email, and a "My account" page to change your password.
+- Production refuses to start without `SESSION_SECRET`. Reset requests are rate-limited and don't reveal whether an account exists.
 
 ## Next up (suggested)
 
-1. **Email or SMS digests for parents:** a weekly summary and an overdue alert. The activity log already has the data.
-2. **Password reset by email** and optional SSO (Google Workspace / Microsoft) for schools.
+1. **Email digests for parents:** a weekly summary and an overdue alert, reusing the SMTP setup and the activity log.
+2. **SSO:** Google Workspace / Microsoft sign-in for schools.
 3. **CSV roster import:** bulk-create students and parents and link families in one upload.
 4. **Multiple organizations** in one deployment, if this will be offered as hosted software.
-5. **SQLite storage** once a single group goes past a few hundred active users. The `load`/`save` interface in `server/store.ts` is the only thing that changes.
+5. **Normalized tables:** the Postgres store keeps the whole school in one JSON document, which suits groups up to roughly a thousand people. Beyond that, split it into per-entity tables behind the same `ApiStore` interface.
 6. **Messaging beyond notes:** per-class announcements and read receipts.
 7. **Accessibility pass:** keyboard navigation of the gradebook, screen-reader labels on status chips.
 8. **Code-split the lesson page:** the Monaco editor and charts load only when needed.

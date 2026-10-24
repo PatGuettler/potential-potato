@@ -123,10 +123,10 @@ export function AppShell({ title, subtitle, actions, children }: { title: string
             <div className="w-8 h-8 shrink-0 bg-primary/15 text-primary rounded-full flex items-center justify-center text-xs font-semibold">
               {initials(user ?? undefined)}
             </div>
-            <div className="min-w-0 flex-1">
+            <Link href="/account" className="min-w-0 flex-1 hover:underline" title="My account">
               <div className="text-sm font-medium truncate" data-testid="user-full-name">{fullName(user ?? undefined)}</div>
               <div className="text-xs text-muted-foreground truncate">@{user?.username}</div>
-            </div>
+            </Link>
             <Button variant="ghost" size="icon" onClick={logout} title="Sign out" data-testid="logout-button">
               <i className="fas fa-sign-out-alt" />
             </Button>

@@ -28,6 +28,7 @@ export function emptyDatabase(lessons: Lesson[], organizationName = "STEM Academ
     notes: [],
     ratings: [],
     activity: [],
+    passwordResets: [],
   };
 }
 
@@ -63,6 +64,7 @@ export async function buildDemoDatabase(
       role,
       childIds: [],
       active: true,
+      sessionVersion: 1,
       createdAt: iso(-60),
       ...extra,
     };

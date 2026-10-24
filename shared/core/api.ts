@@ -23,6 +23,8 @@ import { gradeQuestion, scoreWrittenResponse } from "./grading";
 
 export interface Session {
   userId?: string;
+  /** The user's sessionVersion at sign-in; a mismatch means the session was revoked. */
+  sv?: number;
 }
 
 export interface ApiRequest {
@@ -37,14 +39,48 @@ export interface ApiResponse {
   body: unknown;
 }
 
+export interface ApiStore {
+  /**
+   * Runs `fn` against the database. For writes, the store must persist the result atomically
+   * when `changed` is true and discard every mutation if `fn` throws.
+   */
+  transact<T>(write: boolean, fn: (db: Database) => Promise<{ value: T; changed: boolean }>): Promise<T>;
+}
+
 export interface ApiEnv {
-  load(): Promise<Database>;
-  save(db: Database): Promise<void>;
+  store: ApiStore;
   hashPassword(password: string): Promise<string>;
   verifyPassword(password: string, hash: string): Promise<boolean>;
   newId(): string;
+  sha256(text: string): Promise<string>;
+  /** A long, unguessable token for password-reset links. */
+  randomToken(): string;
+  /** Builds the URL a reset token is delivered in. */
+  resetLink(token: string): string;
+  /** Delivers a reset link by email. Without it, only admins can hand out reset links. */
+  sendPasswordReset?(message: { to: string; name: string; link: string }): Promise<void>;
+  /** Demo only: return reset links in the API response instead of emailing them. */
+  exposeResetLinks?: boolean;
   /** Lets self-registration create accounts beyond the first admin. Defaults to true. */
   allowSelfRegistration?: boolean;
+}
+
+/** An in-memory store; writes run on a copy so a failed request leaves no partial changes. */
+export function memoryStore(initial: Database, onSave: (db: Database) => void | Promise<void> = () => {}): ApiStore & { current(): Database } {
+  let db = initial;
+  return {
+    current: () => db,
+    async transact(write, fn) {
+      if (!write) return (await fn(db)).value;
+      const draft = structuredClone(db);
+      const { value, changed } = await fn(draft);
+      if (changed) {
+        db = draft;
+        await onSave(db);
+      }
+      return value;
+    },
+  };
 }
 
 class HttpError extends Error {
@@ -65,6 +101,8 @@ type Ctx = {
   session: Session;
   env: ApiEnv;
   dirty: () => void;
+  /** Runs after the transaction commits (e.g. sending email), so slow I/O never holds a lock. */
+  after: (fn: () => Promise<void>) => void;
 };
 
 type Handler = (ctx: Ctx) => unknown | Promise<unknown>;
@@ -87,8 +125,36 @@ const STAFF: readonly Role[] = ["teacher", "admin"];
 const now = () => new Date().toISOString();
 
 export function publicUser(u: User): PublicUser {
-  const { passwordHash: _omit, ...rest } = u;
+  const { passwordHash: _omit, sessionVersion: _sv, ...rest } = u;
   return rest;
+}
+
+const RESET_TTL_MS = 60 * 60 * 1000;
+const ADMIN_RESET_TTL_MS = 72 * 60 * 60 * 1000;
+
+function checkNewPassword(value: unknown) {
+  const pw = str(value, "password", { max: 200 });
+  if (pw.length < 8) fail(400, "Password must be at least 8 characters");
+  return pw;
+}
+
+async function issueResetToken(db: Database, env: ApiEnv, user: User, ttlMs: number) {
+  const token = env.randomToken();
+  const t = Date.now();
+  db.passwordResets = db.passwordResets.filter((r) => new Date(r.expiresAt).getTime() > t);
+  db.passwordResets.push({
+    tokenHash: await env.sha256(token),
+    userId: user.id,
+    expiresAt: new Date(t + ttlMs).toISOString(),
+    createdAt: new Date(t).toISOString(),
+  });
+  return { link: env.resetLink(token), expiresAt: new Date(t + ttlMs).toISOString() };
+}
+
+/** Changes a password and signs the user out everywhere else. */
+async function setPassword(env: ApiEnv, user: User, password: string) {
+  user.passwordHash = await env.hashPassword(password);
+  user.sessionVersion = (user.sessionVersion ?? 1) + 1;
 }
 
 export const displayName = (u: Pick<User, "firstName" | "lastName" | "username">) =>
@@ -376,6 +442,7 @@ pub("POST", "/api/login", async ({ db, body, session, env, dirty }) => {
   if (!user!.active) fail(403, "This account has been deactivated. Contact your administrator.");
   user!.lastLoginAt = now();
   session.userId = user!.id;
+  session.sv = user!.sessionVersion;
   dirty();
   return publicUser(user!);
 });
@@ -401,21 +468,64 @@ pub("POST", "/api/register", async ({ db, body, session, env, dirty }) => {
     role: firstAccount ? "admin" : "student",
     childIds: [],
     active: true,
+    sessionVersion: 1,
     createdAt: now(),
     lastLoginAt: now(),
   };
   db.users.push(user);
   session.userId = user.id;
+  session.sv = user.sessionVersion;
   dirty();
   return publicUser(user);
 });
 
 pub("POST", "/api/logout", ({ session }) => {
   delete session.userId;
+  delete session.sv;
   return { ok: true };
 });
 
+pub("POST", "/api/password/forgot", async ({ db, body, env, dirty, after }) => {
+  const login = str(body?.login, "login", { max: 200 }).toLowerCase();
+  const user = db.users.find((u) => u.active && (u.username.toLowerCase() === login || (u.email && u.email.toLowerCase() === login)));
+  // Same answer whether or not the account exists, so this can't be used to discover accounts.
+  const message = "If that account has an email address on file, a reset link is on its way. Otherwise, ask your administrator for a reset link.";
+  if (!user) return { message };
+  const { link } = await issueResetToken(db, env, user, RESET_TTL_MS);
+  dirty();
+  if (env.exposeResetLinks) return { message, demoLink: link };
+  if (user.email && env.sendPasswordReset) {
+    const send = env.sendPasswordReset;
+    after(() => send({ to: user.email, name: displayName(user), link }));
+  }
+  return { message };
+});
+
+pub("POST", "/api/password/reset", async ({ db, body, session, env, dirty }) => {
+  const tokenHash = await env.sha256(str(body?.token, "token", { max: 200 }));
+  const reset = db.passwordResets.find((r) => r.tokenHash === tokenHash && new Date(r.expiresAt).getTime() > Date.now());
+  const user = reset && findUser(db, reset.userId);
+  if (!user || !user.active) fail(400, "This reset link is invalid or has expired. Request a new one.");
+  await setPassword(env, user!, checkNewPassword(body?.password));
+  db.passwordResets = db.passwordResets.filter((r) => r.userId !== user!.id);
+  session.userId = user!.id;
+  session.sv = user!.sessionVersion;
+  user!.lastLoginAt = now();
+  dirty();
+  return publicUser(user!);
+});
+
 on("GET", "/api/auth/user", ALL, ({ user }) => publicUser(user));
+
+on("POST", "/api/me/password", ALL, async ({ user, body, session, env, dirty }) => {
+  if (!(await env.verifyPassword(str(body?.currentPassword, "currentPassword", { max: 200 }), user.passwordHash))) {
+    fail(400, "Your current password is incorrect");
+  }
+  await setPassword(env, user, checkNewPassword(body?.newPassword));
+  session.sv = user.sessionVersion;
+  dirty();
+  return { ok: true };
+});
 
 // ---- catalog
 
@@ -907,7 +1017,10 @@ function applyUserFields(db: Database, target: User, body: any) {
     if (!userRoles.includes(body.role)) fail(400, "Invalid role");
     target.role = body.role;
   }
-  if (body.active !== undefined) target.active = !!body.active;
+  if (body.active !== undefined) {
+    if (target.active && !body.active) target.sessionVersion = (target.sessionVersion ?? 1) + 1;
+    target.active = !!body.active;
+  }
   if (body.childIds !== undefined) {
     if (!Array.isArray(body.childIds)) fail(400, "childIds must be a list");
     const students = new Set(db.users.filter((u) => u.role === "student").map((u) => u.id));
@@ -932,6 +1045,7 @@ on("POST", "/api/admin/users", ["admin"], async ({ db, body, env, dirty }) => {
     role: "student",
     childIds: [],
     active: true,
+    sessionVersion: 1,
     createdAt: now(),
   };
   applyUserFields(db, user, body);
@@ -946,13 +1060,16 @@ on("PATCH", "/api/admin/users/:id", ["admin"], async ({ db, user, params, body, 
     fail(400, "You can't demote or deactivate your own account");
   }
   applyUserFields(db, target, body ?? {});
-  if (body?.password) {
-    const pw = str(body.password, "password", { max: 200 });
-    if (pw.length < 8) fail(400, "Password must be at least 8 characters");
-    target.passwordHash = await env.hashPassword(pw);
-  }
+  if (body?.password) await setPassword(env, target, checkNewPassword(body.password));
   dirty();
   return publicUser(target);
+});
+
+on("POST", "/api/admin/users/:id/reset-link", ["admin"], async ({ db, params, env, dirty }) => {
+  const target = findUser(db, params.id) ?? fail(404, "User not found");
+  const result = await issueResetToken(db, env, target, ADMIN_RESET_TTL_MS);
+  dirty();
+  return result;
 });
 
 on("DELETE", "/api/admin/users/:id", ["admin"], ({ db, user, params, dirty }) => {
@@ -975,6 +1092,7 @@ on("GET", "/api/admin/export", ["admin"], ({ db }) => ({
   ...db,
   exportedAt: now(),
   users: db.users.map(publicUser),
+  passwordResets: undefined,
 }));
 
 // ---------------------------------------------------------------- entry point
@@ -988,33 +1106,48 @@ export function createApi(env: ApiEnv) {
     const route = candidates.find((r) => r.method === method);
     if (!route) return { status: 405, body: { message: "Method not allowed" } };
 
+    const params = Object.fromEntries(
+      route.keys.map((k, i) => [k, decodeURIComponent(path.match(route.regex)![i + 1])]),
+    );
+    // Work on a copy of the session so a request that fails changes nothing.
+    const session: Session = { ...req.session };
+    const afterCommit: (() => Promise<void>)[] = [];
     try {
-      const db = await env.load();
-      const params = Object.fromEntries(
-        route.keys.map((k, i) => [k, decodeURIComponent(path.match(route.regex)![i + 1])]),
-      );
-      const user = req.session.userId ? findUser(db, req.session.userId) : undefined;
-      if (route.roles) {
-        if (!user || !user.active) {
-          delete req.session.userId;
-          return { status: 401, body: { message: "Unauthorized" } };
+      type Outcome = { status: 200 | 401 | 403; result?: unknown };
+      const outcome = await env.store.transact<Outcome>(method !== "GET", async (db) => {
+        const user = session.userId ? findUser(db, session.userId) : undefined;
+        const valid = !!user && user.active && session.sv === user.sessionVersion;
+        if (route.roles) {
+          if (!valid) return { value: { status: 401 }, changed: false };
+          if (!route.roles.includes(user!.role)) return { value: { status: 403 }, changed: false };
         }
-        if (!route.roles.includes(user.role)) return { status: 403, body: { message: "Forbidden" } };
-      }
-      let changed = false;
-      const result = await (route.handler as PublicHandler)({
-        db,
-        user,
-        params,
-        body: req.body ?? {},
-        session: req.session,
-        env,
-        dirty: () => {
-          changed = true;
-        },
+        let changed = false;
+        const result = await (route.handler as PublicHandler)({
+          db,
+          user: valid ? user : undefined,
+          params,
+          body: req.body ?? {},
+          session,
+          env,
+          dirty: () => {
+            changed = true;
+          },
+          after: (fn) => afterCommit.push(fn),
+        });
+        return { value: { status: 200, result }, changed };
       });
-      if (changed) await env.save(db);
-      return { status: 200, body: result ?? null };
+
+      if (outcome.status === 401) {
+        delete req.session.userId;
+        delete req.session.sv;
+        return { status: 401, body: { message: "Unauthorized" } };
+      }
+      if (outcome.status === 403) return { status: 403, body: { message: "Forbidden" } };
+      delete req.session.userId;
+      delete req.session.sv;
+      Object.assign(req.session, session);
+      for (const fn of afterCommit) await fn().catch((e) => console.error("after-commit task failed:", e));
+      return { status: 200, body: outcome.result ?? null };
     } catch (err) {
       if (err instanceof HttpError) return { status: err.status, body: { message: err.message } };
       console.error(err);

@@ -29,6 +29,30 @@ const roleTone: Record<Role, string> = {
 type FormState = { username: string; password: string; firstName: string; lastName: string; email: string; role: Role; gradeLevel: string; childIds: string[]; active: boolean };
 const blank: FormState = { username: "", password: "", firstName: "", lastName: "", email: "", role: "student", gradeLevel: "", childIds: [], active: true };
 
+function ResetLink({ userId }: { userId: string }) {
+  const { toast } = useToast();
+  const [link, setLink] = useState<string | null>(null);
+  const create = useMutation({
+    mutationFn: () => apiRequest<{ link: string }>("POST", `/api/admin/users/${userId}/reset-link`),
+    onSuccess: (r) => setLink(r.link),
+    onError: (e: Error) => toast({ title: "Couldn't create link", description: e.message, variant: "destructive" }),
+  });
+  return (
+    <div className="space-y-1.5 rounded-md border border-border p-3">
+      <div className="text-sm font-medium">Password reset link</div>
+      <p className="text-xs text-muted-foreground">For people without email. Share it privately. It works once and expires in 3 days.</p>
+      {link ? (
+        <div className="flex gap-2">
+          <Input readOnly value={link} onFocus={(e) => e.currentTarget.select()} data-testid="reset-link" />
+          <Button type="button" variant="outline" onClick={() => navigator.clipboard?.writeText(link).then(() => toast({ title: "Copied" }))}>Copy</Button>
+        </div>
+      ) : (
+        <Button type="button" size="sm" variant="outline" onClick={() => create.mutate()} disabled={create.isPending} data-testid="create-reset-link">Create reset link</Button>
+      )}
+    </div>
+  );
+}
+
 function UserDialog({ open, onOpenChange, editing, students }: { open: boolean; onOpenChange: (o: boolean) => void; editing: Row | null; students: Row[] }) {
   const { toast } = useToast();
   const [form, setForm] = useState<FormState>(blank);
@@ -103,6 +127,7 @@ function UserDialog({ open, onOpenChange, editing, students }: { open: boolean; 
               </div>
             </div>
           )}
+          {editing && <ResetLink userId={editing.id} />}
           {editing && (
             <label className="flex items-center gap-2 text-sm">
               <Checkbox checked={form.active} onCheckedChange={(c) => set("active", !!c)} /> Account active

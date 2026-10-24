@@ -1,27 +1,21 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "fs";
-import { createApi, type Session } from "../shared/core/api";
+import { createApi, memoryStore, type Session } from "../shared/core/api";
 import { lessonsFromCsv, parseCSV } from "../shared/core/lessons";
 import { buildDemoDatabase, DEMO_PASSWORD, emptyDatabase } from "../shared/core/seed";
 import { gradeQuestion } from "../shared/core/grading";
-import type { Database } from "../shared/core/types";
+import { env } from "./helpers";
 
 const lessons = ["science", "technology", "engineering", "mathematics"].flatMap((n) =>
   lessonsFromCsv(fs.readFileSync(`data/lessons/${n}.csv`, "utf-8")),
 );
 let n = 0;
-const env = (get: () => Database, set: (d: Database) => void) => ({
-  load: async () => get(),
-  save: async (d: Database) => set(d),
-  hashPassword: async (p: string) => `h:${p}`,
-  verifyPassword: async (p: string, h: string) => h === `h:${p}`,
-  newId: () => `id${++n}`,
-});
 
 async function demoApi() {
-  let db = await buildDemoDatabase(lessons, async (p) => `h:${p}`, () => `id${++n}`);
-  const api = createApi(env(() => db, (d) => (db = d)));
+  const store = memoryStore(await buildDemoDatabase(lessons, async (p) => `h:${p}`, () => `id${++n}`));
+  const db = () => store.current();
+  const api = createApi(env(store));
   const session: Session = {};
   const call = (method: string, path: string, body?: unknown) => api({ method, path, body, session });
   const as = async (username: string) => {
@@ -29,7 +23,7 @@ async function demoApi() {
     const r = await call("POST", "/api/login", { username, password: DEMO_PASSWORD });
     assert.equal(r.status, 200, `login ${username}`);
   };
-  return { call, as, db: () => db };
+  return { call, as, db, api, session };
 }
 
 test("CSV parser handles quoted multi-line fields and escaped quotes", () => {
@@ -96,8 +90,7 @@ test("teacher review flows through to the parent's report", async () => {
 });
 
 test("first registered account becomes admin; later self-registrations are students", async () => {
-  let db = emptyDatabase(lessons);
-  const api = createApi(env(() => db, (d) => (db = d)));
+  const api = createApi(env(memoryStore(emptyDatabase(lessons))));
   const r1: any = await api({ method: "POST", path: "/api/register", body: { username: "boss", password: "password1" }, session: {} });
   assert.equal(r1.body.role, "admin");
   const r2: any = await api({ method: "POST", path: "/api/register", body: { username: "kid", password: "password1", role: "admin" }, session: {} });
@@ -109,4 +102,52 @@ test("admin can link a parent to a child", async () => {
   await as("admin");
   const r: any = await call("PATCH", "/api/admin/users/u-parent2", { childIds: ["u-jordan", "u-riley", "not-a-student"] });
   assert.deepEqual(r.body.childIds, ["u-jordan", "u-riley"]);
+});
+
+test("password reset: token works once, signs in, and revokes other sessions", async () => {
+  const { call, api } = await demoApi();
+  const other: Session = {};
+  await api({ method: "POST", path: "/api/login", body: { username: "parent", password: DEMO_PASSWORD }, session: other });
+  const forgot: any = (await call("POST", "/api/password/forgot", { login: "parent@example.org" })).body;
+  const token = forgot.demoLink.split("/reset/")[1];
+  const unknown: any = (await call("POST", "/api/password/forgot", { login: "nobody" })).body;
+  assert.equal(unknown.message, forgot.message, "same answer for unknown accounts");
+  assert.equal((await call("POST", "/api/password/reset", { token, password: "short" })).status, 400);
+  assert.equal((await call("POST", "/api/password/reset", { token, password: "brand-new-pass" })).status, 200);
+  assert.equal((await call("GET", "/api/auth/user")).status, 200, "reset signs you in");
+  assert.equal((await call("POST", "/api/password/reset", { token, password: "another-pass" })).status, 400, "token is single-use");
+  assert.equal((await api({ method: "GET", path: "/api/auth/user", session: other })).status, 401, "old session revoked");
+  await call("POST", "/api/logout");
+  assert.equal((await call("POST", "/api/login", { username: "parent", password: "brand-new-pass" })).status, 200);
+});
+
+test("changing your own password keeps this session and ends the others", async () => {
+  const { call, as, api } = await demoApi();
+  const other: Session = {};
+  await api({ method: "POST", path: "/api/login", body: { username: "teacher", password: DEMO_PASSWORD }, session: other });
+  await as("teacher");
+  assert.equal((await call("POST", "/api/me/password", { currentPassword: "wrong", newPassword: "whatever123" })).status, 400);
+  assert.equal((await call("POST", "/api/me/password", { currentPassword: DEMO_PASSWORD, newPassword: "whatever123" })).status, 200);
+  assert.equal((await call("GET", "/api/teacher/overview")).status, 200);
+  assert.equal((await api({ method: "GET", path: "/api/teacher/overview", session: other })).status, 401);
+});
+
+test("deactivating a user ends their sessions; admin reset links work", async () => {
+  const { call, as, api } = await demoApi();
+  const kid: Session = {};
+  await api({ method: "POST", path: "/api/login", body: { username: "jordan", password: DEMO_PASSWORD }, session: kid });
+  await as("admin");
+  const r: any = (await call("POST", "/api/admin/users/u-jordan/reset-link")).body;
+  assert.match(r.link, /\/reset\//);
+  await call("PATCH", "/api/admin/users/u-jordan", { active: false });
+  assert.equal((await api({ method: "GET", path: "/api/me/assignments", session: kid })).status, 401);
+});
+
+test("a failed request leaves no partial changes", async () => {
+  const { call, as, db } = await demoApi();
+  await as("student");
+  const before = db().progress.length;
+  // Starts progress implicitly, then fails validation: nothing should be saved.
+  assert.equal((await call("POST", "/api/progress", { lessonId: "eng003", isCompleted: true })).status, 400);
+  assert.equal(db().progress.length, before);
 });
