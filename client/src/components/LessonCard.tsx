@@ -1,105 +1,50 @@
-import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
-import type { Lesson } from "@shared/schema";
+import { Card, CardContent } from "@/components/ui/card";
+import { CategoryIcon, ProgressBar, StatusBadge } from "@/components/widgets";
 
-interface LessonCardProps {
-  lesson: Lesson;
-  progress?: number;
-  status?: "completed" | "in-progress" | "not-started";
-  onContinue?: () => void;
-  onStart?: () => void;
+export interface LessonSummary {
+  id: string;
+  title: string;
+  description: string;
+  categoryId: string;
+  difficulty: string;
+  estimatedDuration: number;
+  averageRating: number;
+  totalRatings: number;
+  questionCount: number;
 }
 
-export function LessonCard({ 
-  lesson, 
-  progress = 0, 
-  status = "not-started", 
-  onContinue, 
-  onStart 
-}: LessonCardProps) {
-  const getStatusBadge = () => {
-    switch (status) {
-      case "completed":
-        return <Badge className="bg-green-100 text-green-700">Completed</Badge>;
-      case "in-progress":
-        return <Badge className="bg-orange-100 text-orange-700">In Progress</Badge>;
-      default:
-        return <Badge className="bg-blue-100 text-blue-700">Not Started</Badge>;
-    }
-  };
+const difficultyTone: Record<string, string> = {
+  easy: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300",
+  medium: "bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-300",
+  hard: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300",
+};
 
-  const getIcon = () => {
-    switch (lesson.categoryId) {
-      case "science":
-        return "fas fa-microscope text-blue-600";
-      case "technology":
-        return "fas fa-laptop-code text-purple-600";
-      case "engineering":
-        return "fas fa-cogs text-green-600";
-      case "mathematics":
-        return "fas fa-calculator text-orange-600";
-      default:
-        return "fas fa-book text-gray-600";
-    }
-  };
-
+export function LessonCard({ lesson, status, score }: { lesson: LessonSummary; status?: string; score?: number }) {
   return (
-    <div className="bg-card rounded-xl p-6 border border-border shadow-sm" data-testid={`lesson-card-${lesson.id}`}>
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-            <i className={getIcon()}></i>
+    <Link href={`/lesson/${lesson.id}`} className="block" data-testid={`lesson-card-${lesson.id}`}>
+      <Card className="h-full hover:shadow-md transition-shadow">
+        <CardContent className="p-5 flex flex-col h-full gap-3">
+          <div className="flex items-start gap-3">
+            <CategoryIcon categoryId={lesson.categoryId} />
+            <div className="min-w-0 flex-1">
+              <div className="font-semibold leading-snug">{lesson.title}</div>
+              <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                <Badge variant="outline" className={`${difficultyTone[lesson.difficulty] ?? ""} border-0 capitalize`}>{lesson.difficulty}</Badge>
+                {status && <StatusBadge status={status} />}
+              </div>
+            </div>
           </div>
-          <div>
-            <h4 className="font-semibold" data-testid={`lesson-title-${lesson.id}`}>{lesson.title}</h4>
-            <p className="text-sm text-muted-foreground" data-testid={`lesson-meta-${lesson.id}`}>
-              {lesson.categoryId} • {lesson.difficulty}
-            </p>
+          <p className="text-sm text-muted-foreground flex-1">{lesson.description}</p>
+          {status === "in_progress" && score !== undefined && <ProgressBar value={score} />}
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <span><i className="fas fa-clock mr-1" />{lesson.estimatedDuration} min</span>
+            {lesson.questionCount > 0 && <span><i className="fas fa-question-circle mr-1" />{lesson.questionCount} questions</span>}
+            {lesson.totalRatings > 0 && <span><i className="fas fa-star text-amber-400 mr-1" />{lesson.averageRating} ({lesson.totalRatings})</span>}
           </div>
-        </div>
-        <span data-testid={`lesson-status-${lesson.id}`}>{getStatusBadge()}</span>
-      </div>
-      
-      <p className="text-sm text-muted-foreground mb-4" data-testid={`lesson-description-${lesson.id}`}>
-        {lesson.description}
-      </p>
-      
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-          <i className="fas fa-clock"></i>
-          <span data-testid={`lesson-duration-${lesson.id}`}>{lesson.estimatedDuration} min</span>
-          {status === "in-progress" && (
-            <>
-              <i className="fas fa-signal"></i>
-              <span data-testid={`lesson-progress-${lesson.id}`}>Progress: {progress}%</span>
-            </>
-          )}
-        </div>
-        
-        {status === "in-progress" ? (
-          <Button 
-            onClick={onContinue}
-            data-testid={`button-continue-${lesson.id}`}
-          >
-            Continue
-          </Button>
-        ) : status === "not-started" ? (
-          <Button 
-            variant="secondary"
-            onClick={onStart}
-            data-testid={`button-start-${lesson.id}`}
-          >
-            Start Lesson
-          </Button>
-        ) : (
-          <Button 
-            variant="outline"
-            data-testid={`button-review-${lesson.id}`}
-          >
-            Review
-          </Button>
-        )}
-      </div>
-    </div>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }

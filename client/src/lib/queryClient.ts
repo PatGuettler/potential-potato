@@ -1,53 +1,44 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
-async function throwIfResNotOk(res: Response) {
-  if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+export class ApiError extends Error {
+  constructor(public status: number, message: string) {
+    super(message);
   }
 }
 
-export async function apiRequest(
-  method: string,
-  url: string,
-  data?: unknown | undefined,
-): Promise<Response> {
+async function parse(res: Response) {
+  const text = await res.text();
+  const body = text ? JSON.parse(text) : null;
+  if (!res.ok) throw new ApiError(res.status, body?.message || res.statusText);
+  return body;
+}
+
+/** Calls the API and returns the parsed JSON body, throwing ApiError with the server's message on failure. */
+export async function apiRequest<T = any>(method: string, url: string, data?: unknown): Promise<T> {
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
+    headers: data !== undefined ? { "Content-Type": "application/json" } : {},
+    body: data !== undefined ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
-
-  await throwIfResNotOk(res);
-  return res;
+  return parse(res);
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
-export const getQueryFn: <T>(options: {
-  on401: UnauthorizedBehavior;
-}) => QueryFunction<T> =
-  ({ on401: unauthorizedBehavior }) =>
+export const getQueryFn: <T>(options: { on401: UnauthorizedBehavior }) => QueryFunction<T> =
+  ({ on401 }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
-      credentials: "include",
-    });
-
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
-    }
-
-    await throwIfResNotOk(res);
-    return await res.json();
+    const res = await fetch(queryKey.join("/") as string, { credentials: "include" });
+    if (on401 === "returnNull" && res.status === 401) return null;
+    return parse(res);
   };
 
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),
-      refetchInterval: false,
       refetchOnWindowFocus: false,
-      staleTime: Infinity,
+      staleTime: 30_000,
       retry: false,
     },
     mutations: {
@@ -55,3 +46,9 @@ export const queryClient = new QueryClient({
     },
   },
 });
+
+/** Swaps the signed-in user and drops every other cached response so nothing leaks between accounts. */
+export function setSignedInUser(user: unknown) {
+  queryClient.setQueryData(["/api/auth/user"], user);
+  queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== "/api/auth/user" });
+}

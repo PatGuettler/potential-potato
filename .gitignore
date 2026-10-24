@@ -60,7 +60,12 @@ terraform.rc
 # ==========================
 # Data / local files
 # ==========================
-data/progress/questions.csv
+# Live database and legacy account files: never commit real user data.
+data/db.json
+data/db.json.tmp
+data/progress/
+users.json
+*cookies.txt
 
 # ==========================
 # OS / Editor

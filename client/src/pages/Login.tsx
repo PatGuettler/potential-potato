@@ -1,200 +1,131 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useLocation } from "wouter";
-import { LoginHeader } from "@/components/LoginHeader";
-import { CreateUser } from "@/components/CreateUser";
 import { FormField } from "@/components/ui/FormField";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, setSignedInUser } from "@/lib/queryClient";
+import { isDemo } from "@/demo/backend";
+import { DEMO_PASSWORD, demoAccounts } from "@shared/core/seed";
+import type { PublicUser, Role } from "@shared/core/types";
+
+const roleIcon: Record<Role, string> = {
+  admin: "fas fa-user-shield text-rose-600",
+  teacher: "fas fa-chalkboard-teacher text-blue-600",
+  parent: "fas fa-people-roof text-emerald-600",
+  student: "fas fa-user-graduate text-violet-600",
+};
 
 export default function Login() {
   const { toast } = useToast();
-  const [, setLocation] = useLocation();
-  const [isRegistering, setIsRegistering] = useState(false);
-  
-  const [formData, setFormData] = useState({
-    username: "",
-    password: "",
-    email: "",
-    firstName: "",
-    lastName: "",
-    role: "student" as "student" | "teacher" | "admin"
+  const [, navigate] = useLocation();
+  const [mode, setMode] = useState<"login" | "register">("login");
+  const [form, setForm] = useState({ username: "", password: "", firstName: "", lastName: "", email: "" });
+  const set = (field: keyof typeof form) => (value: string) => setForm((f) => ({ ...f, [field]: value }));
+
+  const { data: setup } = useQuery<{ setupNeeded: boolean }>({ queryKey: ["/api/auth/setup-needed"] });
+  const { data: org } = useQuery<{ organizationName: string }>({ queryKey: ["/api/org"] });
+  const registering = mode === "register" || !!setup?.setupNeeded;
+
+  const auth = useMutation({
+    mutationFn: (payload: { path: string; body: object }) => apiRequest<PublicUser>("POST", payload.path, payload.body),
+    onSuccess: (user) => {
+      setSignedInUser(user);
+      navigate("/");
+    },
+    onError: (error: Error) => toast({ title: "Couldn't sign in", description: error.message, variant: "destructive" }),
   });
 
-  // Check if setup is needed (no users exist)
-  type SetupInfo = { setupNeeded: boolean };
-  const { data: setupInfo, isLoading } = useQuery<SetupInfo>({
-    queryKey: ["/api/auth/setup-needed"],
-  });
-
-  useEffect(() => {
-    if (setupInfo?.setupNeeded) {
-      setIsRegistering(true);
-    }
-  }, [setupInfo]);
-
-  const loginMutation = useMutation({
-    mutationFn: async (credentials: { username: string; password: string }) => {
-      return await apiRequest("POST", "/api/login", credentials);
-    },
-    onSuccess: async () => {
-      toast({
-        title: "Success",
-        description: "Logged in successfully!",
-      });
-      // Refresh authentication state
-      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      setLocation("/");
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Login failed. Please check your credentials.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const registerMutation = useMutation({
-    mutationFn: async (userData: typeof formData) => {
-      return await apiRequest("POST", "/api/register", userData);
-    },
-    onSuccess: async () => {
-      toast({
-        title: "Success",
-        description: "Account created successfully!",
-      });
-      // Refresh authentication state
-      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      setLocation("/");
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Registration failed. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.username || !formData.password) {
-      toast({
-        title: "Error",
-        description: "Username and password are required.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (isRegistering) {
-      registerMutation.mutate(formData);
-    } else {
-      loginMutation.mutate({
-        username: formData.username,
-        password: formData.password,
-      });
-    }
+    if (registering) auth.mutate({ path: "/api/register", body: form });
+    else auth.mutate({ path: "/api/login", body: { username: form.username, password: form.password } });
   };
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  type FieldProps = {
-    id: string;
-    label: string;
-    type?: string;
-    value: string;
-    onChange: (value: string) => void;
-    placeholder?: string;
-    required?: boolean;
-    dataTestId?: string;
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  const quickLogin = (username: string) => auth.mutate({ path: "/api/login", body: { username, password: DEMO_PASSWORD } });
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-      <Card className="w-full max-w-md">
-        <LoginHeader setupNeeded={!!setupInfo?.setupNeeded} isRegistering={isRegistering} />
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <FormField
-              id="username"
-              label="Username"
-              value={formData.username}
-              onChange={(value) => handleInputChange("username", value)}
-              placeholder="Enter your username"
-              required
-              dataTestId="input-username"
-            />
-            
-            <FormField
-              id="password"
-              label="Password"
-              type="password"
-              value={formData.password}
-              onChange={(value) => handleInputChange("password", value)}
-              placeholder="Enter your password"
-              required
-              dataTestId="input-password"
-            />
-            <CreateUser 
-              isRegistering={isRegistering}
-              formData={formData}
-              handleInputChange={handleInputChange}
-            />
-
-            <Button 
-              type="submit" 
-              className="w-full"
-              disabled={loginMutation.isPending || registerMutation.isPending}
-              data-testid="button-submit"
-            >
-              {(loginMutation.isPending || registerMutation.isPending) ? (
-                <div className="flex items-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  {isRegistering ? "Creating Account..." : "Signing In..."}
-                </div>
-              ) : (
-                isRegistering ? "Create Account" : "Sign In"
-              )}
-            </Button>
-          </form>
-
-          {!setupInfo?.setupNeeded && (
-            <div className="mt-4 text-center">
-              <Button 
-                variant="ghost" 
-                onClick={() => setIsRegistering(!isRegistering)}
-                data-testid="button-toggle-mode"
-              >
-                {isRegistering 
-                  ? "Already have an account? Sign in" 
-                  : "Don't have an account? Create one"
-                }
-              </Button>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-background to-violet-50 dark:from-slate-950 dark:via-background dark:to-slate-900 flex items-center justify-center px-4 py-10">
+      <div className={`w-full ${isDemo ? "max-w-4xl grid md:grid-cols-2 gap-6" : "max-w-md"}`}>
+        <Card>
+          <CardHeader className="text-center">
+            <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center mx-auto mb-2">
+              <i className="fas fa-atom text-primary-foreground text-xl" />
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <CardTitle className="text-2xl">{org?.organizationName ?? "STEM Academy"}</CardTitle>
+            <CardDescription>
+              {setup?.setupNeeded
+                ? "Welcome! Create the administrator account to get started."
+                : registering
+                  ? "Create a student account"
+                  : "Sign in to continue learning"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={submit} className="space-y-4">
+              <FormField id="username" label="Username" value={form.username} onChange={set("username")} required dataTestId="input-username" />
+              <FormField id="password" label="Password" type="password" value={form.password} onChange={set("password")} required dataTestId="input-password" />
+              {registering && (
+                <>
+                  <div className="grid grid-cols-2 gap-2">
+                    <FormField id="firstName" label="First name" value={form.firstName} onChange={set("firstName")} />
+                    <FormField id="lastName" label="Last name" value={form.lastName} onChange={set("lastName")} />
+                  </div>
+                  <FormField id="email" label="Email (optional)" type="email" value={form.email} onChange={set("email")} />
+                  <p className="text-xs text-muted-foreground">Passwords need at least 8 characters.</p>
+                </>
+              )}
+              <Button type="submit" className="w-full" disabled={auth.isPending} data-testid="button-submit">
+                {auth.isPending ? "Please wait…" : registering ? "Create account" : "Sign in"}
+              </Button>
+            </form>
+            {!setup?.setupNeeded && (
+              <div className="mt-4 text-center">
+                <Button variant="link" onClick={() => setMode(registering ? "login" : "register")} data-testid="button-toggle-mode">
+                  {registering ? "Already have an account? Sign in" : "New student? Create an account"}
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {isDemo && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Try a demo account</CardTitle>
+              <CardDescription>
+                One click signs you in. Every account uses the password <code className="px-1 rounded bg-muted">{DEMO_PASSWORD}</code>.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {demoAccounts.map((a) => (
+                <button
+                  key={a.username}
+                  onClick={() => quickLogin(a.username)}
+                  disabled={auth.isPending}
+                  className="w-full flex items-center gap-3 rounded-lg border border-border p-3 text-left hover:bg-muted/60 transition-colors disabled:opacity-60"
+                  data-testid={`demo-login-${a.username}`}
+                >
+                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+                    <i className={roleIcon[a.role]} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium">
+                      {a.label} <span className="text-xs text-muted-foreground font-normal">@{a.username}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">{a.blurb}</div>
+                  </div>
+                  <i className="fas fa-arrow-right text-muted-foreground" />
+                </button>
+              ))}
+              <p className="text-xs text-muted-foreground pt-2">
+                Everything runs in your browser and is saved locally. Use “Reset demo data” in the banner to start over.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }
