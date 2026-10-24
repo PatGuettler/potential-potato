@@ -35,25 +35,40 @@ const roleLabel: Record<Role, string> = {
 
 function useNav(role: Role | undefined) {
   const staff = role === "teacher" || role === "admin";
+  const parent = role === "parent";
   const { data: subs = [] } = useQuery<{ status: string }[]>({
     queryKey: ["/api/teacher/submissions"],
-    enabled: staff,
+    enabled: staff || parent,
   });
+  const { data: family } = useQuery<{ familyClassId: string | null }>({ queryKey: ["/api/family"], enabled: parent });
   const pending = subs.filter((s) => s.status === "pending").length;
 
-  const main: NavItem[] = [{ name: role === "parent" ? "My children" : "Dashboard", href: "/", icon: "fas fa-home" }];
-  if (staff) main.push({ name: "Review queue", href: "/reviews", icon: "fas fa-inbox", badge: pending || undefined });
+  const main: NavItem[] = [{ name: parent ? "Family dashboard" : "Dashboard", href: "/", icon: "fas fa-home" }];
+  if (parent) main.push({ name: "My family", href: "/family", icon: "fas fa-people-roof" });
+  if (parent && family?.familyClassId) main.push({ name: "Home-school gradebook", href: `/classes/${family.familyClassId}`, icon: "fas fa-table-list" });
+  if (staff || parent) main.push({ name: "Review queue", href: "/reviews", icon: "fas fa-inbox", badge: pending || undefined });
   if (role === "admin") main.push({ name: "Users & families", href: "/admin/users", icon: "fas fa-users-cog" });
   if (role === "student") main.push({ name: "My report", href: "/me/report", icon: "fas fa-chart-line" });
   main.push({ name: "Course catalog", href: "/courses", icon: "fas fa-graduation-cap" });
 
-  const content: NavItem[] = staff
+  const records: NavItem[] = parent || staff
+    ? [
+        { name: "Attendance & hours", href: "/records/attendance", icon: "fas fa-calendar-check" },
+        { name: "Transcripts", href: "/records/transcript", icon: "fas fa-scroll" },
+        { name: "Portfolios", href: "/records/portfolio", icon: "fas fa-folder-open" },
+      ]
+    : [];
+  const coop: NavItem[] = [
+    { name: "Co-op classes", href: "/coop", icon: "fas fa-users" },
+    { name: "Calendar", href: "/calendar", icon: "fas fa-calendar-days" },
+  ];
+  const content: NavItem[] = staff || parent
     ? [
         { name: "All lessons", href: "/library", icon: "fas fa-book-open" },
         { name: "New lesson", href: "/lesson-creation", icon: "fas fa-plus-circle" },
       ]
     : [];
-  return { main, content };
+  return { main, records, coop, content };
 }
 
 function NavGroup({ label, items }: { label: string; items: NavItem[] }) {
@@ -84,7 +99,7 @@ function NavGroup({ label, items }: { label: string; items: NavItem[] }) {
 export function AppShell({ title, subtitle, actions, children }: { title: string; subtitle?: ReactNode; actions?: ReactNode; children: ReactNode }) {
   const { user } = useAuth();
   const [, navigate] = useLocation();
-  const { main, content } = useNav(user?.role);
+  const { main, records, coop, content } = useNav(user?.role);
   const { data: org } = useQuery<{ organizationName: string }>({ queryKey: ["/api/org"], staleTime: Infinity });
 
   const logout = async () => {
@@ -109,6 +124,8 @@ export function AppShell({ title, subtitle, actions, children }: { title: string
         </SidebarHeader>
         <SidebarContent>
           <NavGroup label="Overview" items={main} />
+          <NavGroup label="Records" items={records} />
+          <NavGroup label="Co-op" items={coop} />
           <NavGroup label="Content" items={content} />
         </SidebarContent>
         <SidebarFooter>

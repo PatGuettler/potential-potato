@@ -21,7 +21,7 @@ type Grade = { status: string; score: number | null; overdue: boolean };
 type Detail = {
   classroom: ClassCard;
   students: (PublicUser & { summary: { averageScore: number | null; assignmentsOverdue: number; lastActive: string | null }; grades: Record<string, Grade> })[];
-  assignments: { id: string; lessonId: string; lessonTitle: string; categoryId?: string; dueDate: string; note?: string; completedCount: number; averageScore: number | null }[];
+  assignments: { id: string; lessonId: string; lessonTitle: string; categoryId?: string; dueDate: string; note?: string; completedCount: number; targetCount: number; targetNames?: string[]; averageScore: number | null }[];
 };
 
 function GradeCell({ g }: { g?: Grade }) {
@@ -34,7 +34,8 @@ function GradeCell({ g }: { g?: Grade }) {
 
 const refresh = () => queryClient.invalidateQueries();
 
-function AssignDialog({ classroomId }: { classroomId: string }) {
+function AssignDialog({ classroomId, students }: { classroomId: string; students: { id: string; firstName: string }[] }) {
+  const [who, setWho] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [lessonId, setLessonId] = useState("");
@@ -53,7 +54,7 @@ function AssignDialog({ classroomId }: { classroomId: string }) {
   ];
   const assign = useMutation({
     // Due at the end of the chosen day, local time.
-    mutationFn: () => apiRequest("POST", `/api/teacher/classrooms/${classroomId}/assignments`, { lessonId, dueDate: new Date(`${due}T23:59`).toISOString(), note }),
+    mutationFn: () => apiRequest("POST", `/api/teacher/classrooms/${classroomId}/assignments`, { lessonId, dueDate: new Date(`${due}T23:59`).toISOString(), note, studentIds: Array.from(who) }),
     onSuccess: () => {
       toast({ title: "Lesson assigned" });
       setOpen(false);
@@ -80,6 +81,20 @@ function AssignDialog({ classroomId }: { classroomId: string }) {
               </SelectContent>
             </Select>
           </div>
+          {students.length > 1 && (
+            <div className="space-y-1.5">
+              <Label>For</Label>
+              <div className="flex flex-wrap gap-3">
+                {students.map((s) => (
+                  <label key={s.id} className="flex items-center gap-1.5 text-sm">
+                    <input type="checkbox" checked={who.has(s.id)} onChange={(e) => setWho((cur) => { const n = new Set(cur); e.target.checked ? n.add(s.id) : n.delete(s.id); return n; })} />
+                    {s.firstName}
+                  </label>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">Leave all unchecked to assign to everyone.</p>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="due">Due date</Label>
             <Input id="due" type="date" value={due} onChange={(e) => setDue(e.target.value)} required />
@@ -176,7 +191,7 @@ export default function ClassroomDetail() {
       </>}
       actions={
         <>
-          <AssignDialog classroomId={classroom.id} />
+          <AssignDialog classroomId={classroom.id} students={students} />
           <AddStudentDialog classroomId={classroom.id} enrolled={new Set(students.map((s) => s.id))} />
         </>
       }
@@ -268,11 +283,12 @@ export default function ClassroomDetail() {
                           <Link href={`/lesson/${a.lessonId}`} className="font-medium hover:underline">{a.lessonTitle}</Link>
                           <div className="text-xs text-muted-foreground">
                             Due {shortDate(a.dueDate)} ({relativeTime(a.dueDate)}){past ? " · closed" : ""}
-                            {a.note ? ` · “${a.note}”` : ""}
+                            {a.note ? ` · ${a.note}` : ""}
+                            {a.targetNames ? ` · for ${a.targetNames.join(", ")}` : ""}
                           </div>
                         </div>
                         <div className="text-right text-sm">
-                          <div className="font-medium">{a.completedCount}/{students.length} done</div>
+                          <div className="font-medium">{a.completedCount}/{a.targetCount} done</div>
                           <div className="text-xs text-muted-foreground">avg {pct(a.averageScore)}</div>
                         </div>
                         <Button size="icon" variant="ghost" title="Remove assignment" onClick={() => confirm("Remove this assignment?") && mutate.mutate({ method: "DELETE", url: `/api/teacher/assignments/${a.id}` })}>

@@ -22,7 +22,8 @@ export default function Login() {
   const [, navigate] = useLocation();
   const [mode, setMode] = useState<"login" | "register" | "forgot">("login");
   const [forgot, setForgot] = useState<{ message: string; demoLink?: string } | null>(null);
-  const [form, setForm] = useState({ username: "", password: "", firstName: "", lastName: "", email: "" });
+  const [form, setForm] = useState({ username: "", password: "", firstName: "", lastName: "", email: "", schoolName: "" });
+  const [accountType, setAccountType] = useState<"family" | "student">("family");
   const set = (field: keyof typeof form) => (value: string) => setForm((f) => ({ ...f, [field]: value }));
 
   const { data: setup } = useQuery<{ setupNeeded: boolean }>({ queryKey: ["/api/auth/setup-needed"] });
@@ -40,7 +41,7 @@ export default function Login() {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (registering) auth.mutate({ path: "/api/register", body: form });
+    if (registering) auth.mutate({ path: "/api/register", body: { ...form, accountType } });
     else auth.mutate({ path: "/api/login", body: { username: form.username, password: form.password } });
   };
 
@@ -67,7 +68,7 @@ export default function Login() {
                 : mode === "forgot"
                   ? "Reset your password"
                   : registering
-                  ? "Create a student account"
+                  ? "Create your account"
                   : "Sign in to continue learning"}
             </CardDescription>
           </CardHeader>
@@ -104,11 +105,25 @@ export default function Login() {
               <FormField id="password" label="Password" type="password" value={form.password} onChange={set("password")} required dataTestId="input-password" />
               {registering && (
                 <>
+                  {!setup?.setupNeeded && (
+                    <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Account type">
+                      {([["family", "fas fa-people-roof", "Homeschool family", "Teach your kids, keep records"], ["student", "fas fa-user-graduate", "Student", "Join a class with a code"]] as const).map(([v, icon, title, sub]) => (
+                        <button key={v} type="button" role="radio" aria-checked={accountType === v} onClick={() => setAccountType(v)} className={`rounded-lg border p-3 text-left ${accountType === v ? "border-primary bg-primary/5" : "border-border"}`} data-testid={`account-${v}`}>
+                          <i className={`${icon} text-primary mb-1`} />
+                          <div className="text-sm font-medium">{title}</div>
+                          <div className="text-xs text-muted-foreground">{sub}</div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   <div className="grid grid-cols-2 gap-2">
                     <FormField id="firstName" label="First name" value={form.firstName} onChange={set("firstName")} />
                     <FormField id="lastName" label="Last name" value={form.lastName} onChange={set("lastName")} />
                   </div>
-                  <FormField id="email" label="Email (optional)" type="email" value={form.email} onChange={set("email")} />
+                  <FormField id="email" label="Email (optional, for password resets)" type="email" value={form.email} onChange={set("email")} />
+                  {accountType === "family" && !setup?.setupNeeded && (
+                    <FormField id="schoolName" label="Home school name (optional)" value={form.schoolName} onChange={set("schoolName")} />
+                  )}
                   <p className="text-xs text-muted-foreground">Passwords need at least 8 characters.</p>
                 </>
               )}
@@ -122,7 +137,7 @@ export default function Login() {
                   <Button variant="link" size="sm" onClick={() => setMode("forgot")} data-testid="forgot-link">Forgot your password?</Button>
                 )}
                 <Button variant="link" size="sm" onClick={() => setMode(registering ? "login" : "register")} data-testid="button-toggle-mode">
-                  {registering ? "Already have an account? Sign in" : "New student? Create an account"}
+                  {registering ? "Already have an account? Sign in" : "New here? Create a family or student account"}
                 </Button>
               </div>
             )}

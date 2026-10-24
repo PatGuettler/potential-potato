@@ -24,8 +24,15 @@ import ResetPassword from "@/pages/ResetPassword";
 import Account from "@/pages/Account";
 import CourseCatalog from "@/pages/CourseCatalog";
 import CourseDetail from "@/pages/CourseDetail";
+import FamilyPage from "@/pages/FamilyPage";
+import AttendancePage from "@/pages/records/AttendancePage";
+import TranscriptPage from "@/pages/records/TranscriptPage";
+import PortfolioPage from "@/pages/records/PortfolioPage";
+import CoopPage from "@/pages/CoopPage";
+import CalendarPage from "@/pages/CalendarPage";
 
 const STAFF: Role[] = ["teacher", "admin"];
+const TEACHING: Role[] = ["teacher", "admin", "parent"];
 
 /** Renders the page only for the given roles; everyone else gets the not-found page. */
 function only(roles: Role[], Page: ComponentType<any>) {
@@ -36,10 +43,14 @@ function only(roles: Role[], Page: ComponentType<any>) {
 }
 
 const guarded = {
-  library: only(STAFF, Library),
-  editor: only(STAFF, LessonEditor),
-  classroom: only(STAFF, ClassroomDetail),
-  reviews: only(STAFF, ReviewQueue),
+  library: only(TEACHING, Library),
+  editor: only(TEACHING, LessonEditor),
+  classroom: only(TEACHING, ClassroomDetail),
+  reviews: only(TEACHING, ReviewQueue),
+  family: only(["parent", "admin"], FamilyPage),
+  attendance: only(["parent", "admin", "teacher"], AttendancePage),
+  transcript: only(["parent", "admin", "teacher"], TranscriptPage),
+  portfolio: only(["parent", "admin", "teacher"], PortfolioPage),
   users: only(["admin"], UserManagement),
   report: only(["teacher", "admin", "parent"], StudentReport),
   myReport: only(["student"], StudentReport),
@@ -71,6 +82,12 @@ function Routes() {
       <Route path="/reviews" component={guarded.reviews} />
       <Route path="/admin/users" component={guarded.users} />
       <Route path="/account" component={Account} />
+      <Route path="/family" component={guarded.family} />
+      <Route path="/records/attendance/:studentId?" component={guarded.attendance} />
+      <Route path="/records/transcript/:studentId?" component={guarded.transcript} />
+      <Route path="/records/portfolio/:studentId?" component={guarded.portfolio} />
+      <Route path="/coop" component={CoopPage} />
+      <Route path="/calendar" component={CalendarPage} />
       <Route component={NotFound} />
     </Switch>
   );

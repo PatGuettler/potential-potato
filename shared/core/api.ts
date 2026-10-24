@@ -5,6 +5,8 @@
  * GitHub Pages demo runs the exact same code in the browser against localStorage.
  */
 import type {
+  AttendanceEntry,
+  FamilySettings,
   Activity,
   ActivityType,
   Assignment,
@@ -19,7 +21,7 @@ import type {
   Role,
   User,
 } from "./types";
-import { difficultyLevels, userRoles } from "./types";
+import { difficultyLevels, gradePoints, letterGrade, parseGrade, schoolYearOf, userRoles } from "./types";
 import { lessonQuestions, parseStructuredContent } from "./lessons";
 import { gradeQuestion, scoreWrittenResponse } from "./grading";
 
@@ -121,6 +123,9 @@ interface Route {
 const MAX_ACTIVITY = 1000;
 const ALL: readonly Role[] = userRoles;
 const STAFF: readonly Role[] = ["teacher", "admin"];
+/** Anyone who can teach: co-op/school teachers, admins, and homeschool parents (for their own children). */
+const TEACHING: readonly Role[] = ["teacher", "admin", "parent"];
+const FAMILY: readonly Role[] = ["parent", "admin"];
 
 // ---------------------------------------------------------------- helpers
 
@@ -217,10 +222,54 @@ function visibleStudentIds(db: Database, user: User): Set<string> {
     case "teacher":
       return new Set(db.classrooms.filter((c) => c.teacherId === user.id).flatMap((c) => c.studentIds));
     case "parent":
-      return new Set(user.childIds);
+      // Their own children, plus students in any co-op class they volunteer to teach.
+      return new Set([...user.childIds, ...db.classrooms.filter((c) => c.teacherId === user.id).flatMap((c) => c.studentIds)]);
     default:
       return new Set([user.id]);
   }
+}
+
+/** Parents who share at least one child with this parent (including the parent themself). */
+function coParents(db: Database, user: User): User[] {
+  if (user.childIds.length === 0) return [user];
+  const kids = new Set(user.childIds);
+  return db.users.filter((u) => u.id === user.id || ((u.role === "parent" || u.role === "admin") && u.childIds.some((id) => kids.has(id))));
+}
+
+function canTeachClass(db: Database, user: User, c: Classroom) {
+  if (user.role === "admin" || c.teacherId === user.id) return true;
+  // Co-parents share their family's home-school class.
+  return !!c.isFamily && coParents(db, user).some((p) => p.id === c.teacherId);
+}
+
+function defaultFamily(user: User): FamilySettings {
+  return { schoolName: `${user.lastName || user.firstName || user.username} Family School`, schoolYearStart: "08-01", requiredDays: 180 };
+}
+
+/** The home-school class a parent's children belong to, created on first use. */
+function ensureFamilyClass(db: Database, env: ApiEnv, user: User): Classroom {
+  const parents = coParents(db, user);
+  let c = db.classrooms.find((x) => x.isFamily && parents.some((p) => p.id === x.teacherId));
+  if (!c) {
+    c = {
+      id: env.newId(),
+      name: user.family?.schoolName ?? defaultFamily(user).schoolName,
+      subject: "Home school",
+      teacherId: user.id,
+      studentIds: [],
+      joinCode: joinCode(),
+      isFamily: true,
+      createdAt: now(),
+    };
+    db.classrooms.push(c);
+  }
+  for (const id of user.childIds) if (!c.studentIds.includes(id)) c.studentIds.push(id);
+  return c;
+}
+
+/** A parent of the student (for records like transcripts), falling back to the family settings default. */
+function familyFor(db: Database, studentId: string): FamilySettings | undefined {
+  return db.users.find((u) => u.childIds.includes(studentId) && u.family)?.family;
 }
 
 function assertCanViewStudent(db: Database, user: User, studentId: string) {
@@ -232,7 +281,7 @@ function assertCanViewStudent(db: Database, user: User, studentId: string) {
 
 function ownClassroom(db: Database, user: User, id: string): Classroom {
   const c = db.classrooms.find((x) => x.id === id) ?? fail(404, "Classroom not found");
-  if (user.role !== "admin" && c.teacherId !== user.id) fail(403, "Not your classroom");
+  if (!canTeachClass(db, user, c)) fail(403, "Not your classroom");
   return c;
 }
 
@@ -284,6 +333,14 @@ function log(db: Database, env: ApiEnv, entry: Omit<Activity, "id" | "createdAt"
   if (db.activity.length > MAX_ACTIVITY) db.activity.length = MAX_ACTIVITY;
 }
 
+/** Adds lesson time to today's automatic attendance entry for that lesson. */
+function logStudyTime(db: Database, env: ApiEnv, studentId: string, lesson: Lesson, minutes: number) {
+  const date = now().slice(0, 10);
+  const entry = db.attendance.find((a) => a.source === "auto" && a.studentId === studentId && a.date === date && a.lessonId === lesson.id);
+  if (entry) entry.minutes += minutes;
+  else db.attendance.push({ id: env.newId(), studentId, date, minutes, subject: lesson.categoryId, lessonId: lesson.id, source: "auto", loggedBy: studentId, createdAt: now() });
+}
+
 function assignmentStatus(db: Database, studentId: string, a: Assignment) {
   const p = getProgress(db, studentId, a.lessonId);
   const status = p?.status ?? "not_started";
@@ -295,7 +352,7 @@ function assignmentsForStudent(db: Database, studentId: string) {
   const classes = classroomsForStudent(db, studentId);
   const classIds = new Set(classes.map((c) => c.id));
   return db.assignments
-    .filter((a) => classIds.has(a.classroomId))
+    .filter((a) => classIds.has(a.classroomId) && (!a.studentIds || a.studentIds.includes(studentId)))
     .map((a) => {
       const lesson = db.lessons.find((l) => l.id === a.lessonId);
       const classroom = classes.find((c) => c.id === a.classroomId)!;
@@ -535,14 +592,18 @@ pub("POST", "/api/register", async ({ db, body, session, env, dirty }) => {
     firstName: str(body?.firstName, "firstName", { required: false, max: 80 }),
     lastName: str(body?.lastName, "lastName", { required: false, max: 80 }),
     email: str(body?.email, "email", { required: false, max: 200 }),
-    // The very first account administers the site; everyone after that self-registers as a student.
-    role: firstAccount ? "admin" : "student",
+    // The very first account administers the site. After that, families sign up as parents
+    // (homeschool) and students sign up to join a class.
+    role: firstAccount ? "admin" : body?.accountType === "family" ? "parent" : "student",
     childIds: [],
     active: true,
     sessionVersion: 1,
     createdAt: now(),
     lastLoginAt: now(),
   };
+  if (user.role === "parent" || user.role === "admin") {
+    user.family = { ...defaultFamily(user), schoolName: str(body?.schoolName, "schoolName", { required: false, max: 120 }) || defaultFamily(user).schoolName };
+  }
   db.users.push(user);
   session.userId = user.id;
   session.sv = user.sessionVersion;
@@ -631,7 +692,7 @@ on("GET", "/api/lessons/category/:categoryId", ALL, ({ db, user, params }) =>
 
 on("GET", "/api/lessons/:id", ALL, ({ db, user, params }) => lessonList(db, user, [findLesson(db, params.id)])[0]);
 
-on("POST", "/api/lessons", STAFF, ({ db, user, body, env, dirty }) => {
+on("POST", "/api/lessons", TEACHING, ({ db, user, body, env, dirty }) => {
   const lesson: Lesson = {
     ...(validateLessonBody(db, body ?? {}) as Lesson),
     id: env.newId(),
@@ -645,7 +706,7 @@ on("POST", "/api/lessons", STAFF, ({ db, user, body, env, dirty }) => {
   return lesson;
 });
 
-on("PUT", "/api/lessons/:id", STAFF, ({ db, user, params, body, dirty }) => {
+on("PUT", "/api/lessons/:id", TEACHING, ({ db, user, params, body, dirty }) => {
   const lesson = findLesson(db, params.id);
   if (user.role !== "admin" && lesson.authorId !== user.id) fail(403, "Only the author or an admin can edit this lesson");
   const before = `${lesson.courseId}/${lesson.unitId}`;
@@ -655,7 +716,7 @@ on("PUT", "/api/lessons/:id", STAFF, ({ db, user, params, body, dirty }) => {
   return lesson;
 });
 
-on("DELETE", "/api/lessons/:id", STAFF, ({ db, user, params, dirty }) => {
+on("DELETE", "/api/lessons/:id", TEACHING, ({ db, user, params, dirty }) => {
   const lesson = findLesson(db, params.id);
   if (user.role !== "admin" && lesson.authorId !== user.id) fail(403, "Only the author or an admin can delete this lesson");
   // Archive rather than delete so historical progress and grades stay intact.
@@ -786,6 +847,7 @@ on("POST", "/api/progress", ALL, ({ db, user, body, env, dirty }) => {
   const quiz = quizScore(db, user.id, lesson);
   const minutes = Math.max(0, Math.min(600, Math.round(Number(body?.timeSpent) || 0)));
   p.timeSpent += minutes;
+  if (minutes > 0) logStudyTime(db, env, user.id, lesson, minutes);
   p.lastAccessed = now();
   if (body?.isCompleted && !p.isCompleted) {
     if (quiz.total > 0 && quiz.correct < quiz.total) fail(400, "Answer every question correctly before completing the lesson");
@@ -860,7 +922,7 @@ on("GET", "/api/courses/:id", ALL, ({ db, user, params }) => {
   return { ...view, lessons: lessonInfo, classes };
 });
 
-on("POST", "/api/courses", STAFF, ({ db, user, body, env, dirty }) => {
+on("POST", "/api/courses", TEACHING, ({ db, user, body, env, dirty }) => {
   const course: Course = {
     id: env.newId(),
     ...validateCourseBody(body ?? {}),
@@ -875,7 +937,7 @@ on("POST", "/api/courses", STAFF, ({ db, user, body, env, dirty }) => {
   return course;
 });
 
-on("PUT", "/api/courses/:id", STAFF, ({ db, user, params, body, env, dirty }) => {
+on("PUT", "/api/courses/:id", TEACHING, ({ db, user, params, body, env, dirty }) => {
   const c = db.courses.find((x) => x.id === params.id && x.isActive) ?? fail(404, "Course not found");
   if (user.role !== "admin" && c.authorId !== user.id) fail(403, "Only the course author or an admin can edit this course");
   Object.assign(c, validateCourseBody(body ?? {}, c));
@@ -888,33 +950,70 @@ on("PUT", "/api/courses/:id", STAFF, ({ db, user, params, body, env, dirty }) =>
   return c;
 });
 
-on("POST", "/api/teacher/classrooms/:id/assign-unit", STAFF, ({ db, user, params, body, env, dirty }) => {
+/** Due dates for a run of lessons: one every `every` days, optionally skipping Saturdays and Sundays. */
+function scheduleDates(start: Date, count: number, every: number, skipWeekends: boolean): Date[] {
+  const out: Date[] = [];
+  const d = new Date(start);
+  const bump = () => {
+    if (!skipWeekends) return;
+    while (d.getUTCDay() === 0 || d.getUTCDay() === 6) d.setUTCDate(d.getUTCDate() + 1);
+  };
+  bump();
+  for (let i = 0; i < count; i++) {
+    out.push(new Date(d));
+    for (let k = 0; k < every; k++) {
+      d.setUTCDate(d.getUTCDate() + 1);
+      bump();
+    }
+  }
+  return out;
+}
+
+function pickStudents(c: Classroom, raw: unknown): string[] | undefined {
+  if (!Array.isArray(raw) || raw.length === 0) return undefined;
+  const ids = raw.map(String).filter((id) => c.studentIds.includes(id));
+  if (ids.length === 0) fail(400, "None of those students are in this class");
+  return ids.length === c.studentIds.length ? undefined : ids;
+}
+
+/** Assigns a unit (or a whole course when unitId is omitted) with spaced due dates. */
+function assignLessons(ctx: Ctx, wholeCourse: boolean) {
+  const { db, user, params, body, env, dirty } = ctx;
   const c = ownClassroom(db, user, params.id);
   const course = db.courses.find((x) => x.id === str(body?.courseId, "courseId", { max: 100 })) ?? fail(404, "Course not found");
-  const unit = course.units.find((u) => u.id === str(body?.unitId, "unitId", { max: 100 })) ?? fail(404, "Unit not found");
+  const units = wholeCourse ? course.units : [course.units.find((u) => u.id === str(body?.unitId, "unitId", { max: 100 })) ?? fail(404, "Unit not found")];
   const start = new Date(str(body?.startDate, "startDate", { max: 40 }));
   if (isNaN(start.getTime())) fail(400, "startDate is not a valid date");
-  const spacing = Math.max(1, Math.min(14, Math.round(Number(body?.spacingDays) || 2)));
-  const lessons = unit.lessonIds.map((id) => db.lessons.find((l) => l.id === id && l.isActive)).filter((l): l is Lesson => !!l);
-  if (lessons.length === 0) fail(400, "That unit has no lessons yet");
-  const already = new Set(db.assignments.filter((a) => a.classroomId === c.id).map((a) => a.lessonId));
-  const created = lessons.filter((l) => !already.has(l.id)).map((l, i) => {
-    const a: Assignment = {
+  const every = Math.max(1, Math.min(14, Math.round(Number(body?.spacingDays) || 2)));
+  const studentIds = pickStudents(c, body?.studentIds);
+  const lessons = units.flatMap((u) => u.lessonIds).map((id) => db.lessons.find((l) => l.id === id && l.isActive)).filter((l): l is Lesson => !!l);
+  if (lessons.length === 0) fail(400, wholeCourse ? "That course has no lessons yet" : "That unit has no lessons yet");
+  const who = studentIds ?? c.studentIds;
+  // Skip lessons every chosen student already has from this class.
+  const covered = (lessonId: string) => who.every((s) => db.assignments.some((a) => a.classroomId === c.id && a.lessonId === lessonId && (!a.studentIds || a.studentIds.includes(s))));
+  const todo = lessons.filter((l) => !covered(l.id));
+  const dates = scheduleDates(start, todo.length, every, body?.skipWeekends !== false);
+  todo.forEach((l, i) => {
+    const unit = course.units.find((u) => u.lessonIds.includes(l.id));
+    db.assignments.push({
       id: env.newId(),
       classroomId: c.id,
       lessonId: l.id,
-      dueDate: new Date(start.getTime() + i * spacing * 86400000).toISOString(),
-      note: `${course.title} · ${unit.title}`,
+      dueDate: dates[i].toISOString(),
+      note: `${course.title}${unit ? ` · ${unit.title}` : ""}`,
+      studentIds,
       assignedBy: user.id,
       createdAt: now(),
-    };
-    db.assignments.push(a);
-    return a;
+    });
   });
-  log(db, env, { type: "assignment_created", actorId: user.id, classroomId: c.id, message: `assigned ${created.length} lessons from "${unit.title}" to ${c.name}` });
+  const label = wholeCourse ? `"${course.title}"` : `"${units[0].title}"`;
+  log(db, env, { type: "assignment_created", actorId: user.id, classroomId: c.id, message: `assigned ${todo.length} lessons from ${label} to ${c.name}` });
   dirty();
-  return { created: created.length, skipped: lessons.length - created.length };
-});
+  return { created: todo.length, skipped: lessons.length - todo.length, lastDue: dates[dates.length - 1]?.toISOString() ?? null };
+}
+
+on("POST", "/api/teacher/classrooms/:id/assign-unit", TEACHING, (ctx) => assignLessons(ctx, false));
+on("POST", "/api/teacher/classrooms/:id/assign-course", TEACHING, (ctx) => assignLessons(ctx, true));
 
 // ---- student self-service
 
@@ -998,13 +1097,12 @@ on("GET", "/api/parent/children", ["parent"], ({ db, user }) =>
 
 // ---- teacher
 
+const targets = (c: Classroom, a: Assignment) => (a.studentIds ? c.studentIds.filter((s) => a.studentIds!.includes(s)) : c.studentIds);
+
 function classroomCard(db: Database, c: Classroom) {
   const assignments = db.assignments.filter((a) => a.classroomId === c.id);
-  const slots = assignments.length * c.studentIds.length;
-  const done = assignments.reduce(
-    (n, a) => n + c.studentIds.filter((s) => getProgress(db, s, a.lessonId)?.isCompleted).length,
-    0,
-  );
+  const slots = assignments.reduce((n, a) => n + targets(c, a).length, 0);
+  const done = assignments.reduce((n, a) => n + targets(c, a).filter((s) => getProgress(db, s, a.lessonId)?.isCompleted).length, 0);
   const teacher = findUser(db, c.teacherId);
   return {
     ...c,
@@ -1017,10 +1115,10 @@ function classroomCard(db: Database, c: Classroom) {
 }
 
 function teacherClassrooms(db: Database, user: User) {
-  return db.classrooms.filter((c) => user.role === "admin" || c.teacherId === user.id);
+  return db.classrooms.filter((c) => canTeachClass(db, user, c));
 }
 
-on("GET", "/api/teacher/overview", STAFF, ({ db, user }) => {
+on("GET", "/api/teacher/overview", TEACHING, ({ db, user }) => {
   const classes = teacherClassrooms(db, user);
   const students = visibleStudentIds(db, user);
   const classIds = new Set(classes.map((c) => c.id));
@@ -1041,9 +1139,9 @@ on("GET", "/api/teacher/overview", STAFF, ({ db, user }) => {
   };
 });
 
-on("GET", "/api/teacher/classrooms", STAFF, ({ db, user }) => teacherClassrooms(db, user).map((c) => classroomCard(db, c)));
+on("GET", "/api/teacher/classrooms", TEACHING, ({ db, user }) => teacherClassrooms(db, user).map((c) => classroomCard(db, c)));
 
-on("POST", "/api/teacher/classrooms", STAFF, ({ db, user, body, env, dirty }) => {
+on("POST", "/api/teacher/classrooms", TEACHING, ({ db, user, body, env, dirty }) => {
   const c: Classroom = {
     id: env.newId(),
     name: str(body?.name, "name", { max: 120 }),
@@ -1052,6 +1150,7 @@ on("POST", "/api/teacher/classrooms", STAFF, ({ db, user, body, env, dirty }) =>
     studentIds: [],
     joinCode: joinCode(),
     courseId: body?.courseId && db.courses.some((x) => x.id === body.courseId) ? body.courseId : undefined,
+    ...coopFields(body ?? {}),
     createdAt: now(),
   };
   db.classrooms.push(c);
@@ -1059,7 +1158,31 @@ on("POST", "/api/teacher/classrooms", STAFF, ({ db, user, body, env, dirty }) =>
   return classroomCard(db, c);
 });
 
-on("GET", "/api/teacher/classrooms/:id", STAFF, ({ db, user, params }) => {
+function coopFields(body: any): Partial<Classroom> {
+  const grade = (v: unknown) => (v === undefined || v === null || v === "" ? undefined : Math.max(0, Math.min(12, Math.round(Number(v)))));
+  const out: Partial<Classroom> = {};
+  if (body.description !== undefined) out.description = str(body.description, "description", { required: false, max: 2000 }) || undefined;
+  if (body.schedule !== undefined) out.schedule = str(body.schedule, "schedule", { required: false, max: 200 }) || undefined;
+  if (body.location !== undefined) out.location = str(body.location, "location", { required: false, max: 200 }) || undefined;
+  if (body.fee !== undefined) out.fee = str(body.fee, "fee", { required: false, max: 100 }) || undefined;
+  if (body.gradeMin !== undefined) out.gradeMin = grade(body.gradeMin);
+  if (body.gradeMax !== undefined) out.gradeMax = grade(body.gradeMax);
+  if (body.capacity !== undefined) out.capacity = body.capacity === "" || body.capacity === null ? undefined : Math.max(1, Math.round(Number(body.capacity))) || undefined;
+  if (body.openEnrollment !== undefined) out.openEnrollment = !!body.openEnrollment;
+  return out;
+}
+
+on("PATCH", "/api/teacher/classrooms/:id", TEACHING, ({ db, user, params, body, dirty }) => {
+  const c = ownClassroom(db, user, params.id);
+  if (body?.name !== undefined) c.name = str(body.name, "name", { max: 120 });
+  if (body?.subject !== undefined) c.subject = str(body.subject, "subject", { required: false, max: 80 });
+  if (body?.courseId !== undefined) c.courseId = body.courseId && db.courses.some((x) => x.id === body.courseId) ? body.courseId : undefined;
+  Object.assign(c, coopFields(body ?? {}));
+  dirty();
+  return classroomCard(db, c);
+});
+
+on("GET", "/api/teacher/classrooms/:id", TEACHING, ({ db, user, params }) => {
   const c = ownClassroom(db, user, params.id);
   const assignments = db.assignments
     .filter((a) => a.classroomId === c.id)
@@ -1071,18 +1194,21 @@ on("GET", "/api/teacher/classrooms/:id", STAFF, ({ db, user, params }) => {
     .map((s) => ({
       ...publicUser(s),
       summary: studentSummary(db, s.id),
-      grades: Object.fromEntries(assignments.map((a) => [a.id, assignmentStatus(db, s.id, a)])),
+      grades: Object.fromEntries(assignments.filter((a) => !a.studentIds || a.studentIds.includes(s.id)).map((a) => [a.id, assignmentStatus(db, s.id, a)])),
     }));
   return {
     classroom: classroomCard(db, c),
     students,
     assignments: assignments.map((a) => {
       const lesson = db.lessons.find((l) => l.id === a.lessonId);
-      const finished = c.studentIds.map((s) => getProgress(db, s, a.lessonId)).filter((p) => p?.isCompleted);
+      const who = targets(c, a);
+      const finished = who.map((s) => getProgress(db, s, a.lessonId)).filter((p) => p?.isCompleted);
       return {
         ...a,
         lessonTitle: lesson?.title ?? "(removed lesson)",
         categoryId: lesson?.categoryId,
+        targetCount: who.length,
+        targetNames: a.studentIds ? who.map((id) => { const u = findUser(db, id); return u ? u.firstName || u.username : ""; }) : undefined,
         completedCount: finished.length,
         averageScore: finished.length ? Math.round(finished.reduce((s, p) => s + (p!.score || 0), 0) / finished.length) : null,
       };
@@ -1090,7 +1216,7 @@ on("GET", "/api/teacher/classrooms/:id", STAFF, ({ db, user, params }) => {
   };
 });
 
-on("DELETE", "/api/teacher/classrooms/:id", STAFF, ({ db, user, params, dirty }) => {
+on("DELETE", "/api/teacher/classrooms/:id", TEACHING, ({ db, user, params, dirty }) => {
   const c = ownClassroom(db, user, params.id);
   db.classrooms = db.classrooms.filter((x) => x.id !== c.id);
   db.assignments = db.assignments.filter((a) => a.classroomId !== c.id);
@@ -1098,24 +1224,25 @@ on("DELETE", "/api/teacher/classrooms/:id", STAFF, ({ db, user, params, dirty })
   return { ok: true };
 });
 
-on("POST", "/api/teacher/classrooms/:id/students", STAFF, ({ db, user, params, body, dirty }) => {
+on("POST", "/api/teacher/classrooms/:id/students", TEACHING, ({ db, user, params, body, dirty }) => {
   const c = ownClassroom(db, user, params.id);
   const ref = str(body?.studentId ?? body?.username, "studentId", { max: 100 }).toLowerCase();
   const student = db.users.find((u) => u.role === "student" && (u.id === ref || u.username.toLowerCase() === ref));
   if (!student) fail(404, "No student with that username");
+  if (user.role === "parent" && !user.childIds.includes(student!.id)) fail(403, "Parents can only add their own children");
   if (!c.studentIds.includes(student!.id)) c.studentIds.push(student!.id);
   dirty();
   return { ok: true };
 });
 
-on("DELETE", "/api/teacher/classrooms/:id/students/:studentId", STAFF, ({ db, user, params, dirty }) => {
+on("DELETE", "/api/teacher/classrooms/:id/students/:studentId", TEACHING, ({ db, user, params, dirty }) => {
   const c = ownClassroom(db, user, params.id);
   c.studentIds = c.studentIds.filter((s) => s !== params.studentId);
   dirty();
   return { ok: true };
 });
 
-on("POST", "/api/teacher/classrooms/:id/assignments", STAFF, ({ db, user, params, body, env, dirty }) => {
+on("POST", "/api/teacher/classrooms/:id/assignments", TEACHING, ({ db, user, params, body, env, dirty }) => {
   const c = ownClassroom(db, user, params.id);
   const lesson = findLesson(db, str(body?.lessonId, "lessonId", { max: 100 }));
   const due = new Date(str(body?.dueDate, "dueDate", { max: 40 }));
@@ -1126,6 +1253,7 @@ on("POST", "/api/teacher/classrooms/:id/assignments", STAFF, ({ db, user, params
     lessonId: lesson.id,
     dueDate: due.toISOString(),
     note: str(body?.note, "note", { required: false, max: 1000 }) || undefined,
+    studentIds: pickStudents(c, body?.studentIds),
     assignedBy: user.id,
     createdAt: now(),
   };
@@ -1135,7 +1263,7 @@ on("POST", "/api/teacher/classrooms/:id/assignments", STAFF, ({ db, user, params
   return a;
 });
 
-on("DELETE", "/api/teacher/assignments/:id", STAFF, ({ db, user, params, dirty }) => {
+on("DELETE", "/api/teacher/assignments/:id", TEACHING, ({ db, user, params, dirty }) => {
   const a = db.assignments.find((x) => x.id === params.id) ?? fail(404, "Assignment not found");
   ownClassroom(db, user, a.classroomId);
   db.assignments = db.assignments.filter((x) => x.id !== a.id);
@@ -1143,13 +1271,13 @@ on("DELETE", "/api/teacher/assignments/:id", STAFF, ({ db, user, params, dirty }
   return { ok: true };
 });
 
-on("GET", "/api/teacher/students", STAFF, ({ db }) =>
+on("GET", "/api/teacher/students", TEACHING, ({ db, user }) =>
   db.users
-    .filter((u) => u.role === "student" && u.active)
+    .filter((u) => u.role === "student" && u.active && (user.role !== "parent" || user.childIds.includes(u.id)))
     .map((u) => ({ id: u.id, username: u.username, name: displayName(u), gradeLevel: u.gradeLevel })),
 );
 
-on("GET", "/api/teacher/submissions", STAFF, ({ db, user }) => {
+on("GET", "/api/teacher/submissions", TEACHING, ({ db, user }) => {
   const students = visibleStudentIds(db, user);
   return db.submissions
     .filter((s) => students.has(s.userId))
@@ -1157,7 +1285,7 @@ on("GET", "/api/teacher/submissions", STAFF, ({ db, user }) => {
     .sort((a, b) => (a.status === b.status ? b.submittedAt.localeCompare(a.submittedAt) : a.status === "pending" ? -1 : 1));
 });
 
-on("POST", "/api/teacher/submissions/:id/review", STAFF, ({ db, user, params, body, env, dirty }) => {
+on("POST", "/api/teacher/submissions/:id/review", TEACHING, ({ db, user, params, body, env, dirty }) => {
   const s = db.submissions.find((x) => x.id === params.id) ?? fail(404, "Submission not found");
   if (!visibleStudentIds(db, user).has(s.userId)) fail(403, "This student isn't in your classes");
   const score = Math.round(Number(body?.score));
@@ -1172,6 +1300,377 @@ on("POST", "/api/teacher/submissions/:id/review", STAFF, ({ db, user, params, bo
   log(db, env, { type: "submission_reviewed", actorId: user.id, studentId: s.userId, lessonId: s.lessonId, message: `reviewed a written response (${score}%)` });
   dirty();
   return submissionView(db, s);
+});
+
+// ---- homeschool family
+
+function newStudentAccount(db: Database, env: ApiEnv, body: any): Promise<User> {
+  return (async () => {
+    const username = str(body?.username, "username", { max: 50 }).toLowerCase();
+    if (!/^[a-z0-9._-]{3,50}$/.test(username)) fail(400, "Username must be 3+ letters, numbers, dots, dashes or underscores");
+    if (db.users.some((u) => u.username.toLowerCase() === username)) fail(409, "That username is taken");
+    const password = str(body?.password, "password", { max: 200 });
+    if (password.length < 6) fail(400, "Password must be at least 6 characters");
+    return {
+      id: env.newId(),
+      username,
+      passwordHash: await env.hashPassword(password),
+      firstName: str(body?.firstName, "firstName", { max: 80 }),
+      lastName: str(body?.lastName, "lastName", { required: false, max: 80 }),
+      email: str(body?.email, "email", { required: false, max: 200 }),
+      role: "student" as Role,
+      childIds: [],
+      gradeLevel: str(body?.gradeLevel, "gradeLevel", { required: false, max: 40 }) || undefined,
+      birthDate: str(body?.birthDate, "birthDate", { required: false, max: 10 }) || undefined,
+      active: true,
+      sessionVersion: 1,
+      createdAt: now(),
+    };
+  })();
+}
+
+function familyView(db: Database, env: ApiEnv, user: User) {
+  const parents = coParents(db, user);
+  const familyClass = user.childIds.length ? db.classrooms.find((c) => c.isFamily && parents.some((p) => p.id === c.teacherId)) : undefined;
+  return {
+    settings: user.family ?? defaultFamily(user),
+    parents: parents.map((p) => ({ id: p.id, name: displayName(p), username: p.username, email: p.email })),
+    familyClassId: familyClass?.id ?? null,
+    children: user.childIds
+      .map((id) => findUser(db, id))
+      .filter((c): c is User => !!c)
+      .map((c) => ({ ...publicUser(c), summary: studentSummary(db, c.id), courses: enrolledCourses(db, c.id) })),
+  };
+}
+
+/** Courses a student has assignments from, with progress. */
+function enrolledCourses(db: Database, studentId: string) {
+  const lessonIds = new Set(assignmentsForStudent(db, studentId).map((a) => a.lessonId));
+  return db.courses
+    .filter((c) => c.units.some((u) => u.lessonIds.some((id) => lessonIds.has(id))))
+    .map((c) => {
+      const ids = c.units.flatMap((u) => u.lessonIds).filter((id) => db.lessons.some((l) => l.id === id && l.isActive));
+      return { id: c.id, title: c.title, subject: c.subject, lessonCount: ids.length, completedCount: ids.filter((id) => getProgress(db, studentId, id)?.isCompleted).length };
+    });
+}
+
+on("GET", "/api/family", FAMILY, ({ db, user, env }) => familyView(db, env, user));
+
+on("PUT", "/api/family/settings", FAMILY, ({ db, user, body, dirty }) => {
+  const num = (v: unknown) => (v === undefined || v === null || v === "" ? undefined : Math.max(0, Math.round(Number(v))) || undefined);
+  const start = str(body?.schoolYearStart, "schoolYearStart", { required: false, max: 5 }) || "08-01";
+  if (!/^\d{2}-\d{2}$/.test(start)) fail(400, "schoolYearStart must look like 08-01");
+  const settings: FamilySettings = {
+    schoolName: str(body?.schoolName, "schoolName", { max: 120 }),
+    state: str(body?.state, "state", { required: false, max: 60 }) || undefined,
+    requiredDays: num(body?.requiredDays),
+    requiredHours: num(body?.requiredHours),
+    schoolYearStart: start,
+  };
+  for (const p of coParents(db, user)) p.family = settings;
+  const fc = db.classrooms.find((c) => c.isFamily && coParents(db, user).some((p) => p.id === c.teacherId));
+  if (fc) fc.name = settings.schoolName;
+  dirty();
+  return settings;
+});
+
+on("POST", "/api/family/children", FAMILY, async ({ db, user, body, env, dirty }) => {
+  const child = await newStudentAccount(db, env, body);
+  if (!child.lastName) child.lastName = user.lastName;
+  db.users.push(child);
+  for (const p of coParents(db, user)) if (!p.childIds.includes(child.id)) p.childIds.push(child.id);
+  if (!user.family) user.family = defaultFamily(user);
+  ensureFamilyClass(db, env, user);
+  dirty();
+  return publicUser(child);
+});
+
+on("PATCH", "/api/family/children/:id", FAMILY, async ({ db, user, params, body, env, dirty }) => {
+  if (!user.childIds.includes(params.id)) fail(403, "That isn't one of your children");
+  const child = findUser(db, params.id) ?? fail(404, "Child not found");
+  if (body?.firstName !== undefined) child.firstName = str(body.firstName, "firstName", { max: 80 });
+  if (body?.lastName !== undefined) child.lastName = str(body.lastName, "lastName", { required: false, max: 80 });
+  if (body?.gradeLevel !== undefined) child.gradeLevel = str(body.gradeLevel, "gradeLevel", { required: false, max: 40 }) || undefined;
+  if (body?.birthDate !== undefined) child.birthDate = str(body.birthDate, "birthDate", { required: false, max: 10 }) || undefined;
+  if (body?.password) {
+    const pw = str(body.password, "password", { max: 200 });
+    if (pw.length < 6) fail(400, "Password must be at least 6 characters");
+    child.passwordHash = await env.hashPassword(pw);
+    child.sessionVersion += 1;
+  }
+  dirty();
+  return publicUser(child);
+});
+
+on("POST", "/api/family/parents", FAMILY, async ({ db, user, body, env, dirty }) => {
+  const username = str(body?.username, "username", { max: 50 }).toLowerCase();
+  if (!/^[a-z0-9._-]{3,50}$/.test(username)) fail(400, "Username must be 3+ letters, numbers, dots, dashes or underscores");
+  if (db.users.some((u) => u.username.toLowerCase() === username)) fail(409, "That username is taken");
+  const password = str(body?.password, "password", { max: 200 });
+  if (password.length < 8) fail(400, "Password must be at least 8 characters");
+  const parent: User = {
+    id: env.newId(),
+    username,
+    passwordHash: await env.hashPassword(password),
+    firstName: str(body?.firstName, "firstName", { max: 80 }),
+    lastName: str(body?.lastName, "lastName", { required: false, max: 80 }) || user.lastName,
+    email: str(body?.email, "email", { required: false, max: 200 }),
+    role: "parent",
+    childIds: [...user.childIds],
+    family: user.family ?? defaultFamily(user),
+    active: true,
+    sessionVersion: 1,
+    createdAt: now(),
+  };
+  db.users.push(parent);
+  dirty();
+  return publicUser(parent);
+});
+
+/** Families and co-op teachers can add a child's work and records; students can view their own. */
+function assertCanRecord(db: Database, user: User, studentId: string) {
+  const student = assertCanViewStudent(db, user, studentId);
+  if (user.role === "student") fail(403, "Ask a parent or teacher to update records");
+  return student;
+}
+
+// ---- attendance
+
+on("GET", "/api/students/:id/attendance", ALL, ({ db, user, params }) => {
+  const student = assertCanViewStudent(db, user, params.id);
+  const family = familyFor(db, student.id) ?? { schoolName: db.organizationName, schoolYearStart: "08-01", requiredDays: 180 };
+  const entries = db.attendance.filter((a) => a.studentId === student.id).sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));
+  const years = Array.from(new Set(entries.map((e) => schoolYearOf(e.date, family.schoolYearStart)).concat(schoolYearOf(now(), family.schoolYearStart)))).sort().reverse();
+  return {
+    student: publicUser(student),
+    settings: family,
+    years,
+    entries: entries.map((e) => ({ ...e, lessonTitle: e.lessonId ? db.lessons.find((l) => l.id === e.lessonId)?.title : undefined })),
+  };
+});
+
+on("POST", "/api/students/:id/attendance", ALL, ({ db, user, params, body, env, dirty }) => {
+  const student = assertCanRecord(db, user, params.id);
+  const date = str(body?.date, "date", { max: 10 });
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) fail(400, "date must look like 2026-09-14");
+  const minutes = Math.round(Number(body?.minutes));
+  if (!(minutes > 0 && minutes <= 720)) fail(400, "minutes must be between 1 and 720");
+  const entry: AttendanceEntry = {
+    id: env.newId(),
+    studentId: student.id,
+    date,
+    minutes,
+    subject: str(body?.subject, "subject", { max: 60 }),
+    note: str(body?.note, "note", { required: false, max: 500 }) || undefined,
+    source: "manual",
+    loggedBy: user.id,
+    createdAt: now(),
+  };
+  db.attendance.push(entry);
+  dirty();
+  return entry;
+});
+
+on("DELETE", "/api/attendance/:id", ALL, ({ db, user, params, dirty }) => {
+  const e = db.attendance.find((x) => x.id === params.id) ?? fail(404, "Entry not found");
+  assertCanRecord(db, user, e.studentId);
+  db.attendance = db.attendance.filter((x) => x.id !== e.id);
+  dirty();
+  return { ok: true };
+});
+
+// ---- transcripts
+
+function transcriptView(db: Database, student: User) {
+  const entries = db.transcripts.filter((t) => t.studentId === student.id).sort((a, b) => a.gradeLevel - b.gradeLevel || a.courseTitle.localeCompare(b.courseTitle));
+  const graded = entries.filter((e) => e.grade in gradePoints);
+  const points = graded.reduce((n, e) => n + gradePoints[e.grade] * e.credits, 0);
+  const gpaCredits = graded.reduce((n, e) => n + e.credits, 0);
+  const listed = new Set(entries.map((e) => e.courseId).filter(Boolean));
+  // High school courses with progress that aren't on the transcript yet.
+  const suggestions = db.courses
+    .filter((c) => c.gradeLevel >= 9 && !listed.has(c.id))
+    .map((c) => {
+      const ids = c.units.flatMap((u) => u.lessonIds);
+      const done = ids.map((id) => getProgress(db, student.id, id)).filter((p) => p?.isCompleted);
+      if (done.length === 0) return null;
+      const avg = Math.round(done.reduce((n, p) => n + (p!.score || 0), 0) / done.length);
+      return { courseId: c.id, courseTitle: c.title, subject: c.subject, completion: Math.round((done.length / ids.length) * 100), averageScore: avg, suggestedGrade: letterGrade(avg), suggestedCredits: 1 };
+    })
+    .filter(Boolean);
+  return {
+    student: publicUser(student),
+    school: familyFor(db, student.id)?.schoolName ?? db.organizationName,
+    entries,
+    totalCredits: entries.filter((e) => e.grade !== "F").reduce((n, e) => n + e.credits, 0),
+    gpa: gpaCredits ? Math.round((points / gpaCredits) * 100) / 100 : null,
+    suggestions,
+  };
+}
+
+function transcriptFields(db: Database, body: any) {
+  const grade = Math.round(Number(body?.gradeLevel));
+  if (!(grade >= 9 && grade <= 12)) fail(400, "gradeLevel must be 9–12");
+  const credits = Number(body?.credits);
+  if (!(credits > 0 && credits <= 3)) fail(400, "credits must be between 0.25 and 3");
+  const letter = str(body?.grade, "grade", { max: 3 }).toUpperCase();
+  if (!(letter in gradePoints) && letter !== "P") fail(400, "grade must be a letter grade (A–F) or P");
+  return {
+    courseTitle: str(body?.courseTitle, "courseTitle", { max: 200 }),
+    subject: str(body?.subject, "subject", { max: 60 }),
+    gradeLevel: grade,
+    schoolYear: str(body?.schoolYear, "schoolYear", { max: 20 }),
+    credits: Math.round(credits * 100) / 100,
+    grade: letter,
+    courseId: body?.courseId && db.courses.some((c) => c.id === body.courseId) ? String(body.courseId) : undefined,
+    notes: str(body?.notes, "notes", { required: false, max: 500 }) || undefined,
+  };
+}
+
+on("GET", "/api/students/:id/transcript", ALL, ({ db, user, params }) => transcriptView(db, assertCanViewStudent(db, user, params.id)));
+
+on("POST", "/api/students/:id/transcript", FAMILY, ({ db, user, params, body, env, dirty }) => {
+  const student = assertCanRecord(db, user, params.id);
+  db.transcripts.push({ id: env.newId(), studentId: student.id, ...transcriptFields(db, body), createdAt: now() });
+  dirty();
+  return transcriptView(db, student);
+});
+
+on("PUT", "/api/transcript/:id", FAMILY, ({ db, user, params, body, dirty }) => {
+  const t = db.transcripts.find((x) => x.id === params.id) ?? fail(404, "Entry not found");
+  const student = assertCanRecord(db, user, t.studentId);
+  Object.assign(t, transcriptFields(db, body));
+  dirty();
+  return transcriptView(db, student);
+});
+
+on("DELETE", "/api/transcript/:id", FAMILY, ({ db, user, params, dirty }) => {
+  const t = db.transcripts.find((x) => x.id === params.id) ?? fail(404, "Entry not found");
+  const student = assertCanRecord(db, user, t.studentId);
+  db.transcripts = db.transcripts.filter((x) => x.id !== t.id);
+  dirty();
+  return transcriptView(db, student);
+});
+
+// ---- portfolio
+
+on("GET", "/api/students/:id/portfolio", ALL, ({ db, user, params }) => {
+  const student = assertCanViewStudent(db, user, params.id);
+  return db.portfolio.filter((p) => p.studentId === student.id).sort((a, b) => b.date.localeCompare(a.date));
+});
+
+on("POST", "/api/students/:id/portfolio", ALL, ({ db, user, params, body, env, dirty }) => {
+  const student = assertCanRecord(db, user, params.id);
+  const link = str(body?.link, "link", { required: false, max: 500 });
+  if (link && !/^https?:\/\//i.test(link)) fail(400, "Links must start with http:// or https://");
+  const item = {
+    id: env.newId(),
+    studentId: student.id,
+    title: str(body?.title, "title", { max: 200 }),
+    date: str(body?.date, "date", { max: 10 }),
+    subject: str(body?.subject, "subject", { max: 60 }),
+    description: str(body?.description, "description", { required: false, max: 4000 }),
+    link: link || undefined,
+    createdBy: user.id,
+    createdAt: now(),
+  };
+  db.portfolio.push(item);
+  dirty();
+  return item;
+});
+
+on("DELETE", "/api/portfolio/:id", ALL, ({ db, user, params, dirty }) => {
+  const item = db.portfolio.find((x) => x.id === params.id) ?? fail(404, "Item not found");
+  assertCanRecord(db, user, item.studentId);
+  db.portfolio = db.portfolio.filter((x) => x.id !== item.id);
+  dirty();
+  return { ok: true };
+});
+
+// ---- co-op classes and calendar
+
+on("GET", "/api/coop/classes", ALL, ({ db, user }) =>
+  db.classrooms
+    .filter((c) => c.openEnrollment && !c.isFamily)
+    .map((c) => {
+      const t = findUser(db, c.teacherId);
+      return {
+        id: c.id,
+        name: c.name,
+        subject: c.subject,
+        description: c.description,
+        schedule: c.schedule,
+        location: c.location,
+        gradeMin: c.gradeMin,
+        gradeMax: c.gradeMax,
+        fee: c.fee,
+        capacity: c.capacity,
+        enrolled: c.studentIds.length,
+        seatsLeft: c.capacity ? Math.max(0, c.capacity - c.studentIds.length) : null,
+        teacherName: t ? displayName(t) : "",
+        courseTitle: c.courseId ? db.courses.find((x) => x.id === c.courseId)?.title : undefined,
+        myChildren: user.childIds.filter((id) => c.studentIds.includes(id)),
+      };
+    }),
+);
+
+on("POST", "/api/coop/classes/:id/enroll", ["parent", "admin"], ({ db, user, params, body, env, dirty }) => {
+  const c = db.classrooms.find((x) => x.id === params.id && x.openEnrollment) ?? fail(404, "Class not found or not open for enrollment");
+  const studentId = str(body?.studentId, "studentId", { max: 100 });
+  if (user.role !== "admin" && !user.childIds.includes(studentId)) fail(403, "You can only enroll your own children");
+  const child = findUser(db, studentId) ?? fail(404, "Student not found");
+  if (c.studentIds.includes(studentId)) return { ok: true };
+  if (c.capacity && c.studentIds.length >= c.capacity) fail(409, "This class is full");
+  const grade = parseGrade(child.gradeLevel);
+  if (grade !== undefined && ((c.gradeMin !== undefined && grade < c.gradeMin) || (c.gradeMax !== undefined && grade > c.gradeMax))) {
+    fail(400, `${child.firstName} is outside this class's grade range`);
+  }
+  c.studentIds.push(studentId);
+  log(db, env, { type: "note_added", actorId: user.id, studentId, classroomId: c.id, message: `enrolled ${child.firstName} in ${c.name}` });
+  dirty();
+  return { ok: true };
+});
+
+on("DELETE", "/api/coop/classes/:id/enroll/:studentId", ["parent", "admin"], ({ db, user, params, dirty }) => {
+  const c = db.classrooms.find((x) => x.id === params.id) ?? fail(404, "Class not found");
+  if (user.role !== "admin" && !user.childIds.includes(params.studentId)) fail(403, "You can only withdraw your own children");
+  c.studentIds = c.studentIds.filter((s) => s !== params.studentId);
+  dirty();
+  return { ok: true };
+});
+
+on("GET", "/api/events", ALL, ({ db }) => [...db.events].sort((a, b) => a.date.localeCompare(b.date) || (a.startTime ?? "").localeCompare(b.startTime ?? "")));
+
+on("POST", "/api/events", STAFF, ({ db, user, body, env, dirty }) => {
+  const date = str(body?.date, "date", { max: 10 });
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) fail(400, "date must look like 2026-09-14");
+  const time = (v: unknown, f: string) => {
+    const t = str(v, f, { required: false, max: 5 });
+    if (t && !/^\d{2}:\d{2}$/.test(t)) fail(400, `${f} must look like 09:30`);
+    return t || undefined;
+  };
+  const ev = {
+    id: env.newId(),
+    title: str(body?.title, "title", { max: 200 }),
+    date,
+    startTime: time(body?.startTime, "startTime"),
+    endTime: time(body?.endTime, "endTime"),
+    location: str(body?.location, "location", { required: false, max: 200 }) || undefined,
+    description: str(body?.description, "description", { required: false, max: 2000 }) || undefined,
+    createdBy: user.id,
+    createdAt: now(),
+  };
+  db.events.push(ev);
+  dirty();
+  return ev;
+});
+
+on("DELETE", "/api/events/:id", STAFF, ({ db, user, params, dirty }) => {
+  const ev = db.events.find((x) => x.id === params.id) ?? fail(404, "Event not found");
+  if (user.role !== "admin" && ev.createdBy !== user.id) fail(403, "Only the organizer or an admin can delete this event");
+  db.events = db.events.filter((x) => x.id !== ev.id);
+  dirty();
+  return { ok: true };
 });
 
 // ---- admin

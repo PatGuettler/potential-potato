@@ -3,6 +3,7 @@ import { Link, useParams } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/AppShell";
 import { CourseDialog } from "@/components/CourseDialog";
+import { PlanCourseDialog } from "@/components/PlanCourseDialog";
 import { EmptyState, Loading, ProgressBar, StatusBadge } from "@/components/widgets";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -74,7 +75,9 @@ export default function CourseDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const staff = user?.role === "teacher" || user?.role === "admin";
+  const isParent = user?.role === "parent";
   const isStudent = user?.role === "student";
+  const [planning, setPlanning] = useState<{ unitId?: string; count: number } | null>(null);
   const { data: course, isLoading, error } = useQuery<Detail>({ queryKey: ["/api/courses", id] });
   const [editing, setEditing] = useState(false);
   const [assigning, setAssigning] = useState<CourseUnit | null>(null);
@@ -89,7 +92,12 @@ export default function CourseDetail() {
     <AppShell
       title={course.title}
       subtitle={[gradeLabel(course.gradeLevel, course.gradeLevelMax), course.framework].filter(Boolean).join(" · ")}
-      actions={canEdit && <Button size="sm" variant="outline" onClick={() => setEditing(true)} data-testid="edit-course">Edit course</Button>}
+      actions={
+        <>
+          {isParent && <Button size="sm" onClick={() => setPlanning({ count: course.lessonCount })} data-testid="add-to-plan"><i className="fas fa-calendar-plus mr-2" />Add to my child's plan</Button>}
+          {canEdit && <Button size="sm" variant="outline" onClick={() => setEditing(true)} data-testid="edit-course">Edit course</Button>}
+        </>
+      }
     >
       <Card className="overflow-hidden">
         <div className={`h-2 bg-gradient-to-r ${s.gradient}`} />
@@ -120,6 +128,9 @@ export default function CourseDetail() {
               <CardTitle className="text-base">{unit.title}</CardTitle>
               {unit.description && <p className="text-sm text-muted-foreground mt-1">{unit.description}</p>}
             </div>
+            {isParent && unit.lessonIds.length > 0 && (
+              <Button size="sm" variant="outline" className="shrink-0" onClick={() => setPlanning({ unitId: unit.id, count: unit.lessonIds.length })}><i className="fas fa-calendar-plus mr-2" />Plan this unit</Button>
+            )}
             {staff && (
               <div className="flex gap-1 shrink-0">
                 {unit.lessonIds.length > 0 && (
@@ -162,6 +173,7 @@ export default function CourseDetail() {
 
       {editing && <CourseDialog open={editing} onOpenChange={setEditing} course={course} />}
       {assigning && <AssignUnitDialog course={course} unit={assigning} onClose={() => setAssigning(null)} />}
+      {planning && <PlanCourseDialog courseId={course.id} courseTitle={planning.unitId ? course.units.find((u) => u.id === planning.unitId)!.title : course.title} lessonCount={planning.count} unitId={planning.unitId} onClose={() => setPlanning(null)} />}
     </AppShell>
   );
 }

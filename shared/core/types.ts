@@ -21,6 +21,10 @@ export interface User {
   childIds: string[];
   /** Students only: free-form grade label, e.g. "Grade 7". */
   gradeLevel?: string;
+  /** Students only: birth date (YYYY-MM-DD), used on transcripts and co-op age ranges. */
+  birthDate?: string;
+  /** Parents only: their home school's records settings, shared with co-parents. */
+  family?: FamilySettings;
   active: boolean;
   /** Bumped on password change or deactivation; sessions carrying an older value are rejected. */
   sessionVersion: number;
@@ -29,6 +33,19 @@ export interface User {
 }
 
 export type PublicUser = Omit<User, "passwordHash" | "sessionVersion">;
+
+export interface FamilySettings {
+  /** e.g. "Johnson Family Academy", printed on transcripts and portfolios. */
+  schoolName: string;
+  /** e.g. "Ohio", for the records page's reminder of local rules. */
+  state?: string;
+  /** Instructional days required per school year (many states use 180). */
+  requiredDays?: number;
+  /** Instructional hours required per school year, if your state counts hours. */
+  requiredHours?: number;
+  /** Month-day the school year starts, e.g. "08-01". */
+  schoolYearStart: string;
+}
 
 export interface PasswordReset {
   /** SHA-256 of the token; the token itself only ever exists in the emailed link. */
@@ -186,6 +203,19 @@ export interface Classroom {
   joinCode: string;
   /** The course this class follows, if any. */
   courseId?: string;
+  /** Co-op details shown to families browsing classes. */
+  description?: string;
+  schedule?: string;
+  location?: string;
+  gradeMin?: number;
+  gradeMax?: number;
+  capacity?: number;
+  /** Free text, e.g. "$40/semester", shown to families. */
+  fee?: string;
+  /** Families can enroll their own children. */
+  openEnrollment?: boolean;
+  /** A home-school "class" a parent runs for their own children. */
+  isFamily?: boolean;
   createdAt: string;
 }
 
@@ -195,6 +225,8 @@ export interface Assignment {
   lessonId: string;
   dueDate: string;
   note?: string;
+  /** If set, only these students in the class get the assignment (e.g. one child in a family). */
+  studentIds?: string[];
   assignedBy: string;
   createdAt: string;
 }
@@ -251,6 +283,64 @@ export interface Activity {
   createdAt: string;
 }
 
+/** Minutes of learning on a day. Logged automatically from lessons, or by hand by a parent or teacher. */
+export interface AttendanceEntry {
+  id: string;
+  studentId: string;
+  /** YYYY-MM-DD */
+  date: string;
+  minutes: number;
+  /** A category id (mathematics, science…) or a free-text subject like "Reading" or "Field trip". */
+  subject: string;
+  note?: string;
+  lessonId?: string;
+  source: "auto" | "manual";
+  loggedBy: string;
+  createdAt: string;
+}
+
+export interface TranscriptEntry {
+  id: string;
+  studentId: string;
+  courseTitle: string;
+  subject: string;
+  /** 9–12 */
+  gradeLevel: number;
+  /** e.g. "2026–2027" */
+  schoolYear: string;
+  credits: number;
+  /** A, A-, B+, … F, or P (pass). */
+  grade: string;
+  courseId?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface PortfolioItem {
+  id: string;
+  studentId: string;
+  title: string;
+  date: string;
+  subject: string;
+  description: string;
+  link?: string;
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  /** YYYY-MM-DD */
+  date: string;
+  startTime?: string;
+  endTime?: string;
+  location?: string;
+  description?: string;
+  createdBy: string;
+  createdAt: string;
+}
+
 export interface Database {
   version: number;
   organizationName: string;
@@ -267,9 +357,31 @@ export interface Database {
   activity: Activity[];
   passwordResets: PasswordReset[];
   courses: Course[];
+  attendance: AttendanceEntry[];
+  transcripts: TranscriptEntry[];
+  portfolio: PortfolioItem[];
+  events: CalendarEvent[];
 }
 
-export const DB_VERSION = 4;
+export const DB_VERSION = 5;
+
+/** US-style 4.0 scale. P (pass) counts toward credits but not GPA. */
+export const gradePoints: Record<string, number> = {
+  "A+": 4, A: 4, "A-": 3.7, "B+": 3.3, B: 3, "B-": 2.7, "C+": 2.3, C: 2, "C-": 1.7, "D+": 1.3, D: 1, "D-": 0.7, F: 0,
+};
+
+export function letterGrade(percent: number): string {
+  const cut: [number, string][] = [[97, "A+"], [93, "A"], [90, "A-"], [87, "B+"], [83, "B"], [80, "B-"], [77, "C+"], [73, "C"], [70, "C-"], [67, "D+"], [63, "D"], [60, "D-"]];
+  return cut.find(([min]) => percent >= min)?.[1] ?? "F";
+}
+
+/** "2026–2027" for a date, given the month-day the school year starts. */
+export function schoolYearOf(dateIso: string, start = "08-01"): string {
+  const d = dateIso.slice(0, 10);
+  const year = Number(d.slice(0, 4));
+  const first = d.slice(5) >= start ? year : year - 1;
+  return `${first}–${first + 1}`;
+}
 
 /** Upgrades a database saved by an older release in place. */
 export function migrateDatabase(db: Database): Database {
@@ -278,6 +390,12 @@ export function migrateDatabase(db: Database): Database {
     for (const u of db.users) u.sessionVersion = u.sessionVersion ?? 1;
   }
   if (db.version < 4) db.courses = db.courses ?? [];
+  if (db.version < 5) {
+    db.attendance = db.attendance ?? [];
+    db.transcripts = db.transcripts ?? [];
+    db.portfolio = db.portfolio ?? [];
+    db.events = db.events ?? [];
+  }
   db.version = DB_VERSION;
   return db;
 }
