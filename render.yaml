@@ -1,0 +1,25 @@
+# One-click deploy on Render's free plan: Dashboard → New → Blueprint → pick this repo.
+# Pair it with a free Postgres from Neon (neon.tech) and paste its connection string as DATABASE_URL.
+services:
+  - type: web
+    name: stem-academy
+    runtime: node
+    plan: free
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/org
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "20"
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: SMTP_URL
+        sync: false
+      - key: MAIL_FROM
+        sync: false

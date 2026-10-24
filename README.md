@@ -19,6 +19,8 @@ Every demo account uses the password **`demo1234`**. The login screen also has o
 
 Demo data is saved in your browser's localStorage. Use **Reset demo data** in the yellow banner to start over.
 
+Presenting it? Follow the 10-minute script in [docs/DEMO.md](docs/DEMO.md).
+
 ## What each role gets
 
 - **Students:** a dashboard with assignments and due dates (overdue ones flagged), lessons in progress, and per-subject progress. Lessons have reading material, auto-graded quizzes (multiple choice, number, text, code), and optional written responses. Students can join a class with a code.
@@ -70,6 +72,17 @@ Run it behind HTTPS (for example Caddy or nginx).
 - **JSON file (zero setup):** without `DATABASE_URL`, data lives in `data/db.json`, written atomically. Fine for one server and a group of a few hundred people.
 
 Sessions are signed cookies, so nobody is logged out when the server restarts or you add servers. Changing a password, resetting it, or deactivating an account signs that person out everywhere.
+
+#### Free hosting ($0/month)
+
+| Piece | Free option | Notes |
+|---|---|---|
+| Demo site | GitHub Pages | Already set up: deploys on every push to `main` |
+| App server | [Render](https://render.com) free web service | Use the included `render.yaml` blueprint. Sleeps after 15 min idle, so the first visit after that takes about 30 to 60 s |
+| Database | [Neon](https://neon.tech) free Postgres | 0.5 GB, far more than a school needs. Doesn't pause your data |
+| Email (optional) | [Brevo](https://brevo.com) free SMTP (300/day) or Gmail SMTP with an app password | Without it, admins hand out reset links |
+
+Steps: create a Neon project and copy the connection string. On Render, choose **New → Blueprint**, pick this repo, and paste `DATABASE_URL` and `APP_URL` (your `onrender.com` URL). `SESSION_SECRET` is generated for you.
 
 #### Example: Supabase or Neon + Render
 
